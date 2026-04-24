@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { json, redirect } from 'react-router';
+import { redirect } from 'react-router';
 import type { Route } from './+types/countries';
 import { Globe, Plus, Mail } from 'lucide-react';
 import { Button, Card, Badge } from '~/components/ui';
@@ -28,7 +28,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     ]
   };
 
-  return json({ userData });
+  return { userData };
 }
 
 export default function CountriesPage({ loaderData }: Route.ComponentProps) {

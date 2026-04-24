@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { json, redirect } from 'react-router';
+import { redirect, useNavigate } from 'react-router';
 import type { Route } from './+types/design-system';
 import { Palette, Type, Box, CheckCircle2, Copy, ArrowRight } from 'lucide-react';
 import { Button, Card, Input, Textarea } from '~/components/ui';
+import AppSidebar from "../../src/components/shared/AppSidebar";
+import Navbar from "../../src/components/shared/Navbar";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
@@ -16,11 +18,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   const userData = {
     user: { 
       name: role === 'super_admin' ? "Super Admin" : role === 'country_admin' ? "Country Admin" : "Company Admin", 
+      email: role === 'super_admin' ? "admin@ealthiness.com" : role === 'country_admin' ? "country.admin@ealthiness.com" : "company.admin@ealthiness.com",
       role 
     }
   };
 
-  return json({ userData });
+  return { userData };
 }
 
 const DS_COLORS = {
@@ -56,12 +59,38 @@ const CopyButton = ({ text }: { text: string }) => {
   );
 };
 
-export default function DesignSystemPage() {
+export default function DesignSystemPage({ loaderData }: Route.ComponentProps) {
+  const { userData } = loaderData;
+  const navigate = useNavigate();
+  const [refreshing, setRefreshing] = useState(false);
   const [dsTab, setDsTab] = useState('colors');
 
+  const handleRefresh = () => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1500);
+  };
+
+  const handleLogout = () => {
+    navigate("/login");
+  };
+
   return (
-    <div className="min-h-screen bg-[#F8F9FB] font-sans">
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl p-8">
+    <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <AppSidebar
+        user={userData.user}
+        role={userData.user.role}
+      />
+
+      <div className="flex-1 flex flex-col">
+        <Navbar
+          user={userData.user}
+          onLogout={handleLogout}
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
+        />
+
+        <div className="flex-1 p-6">
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl">
         <div className="mb-8 border-b border-[#E0E1E6] pb-6 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">
@@ -258,6 +287,8 @@ export default function DesignSystemPage() {
             </div>
           </div>
         )}
+          </div>
+        </div>
       </div>
     </div>
   );

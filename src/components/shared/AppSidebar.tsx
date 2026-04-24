@@ -1,9 +1,14 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router';
-import { 
-  LayoutGrid, Globe, Building2, Users, Palette, 
-  HeartPulse, Settings
-} from 'lucide-react';
+import React from "react";
+import { Link, useLocation } from "react-router";
+import {
+  LayoutGrid,
+  Globe,
+  Building2,
+  Users,
+  Palette,
+  HeartPulse,
+  Settings,
+} from "lucide-react";
 
 interface User {
   name: string;
@@ -11,7 +16,7 @@ interface User {
   role: string;
 }
 
-interface SidebarProps {
+interface AppSidebarProps {
   user: User;
   role: string;
 }
@@ -24,78 +29,84 @@ interface NavItem {
   path: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ user, role }) => {
+const AppSidebar: React.FC<AppSidebarProps> = ({ user, role }) => {
   const location = useLocation();
-  
+
   const handleLogout = () => {
-    window.location.href = '/login';
+    window.location.href = "/login";
   };
 
   const getRoleDisplayName = (role: string) => {
     switch (role) {
-      case 'super_admin': return 'Global Admin';
-      case 'country_admin': return 'Country Admin';
-      case 'company_admin': return 'Company Admin';
-      default: return 'Admin';
+      case "super_admin":
+        return "Global Admin";
+      case "country_admin":
+        return "Country Admin";
+      case "company_admin":
+        return "Company Admin";
+      default:
+        return "Admin";
     }
   };
 
   const navItems: NavItem[] = [
     {
-      id: 'dashboard',
-      label: 'Overview',
+      id: "dashboard",
+      label: "Overview",
       icon: LayoutGrid,
-      roles: ['super_admin', 'country_admin', 'company_admin'],
-      path: `/home?role=${role}`
+      roles: ["super_admin", "country_admin", "company_admin"],
+      path: `/?role=${role}`,
     },
     {
-      id: 'countries',
-      label: 'Regions & Countries',
+      id: "countries",
+      label: "Regions & Countries",
       icon: Globe,
-      roles: ['super_admin'],
-      path: `/countries?role=${role}`
+      roles: ["super_admin"],
+      path: `/countries?role=${role}`,
     },
     {
-      id: 'companies',
-      label: 'Companies',
+      id: "companies",
+      label: "Companies",
       icon: Building2,
-      roles: ['super_admin', 'country_admin'],
-      path: `/companies?role=${role}`
+      roles: ["super_admin", "country_admin"],
+      path: `/companies?role=${role}`,
     },
     {
-      id: 'customers',
-      label: role === 'company_admin' ? 'My Users' : 'All Users',
+      id: "customers",
+      label: role === "company_admin" ? "My Users" : "All Users",
       icon: Users,
-      roles: ['super_admin', 'country_admin', 'company_admin'],
-      path: `/customers?role=${role}`
-    }
+      roles: ["super_admin", "country_admin", "company_admin"],
+      path: `/customers?role=${role}`,
+    },
   ];
 
   const brandItems: NavItem[] = [
     {
-      id: 'design_system',
-      label: 'Design System',
+      id: "design_system",
+      label: "Design System",
       icon: Palette,
-      roles: ['super_admin', 'country_admin', 'company_admin'],
-      path: `/design-system?role=${role}`
+      roles: ["super_admin", "country_admin", "company_admin"],
+      path: `/design-system?role=${role}`,
     },
     {
-      id: 'settings',
-      label: 'Settings',
+      id: "settings",
+      label: "Settings",
       icon: Settings,
-      roles: ['super_admin', 'country_admin', 'company_admin'],
-      path: `/settings?role=${role}`
-    }
+      roles: ["super_admin", "country_admin", "company_admin"],
+      path: `/settings?role=${role}`,
+    },
   ];
 
-  const filteredNavItems = navItems.filter(item => item.roles.includes(role));
-  const filteredBrandItems = brandItems.filter(item => item.roles.includes(role));
-  
+  const filteredNavItems = navItems.filter((item) => item.roles.includes(role));
+  const filteredBrandItems = brandItems.filter((item) =>
+    item.roles.includes(role),
+  );
+
   const isActiveRoute = (itemId: string, itemPath: string) => {
-    if (itemId === 'dashboard') {
-      return location.pathname === '/home' || location.pathname === '/';
+    if (itemId === "dashboard") {
+      return location.pathname === "/";
     }
-    return location.pathname === itemPath.split('?')[0];
+    return location.pathname === itemPath.split("?")[0];
   };
 
   return (
@@ -114,25 +125,25 @@ const Sidebar: React.FC<SidebarProps> = ({ user, role }) => {
           </span>
         </div>
       </div>
-      
+
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto min-h-0">
         <p className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest px-3 mb-2">
           Management
         </p>
-        
+
         {filteredNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = isActiveRoute(item.id, item.path);
-          
+
           return (
             <Link
               key={item.id}
               to={item.path}
               className={`w-full flex items-center gap-3 p-3 rounded-xl font-semibold transition ${
-                isActive 
-                  ? 'bg-[#F0F0F3] text-[#5850DE]' 
-                  : 'text-[#60646C] hover:bg-gray-50'
+                isActive
+                  ? "bg-[#F0F0F3] text-[#5850DE]"
+                  : "text-[#60646C] hover:bg-gray-50"
               }`}
             >
               <Icon size={20} />
@@ -147,26 +158,26 @@ const Sidebar: React.FC<SidebarProps> = ({ user, role }) => {
             <p className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest px-3 mb-2 mt-4">
               Brand Resources
             </p>
-            
+
             {filteredBrandItems.map((item) => {
               const Icon = item.icon;
               const isActive = isActiveRoute(item.id, item.path);
-              
+
               return (
                 <Link
                   key={item.id}
                   to={item.path}
                   className={`w-full flex items-center justify-between p-3 rounded-xl font-semibold transition ${
-                    isActive 
-                      ? 'bg-gradient-to-r from-[#5850DE] to-[#248FEC] text-white shadow-md' 
-                      : 'text-[#60646C] hover:bg-gray-50'
+                    isActive
+                      ? "bg-gradient-to-r from-[#5850DE] to-[#248FEC] text-white shadow-md"
+                      : "text-[#60646C] hover:bg-gray-50"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <Icon size={20} />
                     {item.label}
                   </div>
-                  {!isActive && item.id === 'design_system' && (
+                  {!isActive && item.id === "design_system" && (
                     <div className="w-2 h-2 rounded-full bg-[#248FEC]"></div>
                   )}
                 </Link>
@@ -178,7 +189,7 @@ const Sidebar: React.FC<SidebarProps> = ({ user, role }) => {
 
       {/* Footer - Logout Button */}
       <div className="p-4 border-t border-[#E0E1E6] mt-auto">
-        <button 
+        <button
           onClick={handleLogout}
           className="w-full flex items-center justify-center gap-2 p-3 text-[#EF4444] font-bold hover:bg-red-50 rounded-xl transition-colors"
         >
@@ -189,4 +200,4 @@ const Sidebar: React.FC<SidebarProps> = ({ user, role }) => {
   );
 };
 
-export default Sidebar;
+export default AppSidebar;

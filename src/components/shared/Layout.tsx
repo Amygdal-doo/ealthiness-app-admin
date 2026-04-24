@@ -1,6 +1,7 @@
-import React from 'react';
-import { Bell } from 'lucide-react';
-import Sidebar from './Sidebar';
+import React from "react";
+import { Bell } from "lucide-react";
+import Sidebar from "./AppSidebar";
+import AppSidebar from "./AppSidebar";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -15,22 +16,31 @@ interface User {
 
 const Layout: React.FC<LayoutProps> = ({ children, role, title }) => {
   const user: User = {
-    name: role === 'super_admin' ? "Super Admin" : role === 'country_admin' ? "Country Admin" : "Company Admin",
-    role
+    name:
+      role === "super_admin"
+        ? "Super Admin"
+        : role === "country_admin"
+          ? "Country Admin"
+          : "Company Admin",
+    role,
   };
 
   const getRoleShortCode = (role: string) => {
     switch (role) {
-      case 'super_admin': return 'SA';
-      case 'country_admin': return 'CA';
-      case 'company_admin': return 'CO';
-      default: return 'AD';
+      case "super_admin":
+        return "SA";
+      case "country_admin":
+        return "CA";
+      case "company_admin":
+        return "CO";
+      default:
+        return "AD";
     }
   };
 
   return (
     <div className="flex h-screen bg-[#F8F9FB] font-sans selection:bg-[#5850DE] selection:text-white overflow-hidden">
-      <Sidebar user={user} role={role} />
+      <AppSidebar user={user} role={role} />
       <main className="flex-1 overflow-y-auto relative">
         {/* Top Header */}
         {title && (
@@ -47,12 +57,10 @@ const Layout: React.FC<LayoutProps> = ({ children, role, title }) => {
             </div>
           </header>
         )}
-        
+
         {/* Page Content */}
         <div className="p-8">
-          <div className="max-w-6xl mx-auto w-full">
-            {children}
-          </div>
+          <div className="max-w-6xl mx-auto w-full">{children}</div>
         </div>
       </main>
     </div>

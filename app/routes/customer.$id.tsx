@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { json, redirect } from 'react-router';
+import { redirect, useNavigate } from 'react-router';
 import { Link } from 'react-router';
 import type { Route } from './+types/customer.$id';
 import { 
@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { Button, Card, CardHeader, CardTitle, CardContent, Badge, Textarea, Input } from '~/components/ui';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
+import AppSidebar from "../../src/components/shared/AppSidebar";
+import Navbar from "../../src/components/shared/Navbar";
 
 // Mock user data with detailed stats
 const MOCK_CUSTOMERS = {
@@ -27,13 +29,13 @@ const USER_ACTIVITY_DATA = {
     { day: 'Sun', calories: 410, km: 5.5 },
   ],
   mood: [
-    { day: 'Mon', state: 'good', icon: Smile, color: 'text-[#4DAB46]', bg: 'bg-[#4DAB46]/10' },
-    { day: 'Tue', state: 'good', icon: Smile, color: 'text-[#4DAB46]', bg: 'bg-[#4DAB46]/10' },
-    { day: 'Wed', state: 'neutral', icon: Meh, color: 'text-[#FFB900]', bg: 'bg-[#FFB900]/10' },
-    { day: 'Thu', state: 'good', icon: Smile, color: 'text-[#4DAB46]', bg: 'bg-[#4DAB46]/10' },
-    { day: 'Fri', state: 'bad', icon: Frown, color: 'text-[#EF4444]', bg: 'bg-[#EF4444]/10' },
-    { day: 'Sat', state: 'good', icon: Smile, color: 'text-[#4DAB46]', bg: 'bg-[#4DAB46]/10' },
-    { day: 'Sun', state: 'good', icon: Smile, color: 'text-[#4DAB46]', bg: 'bg-[#4DAB46]/10' },
+    { day: 'Mon', state: 'good', icon: 'smile', color: 'text-[#4DAB46]', bg: 'bg-[#4DAB46]/10' },
+    { day: 'Tue', state: 'good', icon: 'smile', color: 'text-[#4DAB46]', bg: 'bg-[#4DAB46]/10' },
+    { day: 'Wed', state: 'neutral', icon: 'meh', color: 'text-[#FFB900]', bg: 'bg-[#FFB900]/10' },
+    { day: 'Thu', state: 'good', icon: 'smile', color: 'text-[#4DAB46]', bg: 'bg-[#4DAB46]/10' },
+    { day: 'Fri', state: 'bad', icon: 'frown', color: 'text-[#EF4444]', bg: 'bg-[#EF4444]/10' },
+    { day: 'Sat', state: 'good', icon: 'smile', color: 'text-[#4DAB46]', bg: 'bg-[#4DAB46]/10' },
+    { day: 'Sun', state: 'good', icon: 'smile', color: 'text-[#4DAB46]', bg: 'bg-[#4DAB46]/10' },
   ],
   diet: {
     planName: 'High Protein / Low Carb',
@@ -79,18 +81,30 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const userData = {
     user: { 
       name: role === 'super_admin' ? "Super Admin" : role === 'country_admin' ? "Country Admin" : "Company Admin", 
+      email: role === 'super_admin' ? "admin@ealthiness.com" : role === 'country_admin' ? "country.admin@ealthiness.com" : "company.admin@ealthiness.com",
       role 
     },
     customer,
     stats: USER_ACTIVITY_DATA
   };
 
-  return json({ userData });
+  return { userData };
 }
 
 export default function CustomerDetailPage({ loaderData }: Route.ComponentProps) {
   const { userData } = loaderData;
   const { customer: u, stats } = userData;
+  const navigate = useNavigate();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1500);
+  };
+
+  const handleLogout = () => {
+    navigate("/login");
+  };
 
   const [adminNotes, setAdminNotes] = useState('');
   const [aiInsights, setAiInsights] = useState('');
@@ -123,8 +137,22 @@ Based on their current activity levels and the administrative context provided, 
   const maxCals = Math.max(...stats.running.map(r => r.calories));
 
   return (
-    <div className="min-h-screen bg-[#F8F9FB] font-sans">
-      <div className="animate-in fade-in slide-in-from-right-8 duration-500 pb-12 p-8">
+    <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <AppSidebar
+        user={userData.user}
+        role={userData.user.role}
+      />
+
+      <div className="flex-1 flex flex-col">
+        <Navbar
+          user={userData.user}
+          onLogout={handleLogout}
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
+        />
+
+        <div className="flex-1 p-6">
+          <div className="animate-in fade-in slide-in-from-right-8 duration-500 pb-12">
         <Link 
           to={`/customers?role=${userData.user.role}`}
           className="mb-6 flex items-center text-[#5850DE] font-bold hover:bg-[#F0F0F3] px-4 py-2 rounded-xl transition w-fit gap-2"
@@ -185,7 +213,7 @@ Based on their current activity levels and the administrative context provided, 
                   className="mb-3"
                 />
                 {!aiInsights && !isGeneratingInsights && (
-                  <Button variant="primary" onClick={generateInsights} className="w-full">
+                  <Button onClick={generateInsights} className="w-full">
                     <Sparkles size={16} className="mr-2" /> Generate Personalized AI Insights
                   </Button>
                 )}
@@ -229,7 +257,7 @@ Based on their current activity levels and the administrative context provided, 
                     className="min-h-[140px] text-sm leading-relaxed" 
                   />
                   <div className="flex gap-3">
-                    <Button variant="primary" className="flex-1">
+                    <Button className="flex-1">
                       <Mail size={16} className="mr-2"/> Send Email
                     </Button>
                     <Button variant="outline" onClick={() => setDraftMessage('')}>Discard</Button>
@@ -317,14 +345,17 @@ Based on their current activity levels and the administrative context provided, 
               </h3>
               <p className="text-xs font-bold text-[#8E8E93] uppercase tracking-wider mb-3">Last 7 Days</p>
               <div className="flex justify-between items-center bg-[#F8F9FB] p-3 rounded-2xl border border-[#E0E1E6]">
-                {stats.mood.map((m, idx) => (
-                  <div key={idx} className="flex flex-col items-center gap-1">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${m.bg} ${m.color}`} title={m.state}>
-                      <m.icon size={16} strokeWidth={3} />
+                {stats.mood.map((m, idx) => {
+                  const IconComponent = m.icon === 'smile' ? Smile : m.icon === 'frown' ? Frown : Meh;
+                  return (
+                    <div key={idx} className="flex flex-col items-center gap-1">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${m.bg} ${m.color}`} title={m.state}>
+                        <IconComponent size={16} strokeWidth={3} />
+                      </div>
+                      <span className="text-[9px] font-bold text-[#8E8E93] uppercase">{m.day.charAt(0)}</span>
                     </div>
-                    <span className="text-[9px] font-bold text-[#8E8E93] uppercase">{m.day.charAt(0)}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="grid grid-cols-2 gap-4 mt-6">
@@ -453,6 +484,8 @@ Based on their current activity levels and the administrative context provided, 
                 </Button>
               </div>
             </Card>
+          </div>
+        </div>
           </div>
         </div>
       </div>

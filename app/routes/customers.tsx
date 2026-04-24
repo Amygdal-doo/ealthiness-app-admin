@@ -1,9 +1,11 @@
-import React from 'react';
-import { json, redirect } from 'react-router';
+import React, { useState } from 'react';
+import { redirect, useNavigate } from 'react-router';
 import { Link } from 'react-router';
 import type { Route } from './+types/customers';
 import { Users } from 'lucide-react';
 import { Badge } from '~/components/ui';
+import AppSidebar from "../../src/components/shared/AppSidebar";
+import Navbar from "../../src/components/shared/Navbar";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
@@ -17,6 +19,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const userData = {
     user: { 
       name: role === 'super_admin' ? "Super Admin" : role === 'country_admin' ? "Country Admin" : "Company Admin", 
+      email: role === 'super_admin' ? "admin@ealthiness.com" : role === 'country_admin' ? "country.admin@ealthiness.com" : "company.admin@ealthiness.com",
       role 
     },
     customers: [
@@ -26,11 +29,22 @@ export async function loader({ request }: Route.LoaderArgs) {
     ]
   };
 
-  return json({ userData });
+  return { userData };
 }
 
 export default function CustomersPage({ loaderData }: Route.ComponentProps) {
   const { userData } = loaderData;
+  const navigate = useNavigate();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1500);
+  };
+
+  const handleLogout = () => {
+    navigate("/login");
+  };
 
   // Filter customers based on role
   const visibleCustomers = userData.user.role === 'company_admin' 
@@ -40,8 +54,22 @@ export default function CustomersPage({ loaderData }: Route.ComponentProps) {
   const pageTitle = userData.user.role === 'company_admin' ? 'My Users' : 'All Users';
 
   return (
-    <div className="min-h-screen bg-[#F8F9FB] font-sans">
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 p-8">
+    <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <AppSidebar
+        user={userData.user}
+        role={userData.user.role}
+      />
+
+      <div className="flex-1 flex flex-col">
+        <Navbar
+          user={userData.user}
+          onLogout={handleLogout}
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
+        />
+
+        <div className="flex-1 p-6">
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-extrabold text-[#1B173A] flex items-center gap-3">
@@ -108,6 +136,8 @@ export default function CustomersPage({ loaderData }: Route.ComponentProps) {
               <p className="text-[#60646C] text-sm">There are no users in your management scope yet.</p>
             </div>
           )}
+        </div>
+          </div>
         </div>
       </div>
     </div>
