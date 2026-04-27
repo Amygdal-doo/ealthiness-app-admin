@@ -1,5 +1,6 @@
 import type { Route } from "./+types/home";
-import { redirect } from "react-router";
+import { RoleGuard } from "~/components/auth/RoleGuard";
+import { useUser } from "~/hooks/useAuth";
 import HomeContainer from "../../src/components/home/HomeContainer";
 
 export function meta({}: Route.MetaArgs) {
@@ -12,27 +13,28 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const url = new URL(request.url);
-  const role = url.searchParams.get("role");
-  
-  // Check authentication - in real app, check session/token
-  const isAuthenticated = role !== null; // Simple check for demo
-  
-  if (!isAuthenticated) {
-    return redirect("/login");
-  }
-  
-  return {
-    userRole: role || 'super_admin',
-    user: {
-      name: 'Super Admin',
-      email: 'admin@ealthiness.com',
-      role: role || 'super_admin'
-    }
-  };
-}
+export default function Home() {
+  const user = useUser();
 
-export default function Home({ loaderData }: Route.ComponentProps) {
-  return <HomeContainer userData={loaderData} />;
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-gray-600">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  const userData = {
+    userRole: user.role,
+    user: user
+  };
+  
+  return (
+    <RoleGuard requireAdminRole>
+      <HomeContainer userData={userData} />
+    </RoleGuard>
+  );
 }

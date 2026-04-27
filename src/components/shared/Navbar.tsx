@@ -1,15 +1,12 @@
 import React from 'react';
 import { Bell, RefreshCw, HeartPulse } from 'lucide-react';
-
-interface User {
-  name: string;
-  email: string;
-  role: string;
-}
+import type { User } from "~/lib/auth/types";
+import { useLogout } from "~/hooks/useAuthApi";
+import { useNavigate } from "react-router";
 
 interface NavbarProps {
   user: User;
-  onLogout: () => void;
+  onLogout?: () => void;
   onRefresh?: () => void;
   refreshing?: boolean;
 }
@@ -20,6 +17,23 @@ const Navbar: React.FC<NavbarProps> = ({
   onRefresh, 
   refreshing = false 
 }) => {
+  const navigate = useNavigate();
+  const logoutMutation = useLogout();
+
+  const handleLogout = async () => {
+    try {
+      await logoutMutation.mutateAsync();
+      if (onLogout) {
+        onLogout();
+      } else {
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Force redirect even if logout fails
+      navigate("/");
+    }
+  };
   const getRoleInitials = (role: string) => {
     switch (role) {
       case 'super_admin': return 'SA';
@@ -82,9 +96,9 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           <button 
-            onClick={onLogout}
+            onClick={handleLogout}
             className="px-4 py-2 bg-gradient-to-r from-[#5850DE] to-[#248FEC] text-white rounded-xl font-bold hover:opacity-90 transition-opacity"
-            title={`${user.name} (${user.email})`}
+            title={`${user.name} (${Array.isArray(user.email) ? user.email[0] : user.email})`}
           >
             {getRoleInitials(user.role)}
           </button>

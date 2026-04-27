@@ -10,6 +10,7 @@ import { Button, Card, CardHeader, CardTitle, CardContent, Badge, Textarea, Inpu
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
 import AppSidebar from "../../src/components/shared/AppSidebar";
 import Navbar from "../../src/components/shared/Navbar";
+import type { User, UserRole } from "~/lib/auth/types";
 
 // Mock user data with detailed stats
 const MOCK_CUSTOMERS = {
@@ -69,7 +70,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const isAuthenticated = role !== null;
   
   if (!isAuthenticated) {
-    return redirect("/login");
+    return redirect("/");
   }
 
   const customer = MOCK_CUSTOMERS[params.id as keyof typeof MOCK_CUSTOMERS];
@@ -78,12 +79,56 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     throw new Response("Customer not found", { status: 404 });
   }
 
-  const userData = {
-    user: { 
-      name: role === 'super_admin' ? "Super Admin" : role === 'country_admin' ? "Country Admin" : "Company Admin", 
-      email: role === 'super_admin' ? "admin@ealthiness.com" : role === 'country_admin' ? "country.admin@ealthiness.com" : "company.admin@ealthiness.com",
-      role 
+  const userRole: UserRole = role === "super_admin" ? "SUPER_ADMIN" : 
+                             role === "country_admin" ? "COUNTRY_ADMIN" : 
+                             "COMPANY_ADMIN";
+                             
+  const user: User = {
+    _id: "customer-route-user",
+    firstName: role === "super_admin" ? "Super" : role === "country_admin" ? "Country" : "Company",
+    lastName: "Admin",
+    username: "admin",
+    email: [role === 'super_admin' ? "admin@ealthiness.com" : role === 'country_admin' ? "country.admin@ealthiness.com" : "company.admin@ealthiness.com"],
+    roles: [userRole],
+    currentRole: userRole,
+    companies: [],
+    adminCountries: [],
+    adminRegions: [],
+    adminCompanies: [],
+    diet: { breakfast: [], lunch: [], dinner: [] },
+    coins: 0,
+    friends: [],
+    blockList: [],
+    settings: {
+      stretching: true,
+      dailyMood: true,
+      drinkWater: true,
+      quotes: { send: true, minutes: 60 },
+      facts: { send: true, minutes: 60 }
     },
+    accomplishments: [],
+    rating: 0,
+    reviews: 0,
+    price: 0,
+    currency: "USD",
+    coaches: [],
+    coachTrainees: [],
+    coachGroup: [],
+    coachGroupMember: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    __v: 0,
+    isFollowingDiet: false,
+    activeDietPlanId: null,
+    activeUserDietPlanId: null,
+    currentDayNumber: null,
+    get id() { return this._id },
+    get name() { return `${this.firstName} ${this.lastName}` },
+    get role() { return this.currentRole }
+  };
+
+  const userData = {
+    user,
     customer,
     stats: USER_ACTIVITY_DATA
   };
@@ -103,7 +148,7 @@ export default function CustomerDetailPage({ loaderData }: Route.ComponentProps)
   };
 
   const handleLogout = () => {
-    navigate("/login");
+    navigate("/");
   };
 
   const [adminNotes, setAdminNotes] = useState('');
@@ -158,7 +203,7 @@ Based on their current activity levels and the administrative context provided, 
           className="mb-6 flex items-center text-[#5850DE] font-bold hover:bg-[#F0F0F3] px-4 py-2 rounded-xl transition w-fit gap-2"
         >
           <ArrowLeft size={18} />
-          Back to {userData.user.role === 'company_admin' ? 'My Users' : 'All Users'}
+          Back to {userData.user.role === 'COMPANY_ADMIN' ? 'My Users' : 'All Users'}
         </Link>
 
         {/* Hero Profile Banner */}

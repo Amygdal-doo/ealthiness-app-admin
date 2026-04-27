@@ -6,17 +6,27 @@ export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const role = url.searchParams.get("role");
   const isAuthenticated = role !== null;
-  
+
   if (!isAuthenticated) {
-    return redirect("/login");
+    return redirect("/");
   }
 
   const userData = {
-    user: { 
-      name: role === 'super_admin' ? "Super Admin" : role === 'country_admin' ? "Country Admin" : "Company Admin", 
-      email: role === 'super_admin' ? "admin@ealthiness.com" : role === 'country_admin' ? "country.admin@ealthiness.com" : "company.admin@ealthiness.com",
-      role 
-    }
+    user: {
+      name:
+        role === "super_admin"
+          ? "Super Admin"
+          : role === "country_admin"
+            ? "Country Admin"
+            : "Company Admin",
+      email:
+        role === "super_admin"
+          ? "admin@ealthiness.com"
+          : role === "country_admin"
+            ? "country.admin@ealthiness.com"
+            : "company.admin@ealthiness.com",
+      role,
+    },
   };
 
   return { userData };

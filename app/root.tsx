@@ -6,10 +6,21 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import type { Route } from "./+types/root";
 import { TooltipProvider } from "~/components/ui";
+import { AuthGuard } from "~/components/auth/AuthGuard";
 import "./app.css";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+    },
+  },
+});
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -34,9 +45,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <TooltipProvider>
-          {children}
-        </TooltipProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>{children}</TooltipProvider>
+        </QueryClientProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -44,8 +55,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Removed server-side authentication loader - now using client-side React Query
+
 export default function App() {
-  return <Outlet />;
+  return (
+    <AuthGuard>
+      <Outlet />
+    </AuthGuard>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

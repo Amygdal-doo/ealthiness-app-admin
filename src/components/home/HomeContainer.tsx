@@ -159,11 +159,7 @@ const RECENT_ACTIVITIES = [
   },
 ];
 
-interface User {
-  name: string;
-  email: string;
-  role: string;
-}
+import type { User } from "~/lib/auth/types";
 
 interface UserData {
   userRole: string;
@@ -246,7 +242,7 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
   };
 
   const handleLogout = () => {
-    navigate("/login");
+    navigate("/");
   };
 
   const quickActions = [
@@ -296,10 +292,7 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
 
   return (
     <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
-      <AppSidebar
-        user={userData.user}
-        role={userData.userRole}
-      />
+      <AppSidebar user={userData.user} role={userData.userRole} />
 
       <div className="flex-1 flex flex-col">
         <Navbar

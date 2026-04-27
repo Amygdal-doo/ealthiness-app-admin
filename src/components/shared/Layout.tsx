@@ -1,7 +1,7 @@
 import React from "react";
 import { Bell } from "lucide-react";
-import Sidebar from "./AppSidebar";
 import AppSidebar from "./AppSidebar";
+import type { User, UserRole } from "~/lib/auth/types";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -9,20 +9,53 @@ interface LayoutProps {
   title?: string;
 }
 
-interface User {
-  name: string;
-  role: string;
-}
-
 const Layout: React.FC<LayoutProps> = ({ children, role, title }) => {
+  const userRole: UserRole = role === "super_admin" ? "SUPER_ADMIN" : 
+                             role === "country_admin" ? "COUNTRY_ADMIN" : 
+                             "COMPANY_ADMIN";
+                             
   const user: User = {
-    name:
-      role === "super_admin"
-        ? "Super Admin"
-        : role === "country_admin"
-          ? "Country Admin"
-          : "Company Admin",
-    role,
+    _id: "layout-user",
+    firstName: role === "super_admin" ? "Super" : role === "country_admin" ? "Country" : "Company",
+    lastName: "Admin",
+    username: "admin",
+    email: ["admin@example.com"],
+    roles: [userRole],
+    currentRole: userRole,
+    companies: [],
+    adminCountries: [],
+    adminRegions: [],
+    adminCompanies: [],
+    diet: { breakfast: [], lunch: [], dinner: [] },
+    coins: 0,
+    friends: [],
+    blockList: [],
+    settings: {
+      stretching: true,
+      dailyMood: true,
+      drinkWater: true,
+      quotes: { send: true, minutes: 60 },
+      facts: { send: true, minutes: 60 }
+    },
+    accomplishments: [],
+    rating: 0,
+    reviews: 0,
+    price: 0,
+    currency: "USD",
+    coaches: [],
+    coachTrainees: [],
+    coachGroup: [],
+    coachGroupMember: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    __v: 0,
+    isFollowingDiet: false,
+    activeDietPlanId: null,
+    activeUserDietPlanId: null,
+    currentDayNumber: null,
+    get id() { return this._id },
+    get name() { return `${this.firstName} ${this.lastName}` },
+    get role() { return this.currentRole }
   };
 
   const getRoleShortCode = (role: string) => {

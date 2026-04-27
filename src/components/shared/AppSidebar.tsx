@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import {
   LayoutGrid,
   Globe,
@@ -10,11 +10,8 @@ import {
   Settings,
 } from "lucide-react";
 
-interface User {
-  name: string;
-  email?: string;
-  role: string;
-}
+import type { User } from "~/lib/auth/types";
+import { useLogout } from "~/hooks/useAuthApi";
 
 interface AppSidebarProps {
   user: User;
@@ -31,18 +28,36 @@ interface NavItem {
 
 const AppSidebar: React.FC<AppSidebarProps> = ({ user, role }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const logoutMutation = useLogout();
 
-  const handleLogout = () => {
-    window.location.href = "/login";
+  // Use user.role if available, fallback to role prop
+  const effectiveRole = user.role || role;
+  
+  // Normalize role for consistent checking
+  const normalizedRole = effectiveRole.toUpperCase().replace(/[-\s]/g, '_');
+  
+  // Convert role back to lowercase with underscores for URL parameters (matching route expectations)
+  const urlRole = normalizedRole.toLowerCase();
+
+  const handleLogout = async () => {
+    try {
+      await logoutMutation.mutateAsync();
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Force redirect even if logout fails
+      navigate("/");
+    }
   };
 
   const getRoleDisplayName = (role: string) => {
     switch (role) {
-      case "super_admin":
+      case "SUPER_ADMIN":
         return "Global Admin";
-      case "country_admin":
+      case "COUNTRY_ADMIN":
         return "Country Admin";
-      case "company_admin":
+      case "COMPANY_ADMIN":
         return "Company Admin";
       default:
         return "Admin";
@@ -54,29 +69,29 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, role }) => {
       id: "dashboard",
       label: "Overview",
       icon: LayoutGrid,
-      roles: ["super_admin", "country_admin", "company_admin"],
-      path: `/?role=${role}`,
+      roles: ["SUPER_ADMIN", "COUNTRY_ADMIN", "COMPANY_ADMIN"],
+      path: `/home?role=${urlRole}`,
     },
     {
       id: "countries",
       label: "Regions & Countries",
       icon: Globe,
-      roles: ["super_admin"],
-      path: `/countries?role=${role}`,
+      roles: ["SUPER_ADMIN"],
+      path: `/countries?role=${urlRole}`,
     },
     {
       id: "companies",
       label: "Companies",
       icon: Building2,
-      roles: ["super_admin", "country_admin"],
-      path: `/companies?role=${role}`,
+      roles: ["SUPER_ADMIN", "COUNTRY_ADMIN"],
+      path: `/companies?role=${urlRole}`,
     },
     {
       id: "customers",
-      label: role === "company_admin" ? "My Users" : "All Users",
+      label: normalizedRole === "COMPANY_ADMIN" ? "My Users" : "All Users",
       icon: Users,
-      roles: ["super_admin", "country_admin", "company_admin"],
-      path: `/customers?role=${role}`,
+      roles: ["SUPER_ADMIN", "COUNTRY_ADMIN", "COMPANY_ADMIN"],
+      path: `/customers?role=${urlRole}`,
     },
   ];
 
@@ -85,26 +100,26 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, role }) => {
       id: "design_system",
       label: "Design System",
       icon: Palette,
-      roles: ["super_admin", "country_admin", "company_admin"],
-      path: `/design-system?role=${role}`,
+      roles: ["SUPER_ADMIN", "COUNTRY_ADMIN", "COMPANY_ADMIN"],
+      path: `/design-system?role=${urlRole}`,
     },
     {
       id: "settings",
       label: "Settings",
       icon: Settings,
-      roles: ["super_admin", "country_admin", "company_admin"],
-      path: `/settings?role=${role}`,
+      roles: ["SUPER_ADMIN", "COUNTRY_ADMIN", "COMPANY_ADMIN"],
+      path: `/settings?role=${urlRole}`,
     },
   ];
 
-  const filteredNavItems = navItems.filter((item) => item.roles.includes(role));
+  const filteredNavItems = navItems.filter((item) => item.roles.includes(normalizedRole));
   const filteredBrandItems = brandItems.filter((item) =>
-    item.roles.includes(role),
+    item.roles.includes(normalizedRole),
   );
 
   const isActiveRoute = (itemId: string, itemPath: string) => {
     if (itemId === "dashboard") {
-      return location.pathname === "/";
+      return location.pathname === "/" || location.pathname === "/home";
     }
     return location.pathname === itemPath.split("?")[0];
   };
@@ -121,7 +136,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, role }) => {
             Ealthiness
           </span>
           <span className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-wider">
-            {getRoleDisplayName(role)}
+            {getRoleDisplayName(normalizedRole)}
           </span>
         </div>
       </div>
@@ -136,11 +151,16 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, role }) => {
           const Icon = item.icon;
           const isActive = isActiveRoute(item.id, item.path);
 
+          const handleNavigation = (e: React.MouseEvent) => {
+            e.preventDefault();
+            navigate(item.path);
+          };
+
           return (
-            <Link
+            <button
               key={item.id}
-              to={item.path}
-              className={`w-full flex items-center gap-3 p-3 rounded-xl font-semibold transition ${
+              onClick={handleNavigation}
+              className={`w-full flex items-center gap-3 p-3 rounded-xl font-semibold transition text-left ${
                 isActive
                   ? "bg-[#F0F0F3] text-[#5850DE]"
                   : "text-[#60646C] hover:bg-gray-50"
@@ -148,7 +168,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, role }) => {
             >
               <Icon size={20} />
               {item.label}
-            </Link>
+            </button>
           );
         })}
 
@@ -163,11 +183,16 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, role }) => {
               const Icon = item.icon;
               const isActive = isActiveRoute(item.id, item.path);
 
+              const handleBrandNavigation = (e: React.MouseEvent) => {
+                e.preventDefault();
+                navigate(item.path);
+              };
+
               return (
-                <Link
+                <button
                   key={item.id}
-                  to={item.path}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl font-semibold transition ${
+                  onClick={handleBrandNavigation}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl font-semibold transition text-left ${
                     isActive
                       ? "bg-gradient-to-r from-[#5850DE] to-[#248FEC] text-white shadow-md"
                       : "text-[#60646C] hover:bg-gray-50"
@@ -180,7 +205,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, role }) => {
                   {!isActive && item.id === "design_system" && (
                     <div className="w-2 h-2 rounded-full bg-[#248FEC]"></div>
                   )}
-                </Link>
+                </button>
               );
             })}
           </>
