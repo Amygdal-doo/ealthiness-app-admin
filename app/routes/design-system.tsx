@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { redirect, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import type { Route } from "./+types/design-system";
 import {
   Palette,
@@ -12,90 +12,17 @@ import {
 import { Button, Card, Input, Textarea } from "~/components/ui";
 import AppSidebar from "../../src/components/shared/AppSidebar";
 import Navbar from "../../src/components/shared/Navbar";
-import type { User, UserRole } from "~/lib/auth/types";
+import { RoleGuard } from "~/components/auth/RoleGuard";
+import { useUser } from "~/hooks/useAuth";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const url = new URL(request.url);
-  const role = url.searchParams.get("role");
-  const isAuthenticated = role !== null;
-
-  if (!isAuthenticated) {
-    return redirect("/");
-  }
-
-  const userRole: UserRole =
-    role === "super_admin"
-      ? "SUPER_ADMIN"
-      : role === "country_admin"
-        ? "COUNTRY_ADMIN"
-        : "COMPANY_ADMIN";
-
-  const user: User = {
-    _id: "design-route-user",
-    firstName:
-      role === "super_admin"
-        ? "Super"
-        : role === "country_admin"
-          ? "Country"
-          : "Company",
-    lastName: "Admin",
-    username: "admin",
-    email: [
-      role === "super_admin"
-        ? "admin@ealthiness.com"
-        : role === "country_admin"
-          ? "country.admin@ealthiness.com"
-          : "company.admin@ealthiness.com",
-    ],
-    roles: [userRole],
-    currentRole: userRole,
-    companies: [],
-    adminCountries: [],
-    adminRegions: [],
-    adminCompanies: [],
-    diet: { breakfast: [], lunch: [], dinner: [] },
-    coins: 0,
-    friends: [],
-    blockList: [],
-    settings: {
-      stretching: true,
-      dailyMood: true,
-      drinkWater: true,
-      quotes: { send: true, minutes: 60 },
-      facts: { send: true, minutes: 60 },
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "Design System - Ealthiness Admin Portal" },
+    {
+      name: "description",
+      content: "Brand guidelines and design system for the Ealthiness platform",
     },
-    accomplishments: [],
-    rating: 0,
-    reviews: 0,
-    price: 0,
-    currency: "USD",
-    coaches: [],
-    coachTrainees: [],
-    coachGroup: [],
-    coachGroupMember: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    __v: 0,
-    isFollowingDiet: false,
-    activeDietPlanId: null,
-    activeUserDietPlanId: null,
-    currentDayNumber: null,
-    get id() {
-      return this._id;
-    },
-    get name() {
-      return `${this.firstName} ${this.lastName}`;
-    },
-    get role() {
-      return this.currentRole;
-    },
-  };
-
-  const userData = {
-    user,
-  };
-
-  return { userData };
+  ];
 }
 
 const DS_COLORS = {
@@ -135,8 +62,8 @@ const CopyButton = ({ text }: { text: string }) => {
   );
 };
 
-export default function DesignSystemPage({ loaderData }: Route.ComponentProps) {
-  const { userData } = loaderData;
+export default function DesignSystemPage() {
+  const user = useUser();
   const navigate = useNavigate();
   const [refreshing, setRefreshing] = useState(false);
   const [dsTab, setDsTab] = useState("colors");
@@ -150,13 +77,25 @@ export default function DesignSystemPage({ loaderData }: Route.ComponentProps) {
     navigate("/");
   };
 
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-gray-600">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
-      <AppSidebar user={userData.user} role={userData.user.role} />
+    <RoleGuard allowedRoles={["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN", "COMPANY_ADMIN"]}>
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+        <AppSidebar user={user} />
 
       <div className="flex-1 flex flex-col">
         <Navbar
-          user={userData.user}
+          user={user}
           onLogout={handleLogout}
           onRefresh={handleRefresh}
           refreshing={refreshing}
@@ -457,5 +396,6 @@ export default function DesignSystemPage({ loaderData }: Route.ComponentProps) {
         </div>
       </div>
     </div>
+    </RoleGuard>
   );
 }

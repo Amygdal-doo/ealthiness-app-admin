@@ -36,14 +36,14 @@ export function sanitizeUser(user: any) {
 
 export function transformApiUser(apiUser: any): User {
   // Determine the best admin role for this user
-  const adminRoles = ['SUPER_ADMIN', 'COUNTRY_ADMIN', 'REGION_ADMIN', 'COMPANY_ADMIN'];
+  const adminRoles = ['SUPER_ADMIN', 'COUNTRY_ADMIN', 'REGIONAL_ADMIN', 'COMPANY_ADMIN'];
   const userAdminRoles = apiUser.roles?.filter((role: string) => adminRoles.includes(role)) || [];
   
   // Use the highest priority admin role if available, otherwise use currentRole
   let effectiveRole = apiUser.currentRole as UserRole;
   if (userAdminRoles.length > 0) {
-    // Priority order: SUPER_ADMIN > COUNTRY_ADMIN > REGION_ADMIN > COMPANY_ADMIN
-    const rolePriority = ['SUPER_ADMIN', 'COUNTRY_ADMIN', 'REGION_ADMIN', 'COMPANY_ADMIN'];
+    // Priority order: SUPER_ADMIN > COUNTRY_ADMIN > REGIONAL_ADMIN > COMPANY_ADMIN
+    const rolePriority = ['SUPER_ADMIN', 'COUNTRY_ADMIN', 'REGIONAL_ADMIN', 'COMPANY_ADMIN'];
     effectiveRole = rolePriority.find(role => userAdminRoles.includes(role)) as UserRole || apiUser.currentRole;
   }
   

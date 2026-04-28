@@ -26,7 +26,7 @@ export const createUserSchema = z.object({
     .string()
     .min(2, 'Name must be at least 2 characters')
     .max(50, 'Name is too long'),
-  role: z.enum(['COMPANY_ADMIN', 'REGION_ADMIN', 'COUNTRY_ADMIN', 'SUPER_ADMIN']),
+  role: z.enum(['COMPANY_ADMIN', 'REGIONAL_ADMIN', 'COUNTRY_ADMIN', 'SUPER_ADMIN']),
 });
 
 export const changePasswordSchema = z.object({

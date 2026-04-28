@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router';
-import { useAuth } from '~/hooks/useAuth';
-import type { UserRole } from '~/lib/auth/types';
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
+import { useAuth } from "~/hooks/useAuth";
+import type { UserRole } from "~/lib/auth/types";
 
 interface RoleGuardProps {
   children: React.ReactNode;
@@ -10,13 +10,18 @@ interface RoleGuardProps {
   fallback?: React.ReactNode;
 }
 
-const ADMIN_ROLES: UserRole[] = ['SUPER_ADMIN', 'COUNTRY_ADMIN', 'REGION_ADMIN', 'COMPANY_ADMIN'];
+const ADMIN_ROLES: UserRole[] = [
+  "SUPER_ADMIN",
+  "COUNTRY_ADMIN",
+  "REGIONAL_ADMIN",
+  "COMPANY_ADMIN",
+];
 
-export function RoleGuard({ 
-  children, 
+export function RoleGuard({
+  children,
   allowedRoles,
   requireAdminRole = false,
-  fallback 
+  fallback,
 }: RoleGuardProps) {
   const { user, isLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -26,22 +31,29 @@ export function RoleGuard({
 
     // If not authenticated, redirect to login
     if (!isAuthenticated || !user) {
-      navigate('/', { replace: true });
+      navigate("/", { replace: true });
       return;
     }
 
     // Check if admin role is required
     if (requireAdminRole && !ADMIN_ROLES.includes(user.role)) {
-      navigate('/unauthorized', { replace: true });
+      navigate("/unauthorized", { replace: true });
       return;
     }
 
     // Check specific role requirements
     if (allowedRoles && !allowedRoles.includes(user.role)) {
-      navigate('/unauthorized', { replace: true });
+      navigate("/unauthorized", { replace: true });
       return;
     }
-  }, [user, isLoading, isAuthenticated, navigate, allowedRoles, requireAdminRole]);
+  }, [
+    user,
+    isLoading,
+    isAuthenticated,
+    navigate,
+    allowedRoles,
+    requireAdminRole,
+  ]);
 
   if (isLoading) {
     return (

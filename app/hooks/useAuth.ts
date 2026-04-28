@@ -1,6 +1,6 @@
-import { useAuth as useAuthContext } from '~/contexts/AuthContext';
-import type { User, UserRole, UserPermissions } from '~/lib/auth/types';
-import { getUserPermissions, hasPermission } from '~/lib/auth/utils';
+import { useAuth as useAuthContext } from "~/contexts/AuthContext";
+import type { User, UserRole, UserPermissions } from "~/lib/auth/types";
+import { getUserPermissions, hasPermission } from "~/lib/auth/utils";
 
 export function useAuth() {
   return useAuthContext();
@@ -32,45 +32,45 @@ export function useHasPermission(permission: keyof UserPermissions): boolean {
 }
 
 export function useCanManageUsers(): boolean {
-  return useHasPermission('canManageUsers');
+  return useHasPermission("canManageUsers");
 }
 
 export function useCanManageCompanies(): boolean {
-  return useHasPermission('canManageCompanies');
+  return useHasPermission("canManageCompanies");
 }
 
 export function useCanManageCountries(): boolean {
-  return useHasPermission('canManageCountries');
+  return useHasPermission("canManageCountries");
 }
 
 export function useCanManageRegions(): boolean {
-  return useHasPermission('canManageRegions');
+  return useHasPermission("canManageRegions");
 }
 
 export function useCanViewAnalytics(): boolean {
-  return useHasPermission('canViewAnalytics');
+  return useHasPermission("canViewAnalytics");
 }
 
 export function useCanManageSystem(): boolean {
-  return useHasPermission('canManageSystem');
+  return useHasPermission("canManageSystem");
 }
 
 export function useIsSuperAdmin(): boolean {
   const role = useUserRole();
-  return role === 'SUPER_ADMIN';
+  return role === "SUPER_ADMIN";
 }
 
 export function useIsCountryAdmin(): boolean {
   const role = useUserRole();
-  return role === 'COUNTRY_ADMIN';
+  return role === "COUNTRY_ADMIN";
 }
 
 export function useIsRegionAdmin(): boolean {
   const role = useUserRole();
-  return role === 'REGION_ADMIN';
+  return role === "REGIONAL_ADMIN";
 }
 
 export function useIsCompanyAdmin(): boolean {
   const role = useUserRole();
-  return role === 'COMPANY_ADMIN';
+  return role === "COMPANY_ADMIN";
 }

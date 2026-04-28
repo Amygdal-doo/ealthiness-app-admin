@@ -1,134 +1,62 @@
 import React, { useState } from "react";
-import { redirect, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { Link } from "react-router";
 import type { Route } from "./+types/customers";
 import { Users } from "lucide-react";
 import { Badge } from "~/components/ui";
 import AppSidebar from "../../src/components/shared/AppSidebar";
 import Navbar from "../../src/components/shared/Navbar";
-import type { User, UserRole } from "~/lib/auth/types";
+import { RoleGuard } from "~/components/auth/RoleGuard";
+import { useUser } from "~/hooks/useAuth";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const url = new URL(request.url);
-  const role = url.searchParams.get("role");
-  const isAuthenticated = role !== null;
+const MOCK_CUSTOMERS = [
+  {
+    id: "u1",
+    companyId: "comp1",
+    name: "Tarik S.",
+    role: "Premium User",
+    joined: "2025-01-15",
+    status: "Active",
+    weight: "78kg",
+    height: "182cm",
+    age: 29,
+  },
+  {
+    id: "u2",
+    companyId: "comp1",
+    name: "Amina M.",
+    role: "Standard",
+    joined: "2025-03-22",
+    status: "Active",
+    weight: "65kg",
+    height: "168cm",
+    age: 26,
+  },
+  {
+    id: "u3",
+    companyId: "comp3",
+    name: "John Doe",
+    role: "Premium User",
+    joined: "2024-11-10",
+    status: "Inactive",
+    weight: "90kg",
+    height: "175cm",
+    age: 40,
+  },
+];
 
-  if (!isAuthenticated) {
-    return redirect("/");
-  }
-
-  const userRole: UserRole =
-    role === "super_admin"
-      ? "SUPER_ADMIN"
-      : role === "country_admin"
-        ? "COUNTRY_ADMIN"
-        : "COMPANY_ADMIN";
-
-  const user: User = {
-    _id: "route-user",
-    firstName:
-      role === "super_admin"
-        ? "Super"
-        : role === "country_admin"
-          ? "Country"
-          : "Company",
-    lastName: "Admin",
-    username: "admin",
-    email: [
-      role === "super_admin"
-        ? "admin@ealthiness.com"
-        : role === "country_admin"
-          ? "country.admin@ealthiness.com"
-          : "company.admin@ealthiness.com",
-    ],
-    roles: [userRole],
-    currentRole: userRole,
-    companies: [],
-    adminCountries: [],
-    adminRegions: [],
-    adminCompanies: [],
-    diet: { breakfast: [], lunch: [], dinner: [] },
-    coins: 0,
-    friends: [],
-    blockList: [],
-    settings: {
-      stretching: true,
-      dailyMood: true,
-      drinkWater: true,
-      quotes: { send: true, minutes: 60 },
-      facts: { send: true, minutes: 60 },
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "Users - Ealthiness Admin Portal" },
+    {
+      name: "description",
+      content: "Manage users across the Ealthiness platform",
     },
-    accomplishments: [],
-    rating: 0,
-    reviews: 0,
-    price: 0,
-    currency: "USD",
-    coaches: [],
-    coachTrainees: [],
-    coachGroup: [],
-    coachGroupMember: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    __v: 0,
-    isFollowingDiet: false,
-    activeDietPlanId: null,
-    activeUserDietPlanId: null,
-    currentDayNumber: null,
-    get id() {
-      return this._id;
-    },
-    get name() {
-      return `${this.firstName} ${this.lastName}`;
-    },
-    get role() {
-      return this.currentRole;
-    },
-  };
-
-  const userData = {
-    user,
-    customers: [
-      {
-        id: "u1",
-        companyId: "comp1",
-        name: "Tarik S.",
-        role: "Premium User",
-        joined: "2025-01-15",
-        status: "Active",
-        weight: "78kg",
-        height: "182cm",
-        age: 29,
-      },
-      {
-        id: "u2",
-        companyId: "comp1",
-        name: "Amina M.",
-        role: "Standard",
-        joined: "2025-03-22",
-        status: "Active",
-        weight: "65kg",
-        height: "168cm",
-        age: 26,
-      },
-      {
-        id: "u3",
-        companyId: "comp3",
-        name: "John Doe",
-        role: "Premium User",
-        joined: "2024-11-10",
-        status: "Inactive",
-        weight: "90kg",
-        height: "175cm",
-        age: 40,
-      },
-    ],
-  };
-
-  return { userData };
+  ];
 }
 
-export default function CustomersPage({ loaderData }: Route.ComponentProps) {
-  const { userData } = loaderData;
+export default function CustomersPage() {
+  const user = useUser();
   const navigate = useNavigate();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -141,22 +69,34 @@ export default function CustomersPage({ loaderData }: Route.ComponentProps) {
     navigate("/");
   };
 
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-gray-600">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
   // Filter customers based on role
   const visibleCustomers =
-    userData.user.role === "COMPANY_ADMIN"
-      ? userData.customers.filter((c) => c.companyId === "comp1") // Assuming company admin is for comp1
-      : userData.customers;
+    user.role === "COMPANY_ADMIN"
+      ? MOCK_CUSTOMERS.filter((c) => c.companyId === "comp1") // Assuming company admin is for comp1
+      : MOCK_CUSTOMERS;
 
   const pageTitle =
-    userData.user.role === "COMPANY_ADMIN" ? "My Users" : "All Users";
+    user.role === "COMPANY_ADMIN" ? "My Users" : "All Users";
 
   return (
-    <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
-      <AppSidebar user={userData.user} role={userData.user.role} />
+    <RoleGuard allowedRoles={["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN", "COMPANY_ADMIN"]}>
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+        <AppSidebar user={user} />
 
       <div className="flex-1 flex flex-col">
         <Navbar
-          user={userData.user}
+          user={user}
           onLogout={handleLogout}
           onRefresh={handleRefresh}
           refreshing={refreshing}
@@ -236,7 +176,7 @@ export default function CustomersPage({ loaderData }: Route.ComponentProps) {
                       </td>
                       <td className="p-4 text-right">
                         <Link
-                          to={`/customer/${customer.id}?role=${userData.user.role}`}
+                          to={`/customer/${customer.id}`}
                           className="bg-white border border-[#E0E1E6] text-[#1B173A] text-xs font-bold px-4 py-2 rounded-lg hover:border-[#5850DE] hover:text-[#5850DE] transition inline-block"
                         >
                           View Profile
@@ -265,5 +205,6 @@ export default function CustomersPage({ loaderData }: Route.ComponentProps) {
         </div>
       </div>
     </div>
+    </RoleGuard>
   );
 }

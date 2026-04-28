@@ -56,7 +56,7 @@ export const requireAuth = createAuthMiddleware({
 
 export const requireAdminAuth = createAuthMiddleware({
   requireAuth: true,
-  allowedRoles: ["SUPER_ADMIN", "COUNTRY_ADMIN", "REGION_ADMIN"],
+  allowedRoles: ["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN"],
 });
 
 export const requireSuperAdminAuth = createAuthMiddleware({
@@ -71,7 +71,7 @@ export const requireCountryAdminAuth = createAuthMiddleware({
 
 export const requireRegionAdminAuth = createAuthMiddleware({
   requireAuth: true,
-  allowedRoles: ["SUPER_ADMIN", "COUNTRY_ADMIN", "REGION_ADMIN"],
+  allowedRoles: ["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN"],
 });
 
 export const optionalAuth = createAuthMiddleware({

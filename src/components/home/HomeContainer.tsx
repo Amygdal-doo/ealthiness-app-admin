@@ -249,21 +249,21 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
     {
       icon: Plus,
       label: "Add Region",
-      onClick: () => navigate(`/countries?role=${userData.userRole}`),
+      onClick: () => navigate("/countries"),
       color: "text-[#5850DE]",
       bgColor: "bg-[#E8E6FC]",
     },
     {
       icon: Building2,
       label: "Manage Companies",
-      onClick: () => navigate(`/companies?role=${userData.userRole}`),
+      onClick: () => navigate("/companies"),
       color: "text-[#248FEC]",
       bgColor: "bg-[#E5F3FF]",
     },
     {
       icon: Users,
       label: "User Directory",
-      onClick: () => navigate(`/customers?role=${userData.userRole}`),
+      onClick: () => navigate("/customers"),
       color: "text-[#4DAB46]",
       bgColor: "bg-[#E5F6E4]",
     },
@@ -277,7 +277,7 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
     {
       icon: Settings,
       label: "System Settings",
-      onClick: () => navigate(`/settings?role=${userData.userRole}`),
+      onClick: () => navigate("/settings"),
       color: "text-[#8E8E93]",
       bgColor: "bg-[#F0F0F3]",
     },
@@ -292,7 +292,7 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
 
   return (
     <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
-      <AppSidebar user={userData.user} role={userData.userRole} />
+      <AppSidebar user={userData.user} />
 
       <div className="flex-1 flex flex-col">
         <Navbar

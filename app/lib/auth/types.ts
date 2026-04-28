@@ -55,7 +55,7 @@ export interface User {
   role: UserRole;
 }
 
-export type UserRole = 'COMPANY_ADMIN' | 'REGION_ADMIN' | 'COUNTRY_ADMIN' | 'SUPER_ADMIN' | 'USER';
+export type UserRole = 'COMPANY_ADMIN' | 'REGIONAL_ADMIN' | 'COUNTRY_ADMIN' | 'SUPER_ADMIN' | 'USER';
 
 export interface Session {
   userId: string;
@@ -127,11 +127,11 @@ export const USER_ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
     canViewAnalytics: true,
     canManageSystem: false,
   },
-  REGION_ADMIN: {
+  REGIONAL_ADMIN: {
     canManageUsers: true,
     canManageCompanies: true,
-    canManageRegions: false,
-    canManageCountries: false,
+    canManageRegions: true,
+    canManageCountries: true,
     canViewAnalytics: true,
     canManageSystem: false,
   },

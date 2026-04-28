@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { redirect, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { Link } from 'react-router';
 import type { Route } from './+types/customer.$id';
 import { 
@@ -10,7 +10,8 @@ import { Button, Card, CardHeader, CardTitle, CardContent, Badge, Textarea, Inpu
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
 import AppSidebar from "../../src/components/shared/AppSidebar";
 import Navbar from "../../src/components/shared/Navbar";
-import type { User, UserRole } from "~/lib/auth/types";
+import { RoleGuard } from "~/components/auth/RoleGuard";
+import { useUser } from "~/hooks/useAuth";
 
 // Mock user data with detailed stats
 const MOCK_CUSTOMERS = {
@@ -64,81 +65,29 @@ const WATER_DATA = [
   { day: 'Sun', intake: 2.8, target: 2.5 },
 ];
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const url = new URL(request.url);
-  const role = url.searchParams.get("role");
-  const isAuthenticated = role !== null;
-  
-  if (!isAuthenticated) {
-    return redirect("/");
-  }
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "Customer Profile - Ealthiness Admin Portal" },
+    {
+      name: "description",
+      content: "View detailed customer health metrics and activity data",
+    },
+  ];
+}
 
+export async function loader({ params }: Route.LoaderArgs) {
   const customer = MOCK_CUSTOMERS[params.id as keyof typeof MOCK_CUSTOMERS];
   
   if (!customer) {
     throw new Response("Customer not found", { status: 404 });
   }
 
-  const userRole: UserRole = role === "super_admin" ? "SUPER_ADMIN" : 
-                             role === "country_admin" ? "COUNTRY_ADMIN" : 
-                             "COMPANY_ADMIN";
-                             
-  const user: User = {
-    _id: "customer-route-user",
-    firstName: role === "super_admin" ? "Super" : role === "country_admin" ? "Country" : "Company",
-    lastName: "Admin",
-    username: "admin",
-    email: [role === 'super_admin' ? "admin@ealthiness.com" : role === 'country_admin' ? "country.admin@ealthiness.com" : "company.admin@ealthiness.com"],
-    roles: [userRole],
-    currentRole: userRole,
-    companies: [],
-    adminCountries: [],
-    adminRegions: [],
-    adminCompanies: [],
-    diet: { breakfast: [], lunch: [], dinner: [] },
-    coins: 0,
-    friends: [],
-    blockList: [],
-    settings: {
-      stretching: true,
-      dailyMood: true,
-      drinkWater: true,
-      quotes: { send: true, minutes: 60 },
-      facts: { send: true, minutes: 60 }
-    },
-    accomplishments: [],
-    rating: 0,
-    reviews: 0,
-    price: 0,
-    currency: "USD",
-    coaches: [],
-    coachTrainees: [],
-    coachGroup: [],
-    coachGroupMember: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    __v: 0,
-    isFollowingDiet: false,
-    activeDietPlanId: null,
-    activeUserDietPlanId: null,
-    currentDayNumber: null,
-    get id() { return this._id },
-    get name() { return `${this.firstName} ${this.lastName}` },
-    get role() { return this.currentRole }
-  };
-
-  const userData = {
-    user,
-    customer,
-    stats: USER_ACTIVITY_DATA
-  };
-
-  return { userData };
+  return { customer };
 }
 
 export default function CustomerDetailPage({ loaderData }: Route.ComponentProps) {
-  const { userData } = loaderData;
-  const { customer: u, stats } = userData;
+  const { customer: u } = loaderData;
+  const user = useUser();
   const navigate = useNavigate();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -150,6 +99,19 @@ export default function CustomerDetailPage({ loaderData }: Route.ComponentProps)
   const handleLogout = () => {
     navigate("/");
   };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-gray-600">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  const stats = USER_ACTIVITY_DATA;
 
   const [adminNotes, setAdminNotes] = useState('');
   const [aiInsights, setAiInsights] = useState('');
@@ -182,15 +144,13 @@ Based on their current activity levels and the administrative context provided, 
   const maxCals = Math.max(...stats.running.map(r => r.calories));
 
   return (
-    <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
-      <AppSidebar
-        user={userData.user}
-        role={userData.user.role}
-      />
+    <RoleGuard allowedRoles={["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN", "COMPANY_ADMIN"]}>
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+        <AppSidebar user={user} />
 
       <div className="flex-1 flex flex-col">
         <Navbar
-          user={userData.user}
+          user={user}
           onLogout={handleLogout}
           onRefresh={handleRefresh}
           refreshing={refreshing}
@@ -199,11 +159,11 @@ Based on their current activity levels and the administrative context provided, 
         <div className="flex-1 p-6">
           <div className="animate-in fade-in slide-in-from-right-8 duration-500 pb-12">
         <Link 
-          to={`/customers?role=${userData.user.role}`}
+          to="/customers"
           className="mb-6 flex items-center text-[#5850DE] font-bold hover:bg-[#F0F0F3] px-4 py-2 rounded-xl transition w-fit gap-2"
         >
           <ArrowLeft size={18} />
-          Back to {userData.user.role === 'COMPANY_ADMIN' ? 'My Users' : 'All Users'}
+          Back to {user.role === 'COMPANY_ADMIN' ? 'My Users' : 'All Users'}
         </Link>
 
         {/* Hero Profile Banner */}
@@ -535,5 +495,6 @@ Based on their current activity levels and the administrative context provided, 
         </div>
       </div>
     </div>
+    </RoleGuard>
   );
 }

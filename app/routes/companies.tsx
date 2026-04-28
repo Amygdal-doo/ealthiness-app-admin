@@ -1,107 +1,57 @@
 import React, { useState } from "react";
-import { redirect, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import type { Route } from "./+types/companies";
 import { Building2, Plus, Mail, Edit } from "lucide-react";
 import { Button, Card, Badge } from "~/components/ui";
 import AppSidebar from "../../src/components/shared/AppSidebar";
 import Navbar from "../../src/components/shared/Navbar";
-import type { User, UserRole } from "~/lib/auth/types";
+import { RoleGuard } from "~/components/auth/RoleGuard";
+import { useUser } from "~/hooks/useAuth";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const url = new URL(request.url);
-  const role = url.searchParams.get("role");
-  const isAuthenticated = role !== null;
-  
-  if (!isAuthenticated) {
-    return redirect("/");
-  }
+const MOCK_COMPANIES = [
+  {
+    id: "comp1",
+    countryId: "c1",
+    name: "Sarajevo TechFit",
+    status: "Active",
+    users: 145,
+  },
+  {
+    id: "comp2", 
+    countryId: "c1",
+    name: "Mostar Health Corp",
+    status: "Active",
+    users: 89,
+  },
+  {
+    id: "comp3",
+    countryId: "c2", 
+    name: "NY Wellness Solutions",
+    status: "Pending",
+    users: 320,
+  },
+  {
+    id: "comp4",
+    countryId: "c3",
+    name: "Berlin BioHacks",
+    status: "Active",
+    users: 210,
+  },
+];
 
-  const userRole: UserRole = role === "super_admin" ? "SUPER_ADMIN" : 
-                             role === "country_admin" ? "COUNTRY_ADMIN" : 
-                             "COMPANY_ADMIN";
-                             
-  const user: User = {
-    _id: "companies-route-user",
-    firstName: role === "super_admin" ? "Super" : role === "country_admin" ? "Country" : "Company",
-    lastName: "Admin",
-    username: "admin",
-    email: [role === 'super_admin' ? "admin@ealthiness.com" : role === 'country_admin' ? "country.admin@ealthiness.com" : "company.admin@ealthiness.com"],
-    roles: [userRole],
-    currentRole: userRole,
-    companies: [],
-    adminCountries: [],
-    adminRegions: [],
-    adminCompanies: [],
-    diet: { breakfast: [], lunch: [], dinner: [] },
-    coins: 0,
-    friends: [],
-    blockList: [],
-    settings: {
-      stretching: true,
-      dailyMood: true,
-      drinkWater: true,
-      quotes: { send: true, minutes: 60 },
-      facts: { send: true, minutes: 60 }
-    },
-    accomplishments: [],
-    rating: 0,
-    reviews: 0,
-    price: 0,
-    currency: "USD",
-    coaches: [],
-    coachTrainees: [],
-    coachGroup: [],
-    coachGroupMember: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    __v: 0,
-    isFollowingDiet: false,
-    activeDietPlanId: null,
-    activeUserDietPlanId: null,
-    currentDayNumber: null,
-    get id() { return this._id },
-    get name() { return `${this.firstName} ${this.lastName}` },
-    get role() { return this.currentRole }
-  };
-
-  const companies = [
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "Companies - Ealthiness Admin Portal" },
     {
-      id: "comp1",
-      countryId: "c1",
-      name: "Sarajevo TechFit",
-      status: "Active",
-      users: 145,
-    },
-    {
-      id: "comp2", 
-      countryId: "c1",
-      name: "Mostar Health Corp",
-      status: "Active",
-      users: 89,
-    },
-    {
-      id: "comp3",
-      countryId: "c2", 
-      name: "NY Wellness Solutions",
-      status: "Pending",
-      users: 320,
-    },
-    {
-      id: "comp4",
-      countryId: "c3",
-      name: "Berlin BioHacks",
-      status: "Active",
-      users: 210,
+      name: "description",
+      content: "Manage companies across the Ealthiness platform",
     },
   ];
-
-  const userData = { user, companies };
-  return { userData };
 }
 
 
-export default function CompaniesPage({ loaderData }: Route.ComponentProps) {
-  const { userData } = loaderData;
+export default function CompaniesPage() {
+  const user = useUser();
   const navigate = useNavigate();
   const [refreshing, setRefreshing] = useState(false);
   const [modalState, setModalState] = useState<{
@@ -120,14 +70,25 @@ export default function CompaniesPage({ loaderData }: Route.ComponentProps) {
   };
 
   const handleLogout = () => {
-    // This will be handled by the Form action
+    navigate("/");
   };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-gray-600">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   // Filter companies based on role (country admin only sees their country's companies)
   const visibleCompanies =
-    userData.user.role === "COUNTRY_ADMIN"
-      ? userData.companies.filter((c) => c.countryId === "c1") // Assuming country admin is for BA
-      : userData.companies;
+    user.role === "COUNTRY_ADMIN"
+      ? MOCK_COMPANIES.filter((c) => c.countryId === "c1") // Assuming country admin is for BA
+      : MOCK_COMPANIES;
 
   const handleInviteAdmin = (companyName: string) => {
     setModalState({
@@ -142,19 +103,17 @@ export default function CompaniesPage({ loaderData }: Route.ComponentProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
-      <AppSidebar
-        user={userData.user}
-        role={userData.user.role}
-      />
+    <RoleGuard allowedRoles={["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN"]}>
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+        <AppSidebar user={user} />
 
-      <div className="flex-1 flex flex-col">
-        <Navbar
-          user={userData.user}
-          onLogout={handleLogout}
-          onRefresh={handleRefresh}
-          refreshing={refreshing}
-        />
+        <div className="flex-1 flex flex-col">
+          <Navbar
+            user={user}
+            onLogout={handleLogout}
+            onRefresh={handleRefresh}
+            refreshing={refreshing}
+          />
 
         <div className="flex-1 p-6">
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
@@ -333,5 +292,6 @@ export default function CompaniesPage({ loaderData }: Route.ComponentProps) {
         </div>
       </div>
     </div>
+    </RoleGuard>
   );
 }

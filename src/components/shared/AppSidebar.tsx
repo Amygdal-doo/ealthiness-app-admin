@@ -15,7 +15,6 @@ import { useLogout } from "~/hooks/useAuthApi";
 
 interface AppSidebarProps {
   user: User;
-  role: string;
 }
 
 interface NavItem {
@@ -26,19 +25,16 @@ interface NavItem {
   path: string;
 }
 
-const AppSidebar: React.FC<AppSidebarProps> = ({ user, role }) => {
+const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const logoutMutation = useLogout();
 
-  // Use user.role if available, fallback to role prop
-  const effectiveRole = user.role || role;
-  
+  // Use user.role from the authenticated user
+  const effectiveRole = user.role;
+
   // Normalize role for consistent checking
-  const normalizedRole = effectiveRole.toUpperCase().replace(/[-\s]/g, '_');
-  
-  // Convert role back to lowercase with underscores for URL parameters (matching route expectations)
-  const urlRole = normalizedRole.toLowerCase();
+  const normalizedRole = effectiveRole.toUpperCase().replace(/[-\s]/g, "_");
 
   const handleLogout = async () => {
     try {
@@ -54,11 +50,13 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, role }) => {
   const getRoleDisplayName = (role: string) => {
     switch (role) {
       case "SUPER_ADMIN":
-        return "Global Admin";
+        return "Super Admin";
       case "COUNTRY_ADMIN":
         return "Country Admin";
       case "COMPANY_ADMIN":
         return "Company Admin";
+      case "REGIONAL_ADMIN":
+        return "Regional Admin";
       default:
         return "Admin";
     }
@@ -69,29 +67,29 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, role }) => {
       id: "dashboard",
       label: "Overview",
       icon: LayoutGrid,
-      roles: ["SUPER_ADMIN", "COUNTRY_ADMIN", "COMPANY_ADMIN"],
-      path: `/home?role=${urlRole}`,
+      roles: ["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN", "COMPANY_ADMIN"],
+      path: "/home",
     },
     {
       id: "countries",
       label: "Regions & Countries",
       icon: Globe,
-      roles: ["SUPER_ADMIN"],
-      path: `/countries?role=${urlRole}`,
+      roles: ["SUPER_ADMIN", "REGIONAL_ADMIN"],
+      path: "/countries",
     },
     {
       id: "companies",
       label: "Companies",
       icon: Building2,
-      roles: ["SUPER_ADMIN", "COUNTRY_ADMIN"],
-      path: `/companies?role=${urlRole}`,
+      roles: ["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN"],
+      path: "/companies",
     },
     {
       id: "customers",
       label: normalizedRole === "COMPANY_ADMIN" ? "My Users" : "All Users",
       icon: Users,
-      roles: ["SUPER_ADMIN", "COUNTRY_ADMIN", "COMPANY_ADMIN"],
-      path: `/customers?role=${urlRole}`,
+      roles: ["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN", "COMPANY_ADMIN"],
+      path: "/customers",
     },
   ];
 
@@ -100,19 +98,21 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, role }) => {
       id: "design_system",
       label: "Design System",
       icon: Palette,
-      roles: ["SUPER_ADMIN", "COUNTRY_ADMIN", "COMPANY_ADMIN"],
-      path: `/design-system?role=${urlRole}`,
+      roles: ["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN", "COMPANY_ADMIN"],
+      path: "/design-system",
     },
     {
       id: "settings",
       label: "Settings",
       icon: Settings,
-      roles: ["SUPER_ADMIN", "COUNTRY_ADMIN", "COMPANY_ADMIN"],
-      path: `/settings?role=${urlRole}`,
+      roles: ["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN", "COMPANY_ADMIN"],
+      path: "/settings",
     },
   ];
 
-  const filteredNavItems = navItems.filter((item) => item.roles.includes(normalizedRole));
+  const filteredNavItems = navItems.filter((item) =>
+    item.roles.includes(normalizedRole),
+  );
   const filteredBrandItems = brandItems.filter((item) =>
     item.roles.includes(normalizedRole),
   );
@@ -121,7 +121,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, role }) => {
     if (itemId === "dashboard") {
       return location.pathname === "/" || location.pathname === "/home";
     }
-    return location.pathname === itemPath.split("?")[0];
+    return location.pathname === itemPath;
   };
 
   return (

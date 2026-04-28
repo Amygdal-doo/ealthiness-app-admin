@@ -1,5 +1,5 @@
-import React from 'react';
-import { Bell, RefreshCw, HeartPulse } from 'lucide-react';
+import React from "react";
+import { Bell, RefreshCw, HeartPulse } from "lucide-react";
 import type { User } from "~/lib/auth/types";
 import { useLogout } from "~/hooks/useAuthApi";
 import { useNavigate } from "react-router";
@@ -11,11 +11,11 @@ interface NavbarProps {
   refreshing?: boolean;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ 
-  user, 
-  onLogout, 
-  onRefresh, 
-  refreshing = false 
+const Navbar: React.FC<NavbarProps> = ({
+  user,
+  onLogout,
+  onRefresh,
+  refreshing = false,
 }) => {
   const navigate = useNavigate();
   const logoutMutation = useLogout();
@@ -36,19 +36,29 @@ const Navbar: React.FC<NavbarProps> = ({
   };
   const getRoleInitials = (role: string) => {
     switch (role) {
-      case 'super_admin': return 'SA';
-      case 'country_admin': return 'CA';
-      case 'company_admin': return 'CO';
-      default: return 'AD';
+      case "super_admin":
+        return "SA";
+      case "country_admin":
+        return "CA";
+      case "company_admin":
+        return "CO";
+      default:
+        return "AD";
     }
   };
 
   const getRoleDisplayName = (role: string) => {
     switch (role) {
-      case 'super_admin': return 'Global Admin Portal';
-      case 'country_admin': return 'Country Admin Portal';
-      case 'company_admin': return 'Company Admin Portal';
-      default: return 'Admin Portal';
+      case "SUPER_ADMIN":
+        return "Super Admin Portal";
+      case "COUNTRY_ADMIN":
+        return "Country Admin Portal";
+      case "COMPANY_ADMIN":
+        return "Company Admin Portal";
+      case "REGIONAL_ADMIN":
+        return "Regional Admin";
+      default:
+        return "Admin Portal";
     }
   };
 
@@ -76,18 +86,18 @@ const Navbar: React.FC<NavbarProps> = ({
         {/* Right Actions */}
         <div className="flex items-center gap-4">
           {onRefresh && (
-            <button 
+            <button
               onClick={onRefresh}
               disabled={refreshing}
               className="p-3 bg-[#F8F9FB] hover:bg-[#E0E1E6] rounded-xl transition-colors"
             >
-              <RefreshCw 
-                size={18} 
-                className={`text-[#5850DE] ${refreshing ? 'animate-spin' : ''}`} 
+              <RefreshCw
+                size={18}
+                className={`text-[#5850DE] ${refreshing ? "animate-spin" : ""}`}
               />
             </button>
           )}
-          
+
           <div className="relative">
             <button className="p-3 bg-[#F8F9FB] hover:bg-[#E0E1E6] rounded-xl transition-colors">
               <Bell size={18} className="text-[#1B173A]" />
@@ -95,7 +105,7 @@ const Navbar: React.FC<NavbarProps> = ({
             <span className="absolute top-2 right-2 w-2 h-2 bg-[#EF4444] rounded-full border border-white"></span>
           </div>
 
-          <button 
+          <button
             onClick={handleLogout}
             className="px-4 py-2 bg-gradient-to-r from-[#5850DE] to-[#248FEC] text-white rounded-xl font-bold hover:opacity-90 transition-opacity"
             title={`${user.name} (${Array.isArray(user.email) ? user.email[0] : user.email})`}
