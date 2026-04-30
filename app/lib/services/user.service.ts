@@ -3,11 +3,11 @@ import type {
   UserRole,
   AuthResult,
   ApiAuthResponse,
+  UsersResponse,
+  UsersQueryParams,
 } from "../auth/types";
 
-const API_BASE_URL =
-  process.env.DATABASE_URL?.replace(/\/$/, "") ||
-  "https://elathiness-backend-app-company-idea-production.up.railway.app";
+const API_BASE_URL = 'https://elathiness-backend-app-company-idea-production.up.railway.app';
 
 // JWT payload interface for decoding tokens
 interface JWTPayload {
@@ -248,4 +248,42 @@ export function getUserFromToken(accessToken: string): User | null {
     name: payload.name || payload.email.split("@")[0],
     role: payload.role,
   };
+}
+
+/**
+ * Builds the query string for users endpoint
+ */
+export function buildUsersQueryString(params: UsersQueryParams = {}): string {
+  const searchParams = new URLSearchParams();
+
+  // Add parameters only if they have values
+  if (params.page !== undefined) {
+    searchParams.append('page', params.page.toString());
+  }
+  
+  if (params.limit !== undefined) {
+    searchParams.append('limit', params.limit.toString());
+  }
+  
+  if (params.search && params.search.trim()) {
+    searchParams.append('search', params.search.trim());
+  }
+  
+  if (params.orderBy) {
+    searchParams.append('orderBy', params.orderBy);
+  }
+  
+  if (params.type) {
+    searchParams.append('type', params.type);
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/admin/users${queryString ? `?${queryString}` : ''}`;
+}
+
+/**
+ * Builds the endpoint for getting user details by ID
+ */
+export function buildUserDetailsEndpoint(userId: string): string {
+  return `/v1/admin/users/${userId}`;
 }

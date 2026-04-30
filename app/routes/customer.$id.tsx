@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import type { Route } from './+types/customer.$id';
 import { 
   ArrowLeft, Sparkles, MessageSquare, Mail, Flame, Activity, Dumbbell, 
-  Smile, Frown, Meh, Moon, Droplets, Utensils, Award, CheckCircle2, Droplet 
+  Smile, Frown, Meh, Moon, Droplets, Utensils, Award, CheckCircle2, Droplet, User, UserCheck 
 } from 'lucide-react';
 import { Button, Card, CardHeader, CardTitle, CardContent, Badge, Textarea, Input } from '~/components/ui';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
@@ -12,6 +12,9 @@ import AppSidebar from "../../src/components/shared/AppSidebar";
 import Navbar from "../../src/components/shared/Navbar";
 import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
+import { useUserDetails } from "~/hooks/useAuthApi";
+import type { ApiUser } from "~/lib/auth/types";
+import { useParams } from "react-router";
 
 // Mock user data with detailed stats
 const MOCK_CUSTOMERS = {
@@ -76,43 +79,18 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const customer = MOCK_CUSTOMERS[params.id as keyof typeof MOCK_CUSTOMERS];
-  
-  if (!customer) {
-    throw new Response("Customer not found", { status: 404 });
-  }
-
-  return { customer };
+  // We're using React Query hook in the component instead
+  return { userId: params.id };
 }
 
 export default function CustomerDetailPage({ loaderData }: Route.ComponentProps) {
-  const { customer: u } = loaderData;
+  const { userId } = loaderData;
+  const params = useParams();
+  const actualUserId = userId || params.id || '';
+  
   const user = useUser();
   const navigate = useNavigate();
   const [refreshing, setRefreshing] = useState(false);
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1500);
-  };
-
-  const handleLogout = () => {
-    navigate("/");
-  };
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex items-center space-x-2">
-          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-gray-600">Loading...</span>
-        </div>
-      </div>
-    );
-  }
-
-  const stats = USER_ACTIVITY_DATA;
-
   const [adminNotes, setAdminNotes] = useState('');
   const [aiInsights, setAiInsights] = useState('');
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
@@ -120,12 +98,89 @@ export default function CustomerDetailPage({ loaderData }: Route.ComponentProps)
   const [isDraftingMessage, setIsDraftingMessage] = useState(false);
   const [bonusAmount, setBonusAmount] = useState('');
   const [bonusPoints, setBonusPoints] = useState(0);
+  
+  // Fetch user details from API - MUST be called before any conditional returns
+  const { data: apiUser, isLoading: isLoadingUser, error: userError } = useUserDetails(actualUserId);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    // In a real implementation, you could also refetch the user data here
+    setTimeout(() => setRefreshing(false), 1500);
+  };
+  
+  // Transform API user to display format
+  const transformApiUserToCustomer = (apiUser: ApiUser) => ({
+    id: apiUser._id,
+    name: `${apiUser.firstName} ${apiUser.lastName}`,
+    role: apiUser.roles.includes('USER') ? 'User' : apiUser.roles.filter(r => r !== 'USER')[0] || 'User',
+    joined: new Date(apiUser.createdAt).toLocaleDateString(),
+    status: 'Active',
+    weight: apiUser.weight ? `${apiUser.weight}kg` : 'N/A',
+    height: apiUser.height ? `${apiUser.height}cm` : 'N/A',
+    age: calculateAge(apiUser.createdAt), // Approximate age calculation
+    username: apiUser.username,
+    email: apiUser.email[0],
+    gender: apiUser.gender
+  });
+  
+  // Helper function to calculate approximate age (using account creation as placeholder)
+  const calculateAge = (createdAt: string) => {
+    const created = new Date(createdAt);
+    const now = new Date();
+    const diffYears = now.getFullYear() - created.getFullYear();
+    return Math.max(18, 30 - diffYears); // Fallback to reasonable age range
+  };
+
+  const handleLogout = () => {
+    navigate("/");
+  };
+
+  if (!user || isLoadingUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-gray-600">
+            {!user ? 'Loading...' : 'Loading user details...'}
+          </span>
+        </div>
+      </div>
+    );
+  }
+  
+  if (userError) {
+    return (
+      <RoleGuard allowedRoles={["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN", "COMPANY_ADMIN"]}>
+        <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+          <AppSidebar user={user} />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-red-600 mb-2">User Not Found</h2>
+              <p className="text-gray-600 mb-4">The user you're looking for could not be found.</p>
+              <Link to="/customers" className="text-blue-500 hover:underline">
+                Back to Users
+              </Link>
+            </div>
+          </div>
+        </div>
+      </RoleGuard>
+    );
+  }
+  
+  if (!apiUser) {
+    return null;
+  }
+  
+  // Use the transformed customer data
+  const u = transformApiUserToCustomer(apiUser);
+
+  const stats = USER_ACTIVITY_DATA;
 
   // Generate mock AI insights
   const generateInsights = () => {
     setIsGeneratingInsights(true);
     setTimeout(() => {
-      setAiInsights(`${u.name} shows excellent consistency in their fitness routine with strong cardiovascular performance this week. Their mood trend indicates overall positive well-being despite one challenging day mid-week.
+      setAiInsights(`${u.name} (${u.username}) shows excellent consistency in their fitness routine with strong cardiovascular performance this week. Their mood trend indicates overall positive well-being despite one challenging day mid-week.
 
 Based on their current activity levels and the administrative context provided, I recommend incorporating more recovery-focused activities on lower-intensity days to prevent burnout and maintain their impressive momentum.`);
       setIsGeneratingInsights(false);
@@ -176,10 +231,17 @@ Based on their current activity levels and the administrative context provided, 
           
           <div className="relative z-10 text-center md:text-left flex-1">
             <div className="flex flex-col md:flex-row md:items-center gap-4 mb-2">
-              <h2 className="text-4xl font-extrabold">{u.name}</h2>
+              <div className="flex items-center gap-3 justify-center md:justify-start">
+                <h2 className="text-4xl font-extrabold">{u.name}</h2>
+                {u.gender === 'male' ? (
+                  <User size={24} className="text-blue-400" />
+                ) : u.gender === 'female' ? (
+                  <UserCheck size={24} className="text-pink-400" />
+                ) : null}
+              </div>
               <Badge variant="secondary">Active Status</Badge>
             </div>
-            <p className="text-[#8E8E93] font-medium mb-6 text-lg">{u.role} • Joined {u.joined}</p>
+            <p className="text-[#8E8E93] font-medium mb-6 text-lg">{u.role} • @{u.username} • Joined {u.joined}</p>
             
             <div className="flex flex-wrap justify-center md:justify-start gap-6">
               <div><p className="text-[10px] text-[#8E8E93] uppercase font-bold">Weight</p><p className="font-bold text-xl">{u.weight}</p></div>

@@ -2,7 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "~/lib/services/api";
 import { clientTokens } from "~/lib/auth/client-cookies";
 import { transformApiUser } from "~/lib/auth/utils";
-import type { User, LoginCredentials, ApiAuthResponse } from "~/lib/auth/types";
+import { buildUsersQueryString, buildUserDetailsEndpoint } from "~/lib/services/user.service";
+import type { User, LoginCredentials, ApiAuthResponse, UsersResponse, UsersQueryParams, ApiUser } from "~/lib/auth/types";
 
 interface LoginResponse extends ApiAuthResponse {
   user?: User;
@@ -111,5 +112,59 @@ export function useRefreshToken() {
 
       return response;
     },
+  });
+}
+
+export function useUsers(params: UsersQueryParams = {}) {
+  return useQuery({
+    queryKey: ["users", params],
+    queryFn: async (): Promise<UsersResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildUsersQueryString(params);
+        const response = await apiClient.get<UsersResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get(), // Only run if we have tokens
+  });
+}
+
+export function useUserDetails(userId: string) {
+  return useQuery({
+    queryKey: ["user", userId],
+    queryFn: async (): Promise<ApiUser> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildUserDetailsEndpoint(userId);
+        const response = await apiClient.get<ApiUser>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get() && !!userId, // Only run if we have tokens and userId
   });
 }

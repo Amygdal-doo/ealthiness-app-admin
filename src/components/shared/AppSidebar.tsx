@@ -5,7 +5,6 @@ import {
   Globe,
   Building2,
   Users,
-  Palette,
   HeartPulse,
   Settings,
 } from "lucide-react";
@@ -71,8 +70,15 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
       path: "/home",
     },
     {
+      id: "regions",
+      label: "Regions",
+      icon: Globe,
+      roles: ["SUPER_ADMIN"],
+      path: "/regions",
+    },
+    {
       id: "countries",
-      label: "Regions & Countries",
+      label: "Countries",
       icon: Globe,
       roles: ["SUPER_ADMIN", "REGIONAL_ADMIN"],
       path: "/countries",
@@ -94,13 +100,6 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
   ];
 
   const brandItems: NavItem[] = [
-    {
-      id: "design_system",
-      label: "Design System",
-      icon: Palette,
-      roles: ["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN", "COMPANY_ADMIN"],
-      path: "/design-system",
-    },
     {
       id: "settings",
       label: "Settings",
@@ -192,19 +191,14 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
                 <button
                   key={item.id}
                   onClick={handleBrandNavigation}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl font-semibold transition text-left ${
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl font-semibold transition text-left ${
                     isActive
                       ? "bg-gradient-to-r from-[#5850DE] to-[#248FEC] text-white shadow-md"
                       : "text-[#60646C] hover:bg-gray-50"
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <Icon size={20} />
-                    {item.label}
-                  </div>
-                  {!isActive && item.id === "design_system" && (
-                    <div className="w-2 h-2 rounded-full bg-[#248FEC]"></div>
-                  )}
+                  <Icon size={20} />
+                  {item.label}
                 </button>
               );
             })}

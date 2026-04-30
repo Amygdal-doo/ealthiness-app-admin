@@ -1,49 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Link } from "react-router";
 import type { Route } from "./+types/customers";
-import { Users } from "lucide-react";
+import { Users, User, UserCheck } from "lucide-react";
 import { Badge } from "~/components/ui";
 import AppSidebar from "../../src/components/shared/AppSidebar";
 import Navbar from "../../src/components/shared/Navbar";
 import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
+import { useUsers } from "~/hooks/useAuthApi";
+import type { ApiUser } from "~/lib/auth/types";
 
-const MOCK_CUSTOMERS = [
-  {
-    id: "u1",
-    companyId: "comp1",
-    name: "Tarik S.",
-    role: "Premium User",
-    joined: "2025-01-15",
-    status: "Active",
-    weight: "78kg",
-    height: "182cm",
-    age: 29,
-  },
-  {
-    id: "u2",
-    companyId: "comp1",
-    name: "Amina M.",
-    role: "Standard",
-    joined: "2025-03-22",
-    status: "Active",
-    weight: "65kg",
-    height: "168cm",
-    age: 26,
-  },
-  {
-    id: "u3",
-    companyId: "comp3",
-    name: "John Doe",
-    role: "Premium User",
-    joined: "2024-11-10",
-    status: "Inactive",
-    weight: "90kg",
-    height: "175cm",
-    age: 40,
-  },
-];
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -59,10 +26,30 @@ export default function CustomersPage() {
   const user = useUser();
   const navigate = useNavigate();
   const [refreshing, setRefreshing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Fetch users with React Query
+  const { data: usersResponse, isLoading, error, refetch } = useUsers({
+    page: currentPage,
+    limit: 10,
+    search: searchTerm || undefined,
+    orderBy: 'lastName',
+    type: 'ascending'
+  });
+
+  // Console log users when data changes
+  useEffect(() => {
+    if (usersResponse?.results) {
+      console.log('Users from API:', usersResponse.results);
+      console.log('Total users:', usersResponse.total);
+      console.log('Current page:', usersResponse.page);
+    }
+  }, [usersResponse]);
 
   const handleRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1500);
+    refetch().finally(() => setRefreshing(false));
   };
 
   const handleLogout = () => {
@@ -80,14 +67,44 @@ export default function CustomersPage() {
     );
   }
 
-  // Filter customers based on role
-  const visibleCustomers =
-    user.role === "COMPANY_ADMIN"
-      ? MOCK_CUSTOMERS.filter((c) => c.companyId === "comp1") // Assuming company admin is for comp1
-      : MOCK_CUSTOMERS;
+  // Transform API users to display format
+  const transformUser = (apiUser: ApiUser) => ({
+    id: apiUser._id,
+    name: `${apiUser.firstName} ${apiUser.lastName}`,
+    roles: apiUser.roles, // Show all roles
+    joined: new Date(apiUser.createdAt).toLocaleDateString(),
+    status: 'Active', // API doesn't provide status, defaulting to Active
+    weight: apiUser.weight ? `${apiUser.weight}kg` : 'N/A',
+    height: apiUser.height ? `${apiUser.height}cm` : 'N/A',
+    username: apiUser.username,
+    email: apiUser.email[0],
+    gender: apiUser.gender // Include gender for icon display
+  });
 
-  const pageTitle =
-    user.role === "COMPANY_ADMIN" ? "My Users" : "All Users";
+  const visibleCustomers = usersResponse?.results?.map(transformUser) || [];
+  const pageTitle = user?.role === "COMPANY_ADMIN" ? "My Users" : "All Users";
+
+  // Handle loading state
+  if (isLoading && !usersResponse) {
+    return (
+      <RoleGuard allowedRoles={["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN", "COMPANY_ADMIN"]}>
+        <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+          <AppSidebar user={user!} />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-gray-600">Loading users...</span>
+            </div>
+          </div>
+        </div>
+      </RoleGuard>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    console.error('Error fetching users:', error);
+  }
 
   return (
     <RoleGuard allowedRoles={["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN", "COMPANY_ADMIN"]}>
@@ -113,8 +130,7 @@ export default function CustomersPage() {
                   {pageTitle}
                 </h2>
                 <p className="text-[#60646C] text-sm font-medium mt-1">
-                  Total {visibleCustomers.length} users in your management
-                  scope.
+                  Total {usersResponse?.total || 0} users found ({visibleCustomers.length} on this page)
                 </p>
               </div>
             </div>
@@ -124,10 +140,16 @@ export default function CustomersPage() {
                 <thead className="bg-[#F8F9FB] border-b border-[#E0E1E6]">
                   <tr>
                     <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
-                      Customer
+                      User
+                    </th>
+                    <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
+                      Roles
                     </th>
                     <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                      Health Status
+                      Height
+                    </th>
+                    <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                      Weight
                     </th>
                     <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
                       Joined
@@ -149,34 +171,49 @@ export default function CustomersPage() {
                             {customer.name.charAt(0)}
                           </div>
                           <div>
-                            <span className="font-bold text-[#1B173A] block leading-tight">
-                              {customer.name}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-[#1B173A] leading-tight">
+                                {customer.name}
+                              </span>
+                              {/* Gender icon */}
+                              {customer.gender === 'male' ? (
+                                <User size={14} className="text-blue-500" />
+                              ) : customer.gender === 'female' ? (
+                                <UserCheck size={14} className="text-pink-500" />
+                              ) : null}
+                            </div>
                             <span className="text-xs text-[#8E8E93] font-medium">
-                              {customer.role}
+                              @{customer.username}
                             </span>
                           </div>
                         </div>
                       </td>
+                      <td className="p-4 hidden lg:table-cell">
+                        <div className="space-y-1">
+                          {customer.roles.map((role, index) => (
+                            <div key={index}>
+                              <Badge
+                                variant={role === 'SUPER_ADMIN' ? 'destructive' : role.includes('ADMIN') ? 'secondary' : 'default'}
+                                className="text-xs"
+                              >
+                                {role.replace('_', ' ')}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </td>
                       <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
-                        <Badge
-                          variant={
-                            customer.status === "Active"
-                              ? "secondary"
-                              : "destructive"
-                          }
-                        >
-                          {customer.status === "Active"
-                            ? "Optimal"
-                            : "Needs Review"}
-                        </Badge>
+                        {customer.height}
+                      </td>
+                      <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
+                        {customer.weight}
                       </td>
                       <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
                         {customer.joined}
                       </td>
                       <td className="p-4 text-right">
                         <Link
-                          to={`/customer/${customer.id}`}
+                          to={`/customers/${customer.id}`}
                           className="bg-white border border-[#E0E1E6] text-[#1B173A] text-xs font-bold px-4 py-2 rounded-lg hover:border-[#5850DE] hover:text-[#5850DE] transition inline-block"
                         >
                           View Profile

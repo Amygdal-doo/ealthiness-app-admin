@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
-import type { Route } from "./+types/countries";
+import type { Route } from "./+types/regions";
 import { Globe, Plus, Mail } from "lucide-react";
 import { Button, Card, Badge } from "~/components/ui";
 import AppSidebar from "../../src/components/shared/AppSidebar";
@@ -8,24 +8,23 @@ import Navbar from "../../src/components/shared/Navbar";
 import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
 
-const MOCK_COUNTRIES = [
-  { id: "c1", name: "Bosnia and Herzegovina", code: "BA", region: "Europe" },
-  { id: "c2", name: "United States", code: "US", region: "North America" },
-  { id: "c3", name: "Germany", code: "DE", region: "Europe" },
-  { id: "c4", name: "Japan", code: "JP", region: "Asia Pacific" },
+const MOCK_REGIONS = [
+  { id: "r1", name: "Europe", code: "EU" },
+  { id: "r2", name: "North America", code: "NA" },
+  { id: "r3", name: "Asia Pacific", code: "APAC" },
 ];
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Countries - Ealthiness Admin Portal" },
+    { title: "Regions - Ealthiness Admin Portal" },
     {
       name: "description",
-      content: "Manage countries and regional administrators",
+      content: "Manage regions and regional administrators",
     },
   ];
 }
 
-export default function CountriesPage() {
+export default function RegionsPage() {
   const user = useUser();
   const navigate = useNavigate();
   const [refreshing, setRefreshing] = useState(false);
@@ -59,22 +58,22 @@ export default function CountriesPage() {
     );
   }
 
-  // Filter countries based on role (similar logic to companies)
-  const visibleCountries =
+  // Filter regions based on role
+  const visibleRegions =
     user.role === "REGIONAL_ADMIN"
-      ? MOCK_COUNTRIES.filter((c) => c.id === "c1") // Assuming regional admin manages specific region
-      : MOCK_COUNTRIES;
+      ? MOCK_REGIONS.filter((r) => r.id === "r1") // Assuming regional admin manages specific region
+      : MOCK_REGIONS;
 
-  const handleInviteAdmin = (countryName: string) => {
+  const handleInviteAdmin = (regionName: string) => {
     setModalState({
       isOpen: true,
       type: "invite_admin",
-      data: { entity: countryName, role: "Country Manager" },
+      data: { entity: regionName, role: "Regional Manager" },
     });
   };
 
   const handleAddRegion = () => {
-    setModalState({ isOpen: true, type: "country", data: null });
+    setModalState({ isOpen: true, type: "region", data: null });
   };
 
   return (
@@ -95,15 +94,15 @@ export default function CountriesPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-extrabold text-[#1B173A]">
-                    Countries
+                    Regions
                   </h2>
                   <p className="text-[#60646C] text-sm font-medium mt-1">
-                    Total {visibleCountries.length} countries in your
+                    Total {visibleRegions.length} regions in your
                     jurisdiction.
                   </p>
                 </div>
                 <Button onClick={handleAddRegion}>
-                  <Plus size={18} className="mr-2" /> Add Country
+                  <Plus size={18} className="mr-2" /> Add Region
                 </Button>
               </div>
 
@@ -113,13 +112,10 @@ export default function CountriesPage() {
                     <thead className="bg-[#F8F9FB] border-b border-[#E0E1E6]">
                       <tr>
                         <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
-                          Country
+                          Region
                         </th>
                         <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
                           Code
-                        </th>
-                        <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
-                          Region
                         </th>
                         <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
                           Admins
@@ -130,31 +126,28 @@ export default function CountriesPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E0E1E6]">
-                      {visibleCountries.map((country) => (
+                      {visibleRegions.map((region) => (
                         <tr
-                          key={country.id}
+                          key={region.id}
                           className="hover:bg-gray-50 transition"
                         >
                           <td className="p-4 font-bold text-[#1B173A] flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center">
                               <Globe size={16} />
                             </div>
-                            {country.name}
+                            {region.name}
                           </td>
                           <td className="p-4 font-mono text-[#60646C] text-sm">
-                            {country.code}
-                          </td>
-                          <td className="p-4 text-[#60646C] text-sm">
-                            {country.region}
+                            {region.code}
                           </td>
                           <td className="p-4">
-                            <Badge variant="default">2 Admins</Badge>
+                            <Badge variant="default">1 Admin</Badge>
                           </td>
                           <td className="p-4 text-right">
                             <div className="flex justify-end gap-2">
                               <Button
                                 variant="outline"
-                                onClick={() => handleInviteAdmin(country.name)}
+                                onClick={() => handleInviteAdmin(region.name)}
                               >
                                 <Mail size={16} className="mr-2" /> Invite
                                 Manager
@@ -176,7 +169,7 @@ export default function CountriesPage() {
                       <h3 className="text-lg font-semibold text-[#1B173A]">
                         {modalState.type === "invite_admin"
                           ? `Invite ${modalState.data?.role}`
-                          : "Add New Country"}
+                          : "Add New Region"}
                       </h3>
                       <button
                         onClick={() =>
@@ -207,14 +200,14 @@ export default function CountriesPage() {
                           </div>
                         </>
                       )}
-                      {modalState.type === "country" && (
+                      {modalState.type === "region" && (
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-[#8E8E93] uppercase">
-                            Country Name
+                            Region Name
                           </label>
                           <input
                             className="w-full px-3 py-2 border border-[#E0E1E6] rounded-lg focus:border-[#5850DE] outline-none"
-                            placeholder="Enter country name..."
+                            placeholder="Enter region name..."
                           />
                         </div>
                       )}

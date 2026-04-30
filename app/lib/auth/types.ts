@@ -152,3 +152,34 @@ export const USER_ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
     canManageSystem: false,
   },
 };
+
+// Users API types
+export interface ApiUser {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string[];
+  roles: string[];
+  height?: number;
+  weight?: number;
+  gender?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UsersResponse {
+  limit: number;
+  page: number;
+  pages: number;
+  total: number;
+  results: ApiUser[];
+}
+
+export interface UsersQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  orderBy?: 'firstName' | 'lastName' | 'email' | 'username' | 'birthdate';
+  type?: 'ascending' | 'descending';
+}
