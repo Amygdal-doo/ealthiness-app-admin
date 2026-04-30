@@ -69,7 +69,7 @@ export default function CountriesPage() {
     setModalState({
       isOpen: true,
       type: "invite_admin",
-      data: { entity: countryName, role: "Country Manager" },
+      data: { entity: countryName, role: "Country Admin" },
     });
   };
 
@@ -156,8 +156,7 @@ export default function CountriesPage() {
                                 variant="outline"
                                 onClick={() => handleInviteAdmin(country.name)}
                               >
-                                <Mail size={16} className="mr-2" /> Invite
-                                Manager
+                                <Mail size={16} className="mr-2" /> Invite Admin
                               </Button>
                             </div>
                           </td>

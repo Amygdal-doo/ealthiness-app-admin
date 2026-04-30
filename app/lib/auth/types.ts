@@ -183,3 +183,31 @@ export interface UsersQueryParams {
   orderBy?: 'firstName' | 'lastName' | 'email' | 'username' | 'birthdate';
   type?: 'ascending' | 'descending';
 }
+
+// Regions API types
+export interface ApiRegion {
+  _id: string;
+  name: string;
+  __v: number;
+  admins: any[];
+  createdAt: string;
+  image: string | null;
+  updatedAt: string;
+  adminCount: number;
+}
+
+export interface RegionsResponse {
+  limit: number;
+  page: number;
+  pages: number;
+  total: number;
+  results: ApiRegion[];
+}
+
+export interface RegionsQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  orderBy?: 'name' | 'createdAt';
+  type?: 'ascending' | 'descending';
+}
