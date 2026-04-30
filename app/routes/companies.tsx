@@ -9,6 +9,7 @@ import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
 import { useCompanies } from "~/hooks/useAuthApi";
 import type { ApiCompany } from "~/lib/auth/types";
+import NewCompanyForm from "~/components/forms/NewCompanyForm";
 
 
 export function meta({}: Route.MetaArgs) {
@@ -131,6 +132,13 @@ export default function CompaniesPage() {
 
   const handleAddCompany = () => {
     setModalState({ isOpen: true, type: "company", data: null });
+  };
+
+  const handleCompanyCreated = (newCompany: any) => {
+    // Close modal
+    setModalState({ isOpen: false, type: "", data: null });
+    // Refetch companies to show the new one
+    refetch();
   };
 
   return (
@@ -347,74 +355,62 @@ export default function CompaniesPage() {
         {/* Modal for invite/add actions */}
         {modalState.isOpen && (
           <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-            <Card className="w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
-              <div className="p-6 border-b border-[#E0E1E6] flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[#1B173A]">
-                  {modalState.type === "invite_admin"
-                    ? `Invite ${modalState.data?.role}`
-                    : "Add New Company"}
-                </h3>
-                <button
-                  onClick={() =>
-                    setModalState({ isOpen: false, type: "", data: null })
-                  }
-                  className="text-[#8E8E93] hover:text-[#1B173A] transition"
-                >
-                  ×
-                </button>
-              </div>
-              <div className="p-6 space-y-4">
-                {modalState.type === "invite_admin" && (
-                  <>
-                    <p className="text-sm text-[#60646C]">
-                      You are inviting a new {modalState.data?.role} to manage{" "}
-                      <strong>{modalState.data?.entity}</strong>. They will
-                      receive an email to set up their account.
-                    </p>
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-[#8E8E93] uppercase">
-                        Email Address
-                      </label>
-                      <input
-                        className="w-full px-3 py-2 border border-[#E0E1E6] rounded-lg focus:border-[#5850DE] outline-none"
-                        placeholder="admin@example.com"
-                        type="email"
-                      />
-                    </div>
-                  </>
-                )}
-                {modalState.type === "company" && (
+            {modalState.type === "company" ? (
+              <NewCompanyForm
+                onSuccess={handleCompanyCreated}
+                onCancel={() => setModalState({ isOpen: false, type: "", data: null })}
+              />
+            ) : (
+              <Card className="w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
+                <div className="p-6 border-b border-[#E0E1E6] flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-[#1B173A]">
+                    Invite {modalState.data?.role}
+                  </h3>
+                  <button
+                    onClick={() =>
+                      setModalState({ isOpen: false, type: "", data: null })
+                    }
+                    className="text-[#8E8E93] hover:text-[#1B173A] transition"
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className="p-6 space-y-4">
+                  <p className="text-sm text-[#60646C]">
+                    You are inviting a new {modalState.data?.role} to manage{" "}
+                    <strong>{modalState.data?.entity}</strong>. They will
+                    receive an email to set up their account.
+                  </p>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-[#8E8E93] uppercase">
-                      Company Name
+                      Email Address
                     </label>
                     <input
                       className="w-full px-3 py-2 border border-[#E0E1E6] rounded-lg focus:border-[#5850DE] outline-none"
-                      placeholder="Enter company name..."
+                      placeholder="admin@example.com"
+                      type="email"
                     />
                   </div>
-                )}
-                <div className="pt-4 flex justify-end gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      setModalState({ isOpen: false, type: "", data: null })
-                    }
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={() =>
-                      setModalState({ isOpen: false, type: "", data: null })
-                    }
-                  >
-                    {modalState.type === "invite_admin"
-                      ? "Send Invitation"
-                      : "Save"}
-                  </Button>
+                  <div className="pt-4 flex justify-end gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        setModalState({ isOpen: false, type: "", data: null })
+                      }
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        setModalState({ isOpen: false, type: "", data: null })
+                      }
+                    >
+                      Send Invitation
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            )}
           </div>
         )}
           </div>
