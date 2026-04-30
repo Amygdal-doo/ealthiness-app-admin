@@ -6,6 +6,8 @@ import type {
   UsersResponse,
   UsersQueryParams,
   RegionsQueryParams,
+  CompaniesQueryParams,
+  CountriesQueryParams,
 } from "../auth/types";
 
 const API_BASE_URL = 'https://elathiness-backend-app-company-idea-production.up.railway.app';
@@ -318,4 +320,66 @@ export function buildRegionsQueryString(params: RegionsQueryParams = {}): string
 
   const queryString = searchParams.toString();
   return `/v1/admin/region${queryString ? `?${queryString}` : ''}`;
+}
+
+/**
+ * Builds the query string for companies endpoint
+ */
+export function buildCompaniesQueryString(params: CompaniesQueryParams = {}): string {
+  const searchParams = new URLSearchParams();
+
+  // Add parameters only if they have values
+  if (params.page !== undefined) {
+    searchParams.append('page', params.page.toString());
+  }
+  
+  if (params.limit !== undefined) {
+    searchParams.append('limit', params.limit.toString());
+  }
+  
+  if (params.search && params.search.trim()) {
+    searchParams.append('search', params.search.trim());
+  }
+  
+  if (params.orderBy) {
+    searchParams.append('orderBy', params.orderBy);
+  }
+  
+  if (params.type) {
+    searchParams.append('type', params.type);
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/admin/company${queryString ? `?${queryString}` : ''}`;
+}
+
+/**
+ * Builds the query string for countries endpoint
+ */
+export function buildCountriesQueryString(params: CountriesQueryParams = {}): string {
+  const searchParams = new URLSearchParams();
+
+  // Add parameters only if they have values
+  if (params.page !== undefined) {
+    searchParams.append('page', params.page.toString());
+  }
+  
+  if (params.limit !== undefined) {
+    searchParams.append('limit', params.limit.toString());
+  }
+  
+  if (params.search && params.search.trim()) {
+    searchParams.append('search', params.search.trim());
+  }
+  
+  if (params.orderBy) {
+    searchParams.append('orderBy', params.orderBy);
+  }
+  
+  if (params.type) {
+    searchParams.append('type', params.type);
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/admin/country${queryString ? `?${queryString}` : ''}`;
 }

@@ -1,19 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import type { Route } from "./+types/countries";
-import { Globe, Plus, Mail } from "lucide-react";
-import { Button, Card, Badge } from "~/components/ui";
+import {
+  Globe,
+  Plus,
+  Mail,
+  Edit,
+  Search,
+  ChevronDown,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { Button, Card, Badge, Input } from "~/components/ui";
 import AppSidebar from "../../src/components/shared/AppSidebar";
 import Navbar from "../../src/components/shared/Navbar";
 import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
-
-const MOCK_COUNTRIES = [
-  { id: "c1", name: "Bosnia and Herzegovina", code: "BA", region: "Europe" },
-  { id: "c2", name: "United States", code: "US", region: "North America" },
-  { id: "c3", name: "Germany", code: "DE", region: "Europe" },
-  { id: "c4", name: "Japan", code: "JP", region: "Asia Pacific" },
-];
+import { useCountries } from "~/hooks/useAuthApi";
+import type { ApiCountry } from "~/lib/auth/types";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -29,6 +34,16 @@ export default function CountriesPage() {
   const user = useUser();
   const navigate = useNavigate();
   const [refreshing, setRefreshing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [orderBy, setOrderBy] = useState<"name" | "createdAt">("name");
+  const [sortType, setSortType] = useState<"ascending" | "descending">(
+    "ascending",
+  );
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
     type: string;
@@ -39,9 +54,52 @@ export default function CountriesPage() {
     data: null,
   });
 
+  const sortOptions = [
+    { value: "name", label: "Name" },
+    { value: "createdAt", label: "Date Created" },
+  ];
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1); // Reset to first page when search changes
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Fetch countries with React Query
+  const {
+    data: countriesResponse,
+    isLoading,
+    error,
+    refetch,
+  } = useCountries({
+    page: currentPage,
+    limit: 10,
+    search: debouncedSearchTerm || undefined,
+    orderBy: orderBy,
+    type: sortType,
+  });
+
   const handleRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1500);
+    refetch().finally(() => setRefreshing(false));
   };
 
   const handleLogout = () => {
@@ -59,11 +117,26 @@ export default function CountriesPage() {
     );
   }
 
-  // Filter countries based on role (similar logic to companies)
+  // Transform API countries to display format
+  const transformCountry = (apiCountry: ApiCountry) => ({
+    id: apiCountry._id,
+    name: apiCountry.name,
+    code: apiCountry.alpha2,
+    alpha3: apiCountry.alpha3,
+    numericId: apiCountry.numericId,
+    regionId: apiCountry.regionId,
+    adminCount: apiCountry.adminCount,
+    flag: apiCountry.flag,
+    createdAt: new Date(apiCountry.createdAt).toLocaleDateString(),
+  });
+
   const visibleCountries =
-    user.role === "REGIONAL_ADMIN"
-      ? MOCK_COUNTRIES.filter((c) => c.id === "c1") // Assuming regional admin manages specific region
-      : MOCK_COUNTRIES;
+    countriesResponse?.results?.map(transformCountry) || [];
+
+  // Handle error state
+  if (error) {
+    console.error("Error fetching countries:", error);
+  }
 
   const handleInviteAdmin = (countryName: string) => {
     setModalState({
@@ -73,12 +146,12 @@ export default function CountriesPage() {
     });
   };
 
-  const handleAddRegion = () => {
+  const handleAddCountry = () => {
     setModalState({ isOpen: true, type: "country", data: null });
   };
 
   return (
-    <RoleGuard allowedRoles={["SUPER_ADMIN", "REGIONAL_ADMIN"]}>
+    <RoleGuard allowedRoles={["SUPER_ADMIN", "REGIONAL_ADMIN", "COMPANY_ADMIN"]}>
       <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
         <AppSidebar user={user} />
 
@@ -98,16 +171,99 @@ export default function CountriesPage() {
                     Countries
                   </h2>
                   <p className="text-[#60646C] text-sm font-medium mt-1">
-                    Total {visibleCountries.length} countries in your
-                    jurisdiction.
+                    {countriesResponse
+                      ? `Total ${countriesResponse.total} countries in your jurisdiction.`
+                      : `Total ${visibleCountries.length} countries in your jurisdiction.`}
                   </p>
                 </div>
-                <Button onClick={handleAddRegion}>
+                <Button onClick={handleAddCountry}>
                   <Plus size={18} className="mr-2" /> Add Country
                 </Button>
               </div>
 
               <Card>
+                <div className="p-6 space-y-6">
+                  {/* Search and Filter Section */}
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex-1 relative">
+                      <Search
+                        size={16}
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#8E8E93]"
+                      />
+                      <Input
+                        type="text"
+                        placeholder="Search countries..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="relative" ref={dropdownRef}>
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                          className="flex items-center gap-2 min-w-[140px] justify-between"
+                        >
+                          {sortOptions.find(
+                            (option) => option.value === orderBy,
+                          )?.label || "Sort by"}
+                          <ChevronDown size={16} />
+                        </Button>
+                        {isDropdownOpen && (
+                          <div className="absolute top-full left-0 mt-2 w-full bg-white border border-[#E0E1E6] rounded-lg shadow-lg z-10">
+                            {sortOptions.map((option) => (
+                              <button
+                                key={option.value}
+                                onClick={() => {
+                                  setOrderBy(
+                                    option.value as "name" | "createdAt",
+                                  );
+                                  setIsDropdownOpen(false);
+                                }}
+                                className="flex items-center justify-between w-full px-3 py-2 text-left hover:bg-[#F8F9FB] first:rounded-t-lg last:rounded-b-lg"
+                              >
+                                {option.label}
+                                {orderBy === option.value && (
+                                  <Check size={16} className="text-[#5850DE]" />
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          setSortType(
+                            sortType === "ascending"
+                              ? "descending"
+                              : "ascending",
+                          )
+                        }
+                        className="px-3"
+                        title={`Sort ${sortType === "ascending" ? "Descending" : "Ascending"}`}
+                      >
+                        {sortType === "ascending" ? "A↑" : "Z↓"}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Loading Overlay */}
+                {isLoading && (
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-white/50 backdrop-blur-sm flex items-center justify-center z-10">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-gray-600">
+                          Loading countries...
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead className="bg-[#F8F9FB] border-b border-[#E0E1E6]">
@@ -119,9 +275,6 @@ export default function CountriesPage() {
                           Code
                         </th>
                         <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
-                          Region
-                        </th>
-                        <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
                           Admins
                         </th>
                         <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest text-right">
@@ -130,41 +283,114 @@ export default function CountriesPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E0E1E6]">
-                      {visibleCountries.map((country) => (
-                        <tr
-                          key={country.id}
-                          className="hover:bg-gray-50 transition"
-                        >
-                          <td className="p-4 font-bold text-[#1B173A] flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center">
-                              <Globe size={16} />
-                            </div>
-                            {country.name}
-                          </td>
-                          <td className="p-4 font-mono text-[#60646C] text-sm">
-                            {country.code}
-                          </td>
-                          <td className="p-4 text-[#60646C] text-sm">
-                            {country.region}
-                          </td>
-                          <td className="p-4">
-                            <Badge variant="default">2 Admins</Badge>
-                          </td>
-                          <td className="p-4 text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                onClick={() => handleInviteAdmin(country.name)}
-                              >
-                                <Mail size={16} className="mr-2" /> Invite Admin
-                              </Button>
-                            </div>
+                      {visibleCountries.length > 0 ? (
+                        visibleCountries.map((country) => (
+                          <tr
+                            key={country.id}
+                            className="hover:bg-gray-50 transition"
+                          >
+                            <td className="p-4 font-bold text-[#1B173A] flex items-center gap-3">
+                              {country.flag ? (
+                                <img
+                                  src={country.flag.url}
+                                  alt={`${country.name} flag`}
+                                  className="w-8 h-6 object-cover rounded border shadow-sm"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = "none";
+                                    const fallback = document.createElement('div');
+                                    fallback.className = "w-8 h-6 rounded bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center text-xs font-bold";
+                                    fallback.textContent = country.code;
+                                    e.currentTarget.parentNode?.replaceChild(fallback, e.currentTarget);
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-8 h-6 rounded bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center text-xs font-bold">
+                                  {country.code}
+                                </div>
+                              )}
+                              <div>
+                                <div>{country.name}</div>
+                              </div>
+                            </td>
+                            <td className="p-4 font-mono text-[#60646C] text-sm">
+                              <div>{country.code}</div>
+                              <div className="text-xs text-[#8E8E93]">
+                                {country.alpha3}
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <Badge variant="default">
+                                {country.adminCount} Admin
+                                {country.adminCount !== 1 ? "s" : ""}
+                              </Badge>
+                            </td>
+                            <td className="p-4 text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  variant="ghost"
+                                  className="px-2"
+                                  title="Edit Country"
+                                >
+                                  <Edit size={18} />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  onClick={() =>
+                                    handleInviteAdmin(country.name)
+                                  }
+                                >
+                                  <Mail size={16} className="mr-2" /> Invite
+                                  Admin
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan={4}
+                            className="p-8 text-center text-[#8E8E93]"
+                          >
+                            {isLoading
+                              ? "Loading..."
+                              : error
+                                ? "Error loading countries"
+                                : "No countries found"}
                           </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>
+
+                {/* Pagination */}
+                {countriesResponse && countriesResponse.pages > 1 && (
+                  <div className="flex items-center justify-between px-6 py-4 border-t border-[#E0E1E6]">
+                    <div className="text-sm text-[#8E8E93]">
+                      Page {currentPage} of {countriesResponse.pages} (
+                      {countriesResponse.total} total)
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => setCurrentPage(currentPage - 1)}
+                        disabled={currentPage <= 1}
+                        className="px-3"
+                      >
+                        <ChevronLeft size={16} />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        disabled={currentPage >= countriesResponse.pages}
+                        className="px-3"
+                      >
+                        <ChevronRight size={16} />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </Card>
 
               {/* Modal for invite/add actions */}

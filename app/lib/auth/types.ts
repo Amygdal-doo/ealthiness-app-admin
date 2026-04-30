@@ -211,3 +211,74 @@ export interface RegionsQueryParams {
   orderBy?: 'name' | 'createdAt';
   type?: 'ascending' | 'descending';
 }
+
+// Companies API types
+export interface ApiCompany {
+  _id: string;
+  name: string;
+  email: string;
+  address: string;
+  countryId: string;
+  logo: string | null;
+  status: string;
+  employees: string[];
+  admins: string[];
+  assignmentList: any[];
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface CompaniesResponse {
+  limit: number;
+  page: number;
+  pages: number;
+  total: number;
+  results: ApiCompany[];
+}
+
+export interface CompaniesQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  orderBy?: 'name' | 'createdAt';
+  type?: 'ascending' | 'descending';
+}
+
+// Countries API types
+export interface ApiCountry {
+  _id: string;
+  alpha2: string;
+  alpha3: string;
+  name: string;
+  numericId: number;
+  regionId: string;
+  admins: string[];
+  flag: {
+    name: string;
+    extension: string;
+    createdAt: string;
+    url: string;
+    _id: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  adminCount: number;
+}
+
+export interface CountriesResponse {
+  limit: number;
+  page: number;
+  pages: number;
+  total: number;
+  results: ApiCountry[];
+}
+
+export interface CountriesQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  orderBy?: 'name' | 'createdAt';
+  type?: 'ascending' | 'descending';
+}

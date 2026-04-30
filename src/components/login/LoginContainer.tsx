@@ -56,12 +56,14 @@ const LoginContainer: React.FC = () => {
         try {
           errorData = JSON.parse(responseText);
         } catch (e) {
-          errorData = { message: `Server error: ${responseText}` };
+          errorData = { errors: [`Server error: ${responseText}`] };
         }
 
-        throw new Error(
-          errorData.message || `HTTP ${response.status}: ${responseText}`,
-        );
+        // Handle backend error format: { statusCode, errors: [], type }
+        const errorMessage = errorData.errors?.[0] || errorData.message || errorData.type || `HTTP ${response.status}: ${responseText}`;
+        const errorType = errorData.type || 'Error';
+        
+        throw new Error(errorMessage);
       }
 
       const data = JSON.parse(responseText);

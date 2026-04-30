@@ -2,8 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "~/lib/services/api";
 import { clientTokens } from "~/lib/auth/client-cookies";
 import { transformApiUser } from "~/lib/auth/utils";
-import { buildUsersQueryString, buildUserDetailsEndpoint, buildRegionsQueryString } from "~/lib/services/user.service";
-import type { User, LoginCredentials, ApiAuthResponse, UsersResponse, UsersQueryParams, ApiUser, RegionsResponse, RegionsQueryParams } from "~/lib/auth/types";
+import { buildUsersQueryString, buildUserDetailsEndpoint, buildRegionsQueryString, buildCompaniesQueryString, buildCountriesQueryString } from "~/lib/services/user.service";
+import type { User, LoginCredentials, ApiAuthResponse, UsersResponse, UsersQueryParams, ApiUser, RegionsResponse, RegionsQueryParams, CompaniesResponse, CompaniesQueryParams, CountriesResponse, CountriesQueryParams } from "~/lib/auth/types";
 
 interface LoginResponse extends ApiAuthResponse {
   user?: User;
@@ -179,6 +179,60 @@ export function useRegions(params: RegionsQueryParams = {}) {
         return response;
       } catch (error) {
         console.error("Error fetching regions:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get(), // Only run if we have tokens
+  });
+}
+
+export function useCompanies(params: CompaniesQueryParams = {}) {
+  return useQuery({
+    queryKey: ["companies", params],
+    queryFn: async (): Promise<CompaniesResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildCompaniesQueryString(params);
+        const response = await apiClient.get<CompaniesResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching companies:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get(), // Only run if we have tokens
+  });
+}
+
+export function useCountries(params: CountriesQueryParams = {}) {
+  return useQuery({
+    queryKey: ["countries", params],
+    queryFn: async (): Promise<CountriesResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildCountriesQueryString(params);
+        const response = await apiClient.get<CountriesResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching countries:", error);
         throw error;
       }
     },

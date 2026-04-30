@@ -134,7 +134,7 @@ export default function RegionsPage() {
   };
 
   return (
-    <RoleGuard allowedRoles={["SUPER_ADMIN", "REGIONAL_ADMIN"]}>
+    <RoleGuard allowedRoles={["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN", "COMPANY_ADMIN"]}>
       <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
         <AppSidebar user={user} />
 
