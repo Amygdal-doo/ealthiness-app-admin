@@ -16,14 +16,10 @@ export function useLogin() {
     mutationFn: async (
       credentials: LoginCredentials,
     ): Promise<LoginResponse> => {
-      console.log("Login mutation called with:", credentials);
-
       const response = await apiClient.post<LoginResponse>(
         "/v1/auth/signin/admin",
         credentials,
       );
-
-      console.log("Login response:", response);
 
       // Store tokens in cookies
       if (response.accessToken && response.refreshToken) {
@@ -31,7 +27,6 @@ export function useLogin() {
           accessToken: response.accessToken,
           refreshToken: response.refreshToken,
         });
-        console.log("Tokens stored in cookies");
       }
 
       return response;

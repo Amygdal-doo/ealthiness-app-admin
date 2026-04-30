@@ -33,12 +33,6 @@ const LoginContainer: React.FC = () => {
     setFieldErrors(null);
 
     try {
-      console.log("Making direct API call to /v1/auth/signin/admin");
-      console.log("Request payload:", {
-        email: formState.email,
-        password: formState.password ? "[HIDDEN]" : "EMPTY",
-      });
-
       const response = await fetch(
         "https://elathiness-backend-app-company-idea-production.up.railway.app/v1/auth/signin/admin",
         {
@@ -54,12 +48,8 @@ const LoginContainer: React.FC = () => {
         },
       );
 
-      console.log("Response status:", response.status);
-      console.log("Response headers:", Object.fromEntries(response.headers));
-
       // Get response text first to debug server errors
       const responseText = await response.text();
-      console.log("Raw response:", responseText);
 
       if (!response.ok) {
         let errorData;
@@ -69,20 +59,17 @@ const LoginContainer: React.FC = () => {
           errorData = { message: `Server error: ${responseText}` };
         }
 
-        console.log("Error data:", errorData);
         throw new Error(
           errorData.message || `HTTP ${response.status}: ${responseText}`,
         );
       }
 
       const data = JSON.parse(responseText);
-      console.log("Login successful:", data);
 
       // Store tokens in cookies using js-cookie
       if (data.accessToken && data.refreshToken) {
         document.cookie = `accessToken=${data.accessToken}; path=/; max-age=604800; secure=${location.protocol === "https:"}; samesite=lax`;
         document.cookie = `refreshToken=${data.refreshToken}; path=/; max-age=2592000; secure=${location.protocol === "https:"}; samesite=lax`;
-        console.log("Tokens stored in cookies");
         
         // Invalidate and refetch user data to trigger auth state update
         queryClient.invalidateQueries({ queryKey: ['user'] });
