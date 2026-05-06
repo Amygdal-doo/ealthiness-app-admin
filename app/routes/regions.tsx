@@ -20,6 +20,7 @@ import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
 import { useRegions } from "~/hooks/useAuthApi";
 import type { ApiRegion } from "~/lib/auth/types";
+import { InviteRegionAdminModal } from "~/components/modals/InviteRegionAdminModal";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -45,14 +46,14 @@ export default function RegionsPage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const [modalState, setModalState] = useState<{
+  const [inviteModal, setInviteModal] = useState<{
     isOpen: boolean;
-    type: string;
-    data: any;
+    regionId: string;
+    regionName: string;
   }>({
     isOpen: false,
-    type: "",
-    data: null,
+    regionId: "",
+    regionName: "",
   });
 
   const sortOptions = [
@@ -123,7 +124,7 @@ export default function RegionsPage() {
     id: apiRegion._id,
     name: apiRegion.name,
     code: apiRegion.name.substring(0, 3).toUpperCase(), // Generate code from name
-    adminCount: apiRegion.adminCount,
+    adminCount: apiRegion.admins?.length || 0, // Calculate from admins array
     image: apiRegion.image?.url || null, // Extract URL from image object
     createdAt: new Date(apiRegion.createdAt).toLocaleDateString(),
   });
@@ -135,11 +136,19 @@ export default function RegionsPage() {
     console.error("Error fetching regions:", error);
   }
 
-  const handleInviteAdmin = (regionName: string) => {
-    setModalState({
+  const handleInviteAdmin = (regionId: string, regionName: string) => {
+    setInviteModal({
       isOpen: true,
-      type: "invite_admin",
-      data: { entity: regionName, role: "Regional Admin" },
+      regionId,
+      regionName,
+    });
+  };
+
+  const handleCloseInviteModal = () => {
+    setInviteModal({
+      isOpen: false,
+      regionId: "",
+      regionName: "",
     });
   };
 
@@ -350,7 +359,7 @@ export default function RegionsPage() {
                               )}
                               <Button
                                 variant="outline"
-                                onClick={() => handleInviteAdmin(region.name)}
+                                onClick={() => handleInviteAdmin(region.id, region.name)}
                                 size="sm"
                               >
                                 <Mail size={16} className="mr-2" /> Invite Admin
@@ -497,68 +506,13 @@ export default function RegionsPage() {
                 </div>
               )}
 
-              {/* Modal for invite admin */}
-              {modalState.isOpen && (
-                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-                  <Card className="w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
-                    <div className="p-6 border-b border-[#E0E1E6] flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-[#1B173A]">
-                        Invite ${modalState.data?.role}
-                      </h3>
-                      <button
-                        onClick={() =>
-                          setModalState({ isOpen: false, type: "", data: null })
-                        }
-                        className="text-[#8E8E93] hover:text-[#1B173A] transition"
-                      >
-                        ×
-                      </button>
-                    </div>
-                    <div className="p-6 space-y-4">
-                      <p className="text-sm text-[#60646C]">
-                        You are inviting a new {modalState.data?.role} to manage{" "}
-                        <strong>{modalState.data?.entity}</strong>. They will
-                        receive an email to set up their account.
-                      </p>
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-[#8E8E93] uppercase">
-                          Email Address
-                        </label>
-                        <input
-                          className="w-full px-3 py-2 border border-[#E0E1E6] rounded-lg focus:border-[#5850DE] outline-none"
-                          placeholder="admin@example.com"
-                          type="email"
-                        />
-                      </div>
-                      <div className="pt-4 flex justify-end gap-3">
-                        <Button
-                          variant="outline"
-                          onClick={() =>
-                            setModalState({
-                              isOpen: false,
-                              type: "",
-                              data: null,
-                            })
-                          }
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          onClick={() =>
-                            setModalState({
-                              isOpen: false,
-                              type: "",
-                              data: null,
-                            })
-                          }
-                        >
-                          Send Invitation
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                </div>
-              )}
+              {/* Invite Region Admin Modal */}
+              <InviteRegionAdminModal
+                isOpen={inviteModal.isOpen}
+                onClose={handleCloseInviteModal}
+                regionId={inviteModal.regionId}
+                regionName={inviteModal.regionName}
+              />
             </div>
           </div>
         </div>

@@ -199,7 +199,10 @@ export interface ApiRegion {
     url: string;
   } | null;
   updatedAt: string;
-  adminCount: number;
+  adminCount?: number; // Optional since it's calculated from admins array
+  countryCount: number; // New field from /stats endpoint
+  companyCount: number; // New field from /stats endpoint
+  userCount: number; // New field from /stats endpoint
 }
 
 export interface RegionsResponse {
@@ -258,7 +261,7 @@ export interface ApiCountry {
   alpha3: string;
   name: string;
   numericId: number;
-  regionId: string;
+  regionId?: string; // Legacy field, may still be present
   admins: string[];
   flag: {
     name: string;
@@ -270,6 +273,18 @@ export interface ApiCountry {
   createdAt: string;
   updatedAt: string;
   __v: number;
+  // New fields from /stat endpoint
+  region: {
+    _id: string;
+    name: string;
+    __v: number;
+    admins: any[];
+    createdAt: string;
+    image: any;
+    updatedAt: string;
+  };
+  companyCount: number;
+  userCount: number;
   adminCount?: number; // Optional since it's calculated from admins array
 }
 

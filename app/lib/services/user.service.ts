@@ -397,12 +397,12 @@ export function buildCountriesQueryString(
  * Builds the endpoint for getting country details by ID
  */
 export function buildCountryDetailsEndpoint(countryId: string): string {
-  return `/v1/country/${countryId}`;
+  return `/v1/country/${countryId}/stats`;
 }
 
 /**
  * Builds the endpoint for getting region details by ID
  */
 export function buildRegionDetailsEndpoint(regionId: string): string {
-  return `/v1/region/${regionId}`;
+  return `/v1/region/${regionId}/stats`;
 }

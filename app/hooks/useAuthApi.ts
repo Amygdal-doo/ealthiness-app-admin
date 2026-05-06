@@ -410,3 +410,69 @@ export function useUpdateCountry() {
     },
   });
 }
+
+export function useInviteCountryAdmin() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      countryId,
+      email,
+    }: {
+      countryId: string;
+      email: string;
+    }): Promise<{ message: string }> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = `/v1/admin/country/${countryId}/invite?email=${encodeURIComponent(email)}`;
+        const response = await apiClient.post<{ message: string }>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error inviting country admin:", error);
+        throw error;
+      }
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch country details to update admin list
+      queryClient.invalidateQueries({ queryKey: ["country", variables.countryId] });
+    },
+  });
+}
+
+export function useInviteRegionAdmin() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      regionId,
+      email,
+    }: {
+      regionId: string;
+      email: string;
+    }): Promise<{ message: string }> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = `/v1/admin/region/${regionId}/invite?email=${encodeURIComponent(email)}`;
+        const response = await apiClient.post<{ message: string }>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error inviting region admin:", error);
+        throw error;
+      }
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch region details to update admin list
+      queryClient.invalidateQueries({ queryKey: ["region", variables.regionId] });
+      // Invalidate regions list as well
+      queryClient.invalidateQueries({ queryKey: ["regions"] });
+    },
+  });
+}

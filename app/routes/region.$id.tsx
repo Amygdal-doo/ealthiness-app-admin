@@ -52,6 +52,7 @@ import { useUser } from "~/hooks/useAuth";
 import { useRegionDetails, useUpdateRegion } from "~/hooks/useAuthApi";
 import type { ApiRegion } from "~/lib/auth/types";
 import { useParams } from "react-router";
+import { InviteRegionAdminModal } from "~/components/modals/InviteRegionAdminModal";
 
 // Mock data for region statistics
 const REGION_STATS = {
@@ -105,6 +106,7 @@ export default function RegionDetailPage({
   const [refreshing, setRefreshing] = useState(false);
   const [adminNotes, setAdminNotes] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Check if user can edit (only SUPER_ADMIN)
@@ -213,18 +215,26 @@ export default function RegionDetailPage({
   const transformApiRegionToDetails = (apiRegion: ApiRegion) => ({
     id: apiRegion._id,
     name: apiRegion.name,
-    adminCount: apiRegion.adminCount || 0,
+    adminCount: apiRegion.admins?.length || 0, // Calculate from admins array
     image: apiRegion.image?.url || null, // Extract URL from image object
     createdAt: new Date(apiRegion.createdAt).toLocaleDateString(),
-    totalCountries: 22, // Mock data
-    totalUsers: 7520, // Mock data
-    totalCompanies: 160, // Mock data
-    monthlyGrowth: "+18%", // Mock data
-    healthScore: 92, // Mock data
+    totalCountries: apiRegion.countryCount, // Use real data from API
+    totalUsers: apiRegion.userCount, // Use real data from API
+    totalCompanies: apiRegion.companyCount, // Use real data from API
+    monthlyGrowth: "+18%", // Mock data - would need historical data to calculate
+    healthScore: 92, // Mock data - would need analytics to calculate
   });
 
   const handleLogout = () => {
     navigate("/");
+  };
+
+  const handleOpenInviteModal = () => {
+    setIsInviteModalOpen(true);
+  };
+
+  const handleCloseInviteModal = () => {
+    setIsInviteModalOpen(false);
   };
 
   if (!user || isLoadingRegion) {
@@ -737,7 +747,12 @@ export default function RegionDetailPage({
                       Quick Actions
                     </h3>
                     <div className="space-y-3">
-                      <Button className="w-full" variant="outline">
+                      <Button 
+                        className="w-full" 
+                        variant="outline"
+                        onClick={handleOpenInviteModal}
+                        disabled={!canEdit}
+                      >
                         <Mail size={16} className="mr-2" />
                         Invite Admin
                       </Button>
@@ -756,6 +771,14 @@ export default function RegionDetailPage({
             </div>
           </div>
         </div>
+
+        {/* Admin Invitation Modal */}
+        <InviteRegionAdminModal
+          isOpen={isInviteModalOpen}
+          onClose={handleCloseInviteModal}
+          regionId={actualRegionId}
+          regionName={region.name}
+        />
       </div>
     </RoleGuard>
   );

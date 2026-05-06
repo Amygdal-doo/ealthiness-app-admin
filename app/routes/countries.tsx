@@ -20,6 +20,7 @@ import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
 import { useCountries } from "~/hooks/useAuthApi";
 import type { ApiCountry } from "~/lib/auth/types";
+import { InviteCountryAdminModal } from "~/components/modals/InviteCountryAdminModal";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -45,14 +46,14 @@ export default function CountriesPage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const [modalState, setModalState] = useState<{
+  const [inviteModal, setInviteModal] = useState<{
     isOpen: boolean;
-    type: string;
-    data: any;
+    countryId: string;
+    countryName: string;
   }>({
     isOpen: false,
-    type: "",
-    data: null,
+    countryId: "",
+    countryName: "",
   });
 
   const sortOptions = [
@@ -139,11 +140,19 @@ export default function CountriesPage() {
     console.error("Error fetching countries:", error);
   }
 
-  const handleInviteAdmin = (countryName: string) => {
-    setModalState({
+  const handleInviteAdmin = (countryId: string, countryName: string) => {
+    setInviteModal({
       isOpen: true,
-      type: "invite_admin",
-      data: { entity: countryName, role: "Country Admin" },
+      countryId,
+      countryName,
+    });
+  };
+
+  const handleCloseInviteModal = () => {
+    setInviteModal({
+      isOpen: false,
+      countryId: "",
+      countryName: "",
     });
   };
 
@@ -354,7 +363,7 @@ export default function CountriesPage() {
                                 <Button
                                   variant="outline"
                                   onClick={() =>
-                                    handleInviteAdmin(country.name)
+                                    handleInviteAdmin(country.id, country.name)
                                   }
                                 >
                                   <Mail size={16} className="mr-2" /> Invite
@@ -411,68 +420,13 @@ export default function CountriesPage() {
                 )}
               </Card>
 
-              {/* Modal for invite admin */}
-              {modalState.isOpen && (
-                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-                  <Card className="w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
-                    <div className="p-6 border-b border-[#E0E1E6] flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-[#1B173A]">
-                        Invite ${modalState.data?.role}
-                      </h3>
-                      <button
-                        onClick={() =>
-                          setModalState({ isOpen: false, type: "", data: null })
-                        }
-                        className="text-[#8E8E93] hover:text-[#1B173A] transition"
-                      >
-                        ×
-                      </button>
-                    </div>
-                    <div className="p-6 space-y-4">
-                      <p className="text-sm text-[#60646C]">
-                        You are inviting a new {modalState.data?.role} to manage{" "}
-                        <strong>{modalState.data?.entity}</strong>. They will
-                        receive an email to set up their account.
-                      </p>
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-[#8E8E93] uppercase">
-                          Email Address
-                        </label>
-                        <input
-                          className="w-full px-3 py-2 border border-[#E0E1E6] rounded-lg focus:border-[#5850DE] outline-none"
-                          placeholder="admin@example.com"
-                          type="email"
-                        />
-                      </div>
-                      <div className="pt-4 flex justify-end gap-3">
-                        <Button
-                          variant="outline"
-                          onClick={() =>
-                            setModalState({
-                              isOpen: false,
-                              type: "",
-                              data: null,
-                            })
-                          }
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          onClick={() =>
-                            setModalState({
-                              isOpen: false,
-                              type: "",
-                              data: null,
-                            })
-                          }
-                        >
-                          Send Invitation
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                </div>
-              )}
+              {/* Invite Country Admin Modal */}
+              <InviteCountryAdminModal
+                isOpen={inviteModal.isOpen}
+                onClose={handleCloseInviteModal}
+                countryId={inviteModal.countryId}
+                countryName={inviteModal.countryName}
+              />
             </div>
           </div>
         </div>
