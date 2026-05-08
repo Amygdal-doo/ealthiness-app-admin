@@ -18,6 +18,8 @@ import {
   Save,
   X,
   Upload,
+  User,
+  Users2,
 } from "lucide-react";
 import {
   Button,
@@ -108,9 +110,9 @@ export default function RegionDetailPage({
   const [isEditing, setIsEditing] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Check if user can edit (only SUPER_ADMIN)
-  const canEdit = user?.role === 'SUPER_ADMIN';
+  const canEdit = user?.role === "SUPER_ADMIN";
 
   // Form state
   const [editForm, setEditForm] = useState({
@@ -747,8 +749,8 @@ export default function RegionDetailPage({
                       Quick Actions
                     </h3>
                     <div className="space-y-3">
-                      <Button 
-                        className="w-full" 
+                      <Button
+                        className="w-full"
                         variant="outline"
                         onClick={handleOpenInviteModal}
                         disabled={!canEdit}
@@ -764,6 +766,12 @@ export default function RegionDetailPage({
                         <Building size={16} className="mr-2" />
                         View Companies
                       </Button>
+                      <Link to={`/region/${actualRegionId}/users`}>
+                        <Button className="w-full" variant="outline">
+                          <Users2 size={16} className="mr-2" />
+                          View Users
+                        </Button>
+                      </Link>
                     </div>
                   </Card>
                 </div>

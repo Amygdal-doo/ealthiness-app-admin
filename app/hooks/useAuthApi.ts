@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "~/lib/services/api";
 import { clientTokens } from "~/lib/auth/client-cookies";
 import { transformApiUser } from "~/lib/auth/utils";
-import { buildUsersQueryString, buildUserDetailsEndpoint, buildRegionsQueryString, buildCompaniesQueryString, buildCountriesQueryString, buildCountryDetailsEndpoint, buildRegionDetailsEndpoint, buildCompanyDetailsEndpoint } from "~/lib/services/user.service";
+import { buildUsersQueryString, buildUserDetailsEndpoint, buildRegionsQueryString, buildCompaniesQueryString, buildCountriesQueryString, buildCountryDetailsEndpoint, buildRegionDetailsEndpoint, buildCompanyDetailsEndpoint, buildRegionUsersQueryString, buildCountryUsersQueryString, buildCompanyEmployeesQueryString } from "~/lib/services/user.service";
 import type { User, LoginCredentials, ApiAuthResponse, UsersResponse, UsersQueryParams, ApiUser, RegionsResponse, RegionsQueryParams, CompaniesResponse, CompaniesQueryParams, CountriesResponse, CountriesQueryParams, ApiCountry, ApiRegion, ApiCompany } from "~/lib/auth/types";
 
 interface LoginResponse extends ApiAuthResponse {
@@ -591,6 +591,116 @@ export function useUpdateCompany() {
       queryClient.invalidateQueries({ queryKey: ["company", variables.companyId] });
       // Invalidate companies list as well
       queryClient.invalidateQueries({ queryKey: ["companies"] });
+    },
+  });
+}
+
+export function useRegionUsers(regionId: string, params: UsersQueryParams = {}) {
+  return useQuery({
+    queryKey: ["region-users", regionId, params],
+    queryFn: async (): Promise<UsersResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildRegionUsersQueryString(regionId, params);
+        const response = await apiClient.get<UsersResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching region users:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get() && !!regionId, // Only run if we have tokens and regionId
+  });
+}
+
+export function useCountryUsers(countryId: string, params: UsersQueryParams = {}) {
+  return useQuery({
+    queryKey: ["country-users", countryId, params],
+    queryFn: async (): Promise<UsersResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildCountryUsersQueryString(countryId, params);
+        const response = await apiClient.get<UsersResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching country users:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get() && !!countryId, // Only run if we have tokens and countryId
+  });
+}
+
+export function useCompanyEmployees(companyId: string, params: UsersQueryParams = {}) {
+  return useQuery({
+    queryKey: ["company-employees", companyId, params],
+    queryFn: async (): Promise<UsersResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildCompanyEmployeesQueryString(companyId, params);
+        const response = await apiClient.get<UsersResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching company employees:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get() && !!companyId, // Only run if we have tokens and companyId
+  });
+}
+
+export function useDeleteUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (userId: string): Promise<{ message: string }> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = `/v1/admin/users/${userId}`;
+        const response = await apiClient.delete<{ message: string }>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error deleting user:", error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      // Invalidate all user-related queries to trigger refetch
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["region-users"] });
+      queryClient.invalidateQueries({ queryKey: ["country-users"] });
+      queryClient.invalidateQueries({ queryKey: ["company-employees"] });
     },
   });
 }

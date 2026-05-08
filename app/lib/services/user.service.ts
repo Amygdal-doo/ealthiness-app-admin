@@ -413,3 +413,105 @@ export function buildRegionDetailsEndpoint(regionId: string): string {
 export function buildCompanyDetailsEndpoint(companyId: string): string {
   return `/v1/company/${companyId}`;
 }
+
+/**
+ * Builds the query string for region users endpoint
+ */
+export function buildRegionUsersQueryString(
+  regionId: string,
+  params: UsersQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  // Add parameters only if they have values
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  if (params.search && params.search.trim()) {
+    searchParams.append("search", params.search.trim());
+  }
+
+  if (params.orderBy) {
+    searchParams.append("orderBy", params.orderBy);
+  }
+
+  if (params.type) {
+    searchParams.append("type", params.type);
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/admin/region/${regionId}/users${queryString ? `?${queryString}` : ""}`;
+}
+
+/**
+ * Builds the query string for country users endpoint
+ */
+export function buildCountryUsersQueryString(
+  countryId: string,
+  params: UsersQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  // Add parameters only if they have values
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  if (params.search && params.search.trim()) {
+    searchParams.append("search", params.search.trim());
+  }
+
+  if (params.orderBy) {
+    searchParams.append("orderBy", params.orderBy);
+  }
+
+  if (params.type) {
+    searchParams.append("type", params.type);
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/admin/country/${countryId}/users${queryString ? `?${queryString}` : ""}`;
+}
+
+/**
+ * Builds the query string for company employees endpoint
+ */
+export function buildCompanyEmployeesQueryString(
+  companyId: string,
+  params: UsersQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  // Add parameters only if they have values
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  if (params.search && params.search.trim()) {
+    searchParams.append("search", params.search.trim());
+  }
+
+  if (params.orderBy) {
+    searchParams.append("orderBy", params.orderBy);
+  }
+
+  if (params.type) {
+    searchParams.append("type", params.type);
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/admin/company/${companyId}/employees${queryString ? `?${queryString}` : ""}`;
+}

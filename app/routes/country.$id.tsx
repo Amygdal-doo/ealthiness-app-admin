@@ -113,7 +113,11 @@ export default function CountryDetailPage({
   const [adminNotes, setAdminNotes] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [isRegionDropdownOpen, setIsRegionDropdownOpen] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [dropdownPosition, setDropdownPosition] = useState({
+    top: 0,
+    left: 0,
+    width: 0,
+  });
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const regionDropdownRef = useRef<HTMLDivElement>(null);
@@ -194,7 +198,10 @@ export default function CountryDetailPage({
 
     const handleScroll = (event: Event) => {
       // Don't close if scrolling inside the dropdown itself
-      if (regionDropdownRef.current && regionDropdownRef.current.contains(event.target as Node)) {
+      if (
+        regionDropdownRef.current &&
+        regionDropdownRef.current.contains(event.target as Node)
+      ) {
         return;
       }
       setIsRegionDropdownOpen(false);
@@ -205,12 +212,12 @@ export default function CountryDetailPage({
     };
 
     // Listen to scroll events on the document and all scrollable containers
-    document.addEventListener('scroll', handleScroll, true);
-    window.addEventListener('resize', handleResize);
-    
+    document.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("resize", handleResize);
+
     return () => {
-      document.removeEventListener('scroll', handleScroll, true);
-      window.removeEventListener('resize', handleResize);
+      document.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("resize", handleResize);
     };
   }, [isRegionDropdownOpen]);
 
@@ -224,7 +231,7 @@ export default function CountryDetailPage({
       setDropdownPosition({
         top: rect.bottom + 4, // Use viewport coordinates directly
         left: rect.left,
-        width: rect.width
+        width: rect.width,
       });
     }
     setIsRegionDropdownOpen(!isRegionDropdownOpen);
@@ -554,68 +561,67 @@ export default function CountryDetailPage({
                         </div>
 
                         {/* Portal Dropdown */}
-                        {isRegionDropdownOpen && typeof document !== 'undefined' && createPortal(
-                          <div 
-                            ref={regionDropdownRef}
-                            className="fixed bg-white border border-[#E0E1E6] rounded-xl shadow-xl z-[9999] py-1 max-h-60 overflow-y-auto"
-                            style={{
-                              top: dropdownPosition.top,
-                              left: dropdownPosition.left,
-                              width: dropdownPosition.width,
-                            }}
-                          >
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditForm((prev) => ({
-                                  ...prev,
-                                  regionId: "",
-                                }));
-                                setIsRegionDropdownOpen(false);
+                        {isRegionDropdownOpen &&
+                          typeof document !== "undefined" &&
+                          createPortal(
+                            <div
+                              ref={regionDropdownRef}
+                              className="fixed bg-white border border-[#E0E1E6] rounded-xl shadow-xl z-[9999] py-1 max-h-60 overflow-y-auto"
+                              style={{
+                                top: dropdownPosition.top,
+                                left: dropdownPosition.left,
+                                width: dropdownPosition.width,
                               }}
-                              className={`w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-[#F0F0F3] transition-colors flex items-center justify-between ${
-                                editForm.regionId === ""
-                                  ? "text-[#5850DE] bg-[#F0F0F3]"
-                                  : "text-[#1B173A]"
-                              }`}
                             >
-                              Select a region
-                              {editForm.regionId === "" && (
-                                <Check
-                                  size={16}
-                                  className="text-[#5850DE]"
-                                />
-                              )}
-                            </button>
-                            {regionsResponse?.results?.map((region) => (
                               <button
-                                key={region._id}
                                 type="button"
                                 onClick={() => {
                                   setEditForm((prev) => ({
                                     ...prev,
-                                    regionId: region._id,
+                                    regionId: "",
                                   }));
                                   setIsRegionDropdownOpen(false);
                                 }}
                                 className={`w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-[#F0F0F3] transition-colors flex items-center justify-between ${
-                                  editForm.regionId === region._id
+                                  editForm.regionId === ""
                                     ? "text-[#5850DE] bg-[#F0F0F3]"
                                     : "text-[#1B173A]"
                                 }`}
                               >
-                                {region.name}
-                                {editForm.regionId === region._id && (
-                                  <Check
-                                    size={16}
-                                    className="text-[#5850DE]"
-                                  />
+                                Select a region
+                                {editForm.regionId === "" && (
+                                  <Check size={16} className="text-[#5850DE]" />
                                 )}
                               </button>
-                            ))}
-                          </div>,
-                          document.body
-                        )}
+                              {regionsResponse?.results?.map((region) => (
+                                <button
+                                  key={region._id}
+                                  type="button"
+                                  onClick={() => {
+                                    setEditForm((prev) => ({
+                                      ...prev,
+                                      regionId: region._id,
+                                    }));
+                                    setIsRegionDropdownOpen(false);
+                                  }}
+                                  className={`w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-[#F0F0F3] transition-colors flex items-center justify-between ${
+                                    editForm.regionId === region._id
+                                      ? "text-[#5850DE] bg-[#F0F0F3]"
+                                      : "text-[#1B173A]"
+                                  }`}
+                                >
+                                  {region.name}
+                                  {editForm.regionId === region._id && (
+                                    <Check
+                                      size={16}
+                                      className="text-[#5850DE]"
+                                    />
+                                  )}
+                                </button>
+                              ))}
+                            </div>,
+                            document.body,
+                          )}
 
                         {/* Country Codes */}
                         <div className="grid grid-cols-2 gap-4">
@@ -940,8 +946,8 @@ export default function CountryDetailPage({
                       Quick Actions
                     </h3>
                     <div className="space-y-3">
-                      <Button 
-                        className="w-full" 
+                      <Button
+                        className="w-full"
                         variant="outline"
                         onClick={handleOpenInviteModal}
                         disabled={!canEdit}
@@ -949,10 +955,12 @@ export default function CountryDetailPage({
                         <Mail size={16} className="mr-2" />
                         Invite Admin
                       </Button>
-                      <Button className="w-full" variant="outline">
-                        <Eye size={16} className="mr-2" />
-                        View All Users
-                      </Button>
+                      <Link to={`/countries/${actualCountryId}/users`}>
+                        <Button className="w-full mb-3" variant="outline">
+                          <Eye size={16} className="mr-2" />
+                          View All Users
+                        </Button>
+                      </Link>
                       <Button className="w-full" variant="outline">
                         <Building size={16} className="mr-2" />
                         Manage Companies

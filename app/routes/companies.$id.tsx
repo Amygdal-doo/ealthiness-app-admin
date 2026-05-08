@@ -76,7 +76,12 @@ const COMPANY_STATS = {
     { name: "Sarah Johnson", engagement: 95, role: "Engineer", growth: "+12%" },
     { name: "Mike Chen", engagement: 88, role: "Sales Manager", growth: "+8%" },
     { name: "Anna Davis", engagement: 85, role: "Designer", growth: "+15%" },
-    { name: "Tom Wilson", engagement: 82, role: "HR Specialist", growth: "+6%" },
+    {
+      name: "Tom Wilson",
+      engagement: 82,
+      role: "HR Specialist",
+      growth: "+6%",
+    },
   ],
 };
 
@@ -119,7 +124,6 @@ export default function CompanyDetailPage({
     name: "",
     email: "",
     address: "",
-    contact: "",
     logo: null as File | null,
   });
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -146,7 +150,6 @@ export default function CompanyDetailPage({
         name: apiCompany.name,
         email: apiCompany.email,
         address: apiCompany.address || "",
-        contact: apiCompany.contact || "",
         logo: null,
       });
     }
@@ -173,7 +176,6 @@ export default function CompanyDetailPage({
         name: apiCompany.name,
         email: apiCompany.email,
         address: apiCompany.address || "",
-        contact: apiCompany.contact || "",
         logo: null,
       });
     }
@@ -190,11 +192,10 @@ export default function CompanyDetailPage({
 
       // Only include fields that have changed
       if (editForm.name !== apiCompany?.name) updateData.name = editForm.name;
-      if (editForm.email !== apiCompany?.email) updateData.email = editForm.email;
+      if (editForm.email !== apiCompany?.email)
+        updateData.email = editForm.email;
       if (editForm.address !== (apiCompany?.address || ""))
         updateData.address = editForm.address;
-      if (editForm.contact !== (apiCompany?.contact || ""))
-        updateData.contact = editForm.contact;
       if (editForm.logo) updateData.logo = editForm.logo;
 
       // Only make request if there are changes
@@ -233,7 +234,6 @@ export default function CompanyDetailPage({
     name: apiCompany.name,
     email: apiCompany.email,
     address: apiCompany.address || "No address",
-    contact: apiCompany.contact || "No contact",
     status: apiCompany.status,
     adminCount: apiCompany.admins?.length || 0,
     employeeCount: apiCompany.employees?.length || 0,
@@ -273,7 +273,12 @@ export default function CompanyDetailPage({
   if (companyError) {
     return (
       <RoleGuard
-        allowedRoles={["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN", "COMPANY_ADMIN"]}
+        allowedRoles={[
+          "SUPER_ADMIN",
+          "COUNTRY_ADMIN",
+          "REGIONAL_ADMIN",
+          "COMPANY_ADMIN",
+        ]}
       >
         <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
           <AppSidebar user={user} />
@@ -304,7 +309,12 @@ export default function CompanyDetailPage({
 
   return (
     <RoleGuard
-      allowedRoles={["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN", "COMPANY_ADMIN"]}
+      allowedRoles={[
+        "SUPER_ADMIN",
+        "COUNTRY_ADMIN",
+        "REGIONAL_ADMIN",
+        "COMPANY_ADMIN",
+      ]}
     >
       <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
         <AppSidebar user={user} />
@@ -338,13 +348,15 @@ export default function CompanyDetailPage({
                       alt={`${company.name} logo preview`}
                       className="w-20 h-20 object-cover rounded-lg"
                     />
-                  ) : company.logo && typeof company.logo === 'object' && company.logo.url ? (
+                  ) : company.logo &&
+                    typeof company.logo === "object" &&
+                    company.logo.url ? (
                     <img
                       src={company.logo.url}
                       alt={`${company.name} logo`}
                       className="w-20 h-20 object-cover rounded-lg"
                     />
-                  ) : company.logo && typeof company.logo === 'string' ? (
+                  ) : company.logo && typeof company.logo === "string" ? (
                     <img
                       src={company.logo}
                       alt={`${company.name} logo`}
@@ -386,7 +398,7 @@ export default function CompanyDetailPage({
                     <Badge variant="secondary">{company.status}</Badge>
                   </div>
                   <p className="text-[#8E8E93] font-medium mb-6 text-lg">
-                    {company.email} • {company.contact} • {company.location} • Created {company.createdAt}
+                    {company.email} • {company.location} • Created {company.createdAt}
                   </p>
 
                   <div className="flex flex-wrap justify-center md:justify-start gap-6">
@@ -394,9 +406,7 @@ export default function CompanyDetailPage({
                       <p className="text-[10px] text-[#8E8E93] uppercase font-bold">
                         Total Users
                       </p>
-                      <p className="font-bold text-xl">
-                        {company.totalUsers}
-                      </p>
+                      <p className="font-bold text-xl">{company.totalUsers}</p>
                     </div>
                     <div>
                       <p className="text-[10px] text-[#8E8E93] uppercase font-bold">
@@ -506,23 +516,6 @@ export default function CompanyDetailPage({
                           />
                         </div>
 
-                        {/* Contact */}
-                        <div>
-                          <label className="block text-xs font-bold text-[#8E8E93] uppercase tracking-wider mb-2">
-                            Contact
-                          </label>
-                          <Input
-                            value={editForm.contact}
-                            onChange={(e) =>
-                              setEditForm((prev) => ({
-                                ...prev,
-                                contact: e.target.value,
-                              }))
-                            }
-                            placeholder="Contact information"
-                            className="w-full"
-                          />
-                        </div>
 
                         {/* Logo Upload Info */}
                         {editForm.logo && (
@@ -830,10 +823,12 @@ export default function CompanyDetailPage({
                         <Mail size={16} className="mr-2" />
                         Invite Admin
                       </Button>
-                      <Button className="w-full" variant="outline">
-                        <Users size={16} className="mr-2" />
-                        View All Users
-                      </Button>
+                      <Link to={`/companies/${company.id}/employees`}>
+                        <Button className="w-full mb-3" variant="outline">
+                          <Users size={16} className="mr-2" />
+                          View Employees
+                        </Button>
+                      </Link>
                       <Button className="w-full" variant="outline">
                         <Globe size={16} className="mr-2" />
                         Analytics Dashboard
