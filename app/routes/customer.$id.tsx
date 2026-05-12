@@ -8,8 +8,8 @@ import {
 } from 'lucide-react';
 import { Button, Card, CardHeader, CardTitle, CardContent, Badge, Textarea, Input } from '~/components/ui';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
-import AppSidebar from "../../src/components/shared/AppSidebar";
-import Navbar from "../../src/components/shared/Navbar";
+import AppSidebar from "~/components/shared/AppSidebar";
+import Navbar from "~/components/shared/Navbar";
 import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
 import { useUserDetails } from "~/hooks/useAuthApi";

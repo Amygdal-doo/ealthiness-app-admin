@@ -2,7 +2,7 @@ import type { Route } from "./+types/_index";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "~/hooks/useAuth";
-import LoginContainer from "../../src/components/login/LoginContainer";
+import LoginContainer from "~/components/login/LoginContainer";
 
 export function meta({}: Route.MetaArgs) {
   return [

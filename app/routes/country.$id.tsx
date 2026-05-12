@@ -49,8 +49,8 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import AppSidebar from "../../src/components/shared/AppSidebar";
-import Navbar from "../../src/components/shared/Navbar";
+import AppSidebar from "~/components/shared/AppSidebar";
+import Navbar from "~/components/shared/Navbar";
 import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
 import {

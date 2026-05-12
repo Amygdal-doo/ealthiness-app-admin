@@ -1,7 +1,7 @@
 import type { Route } from "./+types/home";
 import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
-import HomeContainer from "../../src/components/home/HomeContainer";
+import HomeContainer from "~/components/home/HomeContainer";
 
 export function meta({}: Route.MetaArgs) {
   return [

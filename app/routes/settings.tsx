@@ -1,8 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router";
 import type { Route } from "./+types/settings";
-import AppSidebar from "../../src/components/shared/AppSidebar";
-import Navbar from "../../src/components/shared/Navbar";
+import AppSidebar from "~/components/shared/AppSidebar";
+import Navbar from "~/components/shared/Navbar";
 import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
 
