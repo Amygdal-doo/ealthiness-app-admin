@@ -23,7 +23,7 @@ import { useUser } from "~/hooks/useAuth";
 import {
   useCompanyEmployees,
   useCompanyDetails,
-  useDeleteUser,
+  useRemoveCompanyAdmin,
 } from "~/hooks/useAuthApi";
 import type { ApiUser } from "~/lib/auth/types";
 
@@ -41,43 +41,65 @@ export async function loader({ params }: { params: { id: string } }) {
   return { companyId: params.id };
 }
 
-interface ConfirmDeleteDialogProps {
+interface ConfirmRemoveAdminDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
   userName: string;
+  isPending: boolean;
 }
 
-function ConfirmDeleteDialog({
+function ConfirmRemoveAdminDialog({
   isOpen,
   onClose,
   onConfirm,
   userName,
-}: ConfirmDeleteDialogProps) {
+  isPending,
+}: ConfirmRemoveAdminDialogProps) {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-96">
-        <h3 className="text-lg font-semibold mb-4">Confirm Delete</h3>
-        <p className="text-gray-600 mb-6">
-          Are you sure you want to delete{" "}
-          <span className="font-medium">{userName}</span>? This action cannot be
-          undone.
-        </p>
-        <div className="flex justify-end space-x-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-          >
-            Delete
-          </button>
+      <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-extrabold text-orange-600 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center">
+              <Trash2 size={20} />
+            </div>
+            Remove Admin Role
+          </h3>
+        </div>
+        <div className="space-y-4">
+          <p className="text-gray-700">
+            Are you sure you want to remove the company admin role from{" "}
+            <strong>{userName}</strong>? This will revoke their administrative privileges for this company.
+          </p>
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={onConfirm}
+              disabled={isPending}
+              className="flex-1 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {isPending ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Removing...
+                </>
+              ) : (
+                <>
+                  <Trash2 size={16} />
+                  Remove Role
+                </>
+              )}
+            </button>
+            <button
+              onClick={onClose}
+              disabled={isPending}
+              className="flex-1 px-4 py-2 border border-gray-300 text-gray-600 rounded-lg font-medium hover:text-gray-800 hover:border-gray-400 transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -106,7 +128,7 @@ export default function CompanyEmployeesPage({
     "ascending",
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [deleteDialog, setDeleteDialog] = useState<{
+  const [removeAdminConfirmation, setRemoveAdminConfirmation] = useState<{
     isOpen: boolean;
     userId: string;
     userName: string;
@@ -160,7 +182,7 @@ export default function CompanyEmployeesPage({
     orderBy: orderBy,
     type: sortType,
   });
-  const { mutateAsync: deleteUser, isPending: isDeleting } = useDeleteUser();
+  const removeAdminMutation = useRemoveCompanyAdmin();
   const {
     data: companyDetails,
     isLoading: isLoadingCompany,
@@ -177,22 +199,25 @@ export default function CompanyEmployeesPage({
     navigate("/");
   };
 
-  const handleDeleteClick = (userId: string, userName: string) => {
-    setDeleteDialog({ isOpen: true, userId, userName });
+  const handleRemoveAdmin = (userId: string, userName: string) => {
+    setRemoveAdminConfirmation({ isOpen: true, userId, userName });
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleConfirmRemoveAdmin = async () => {
     try {
-      await deleteUser(deleteDialog.userId);
-      setDeleteDialog({ isOpen: false, userId: "", userName: "" });
+      await removeAdminMutation.mutateAsync({
+        companyId: actualCompanyId,
+        userId: removeAdminConfirmation.userId,
+      });
+      setRemoveAdminConfirmation({ isOpen: false, userId: "", userName: "" });
       // The query will automatically refetch due to invalidation in the mutation
     } catch (error) {
-      console.error("Failed to delete user:", error);
+      console.error("Failed to remove admin role:", error);
     }
   };
 
-  const handleDeleteCancel = () => {
-    setDeleteDialog({ isOpen: false, userId: "", userName: "" });
+  const handleCancelRemoveAdmin = () => {
+    setRemoveAdminConfirmation({ isOpen: false, userId: "", userName: "" });
   };
 
   if (!user || isLoading || isLoadingCompany) {
@@ -505,19 +530,23 @@ export default function CompanyEmployeesPage({
                               {new Date(user.createdAt).toLocaleDateString()}
                             </td>
                             <td className="p-4 text-right">
-                              <button
-                                onClick={() =>
-                                  handleDeleteClick(
-                                    user._id,
-                                    `${user.firstName} ${user.lastName}`,
-                                  )
-                                }
-                                disabled={isDeleting}
-                                className="p-2 bg-red-50 border border-red-200 text-red-600 rounded-lg hover:bg-red-100 hover:border-red-300 transition-colors"
-                                title="Delete employee"
-                              >
-                                <Trash2 size={14} />
-                              </button>
+                              <div className="flex items-center gap-2 justify-end">
+                                {user.roles?.includes("COMPANY_ADMIN") && (
+                                  <button
+                                    onClick={() =>
+                                      handleRemoveAdmin(
+                                        user._id,
+                                        `${user.firstName} ${user.lastName}`,
+                                      )
+                                    }
+                                    disabled={removeAdminMutation.isPending}
+                                    className="p-2 bg-orange-50 border border-orange-200 text-orange-600 rounded-lg hover:bg-orange-100 hover:border-orange-300 transition-colors"
+                                    title="Remove admin role"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -618,12 +647,13 @@ export default function CompanyEmployeesPage({
                 )}
               </div>
 
-              {/* Delete Confirmation Dialog */}
-              <ConfirmDeleteDialog
-                isOpen={deleteDialog.isOpen}
-                onClose={handleDeleteCancel}
-                onConfirm={handleDeleteConfirm}
-                userName={deleteDialog.userName}
+              {/* Remove Admin Role Confirmation Dialog */}
+              <ConfirmRemoveAdminDialog
+                isOpen={removeAdminConfirmation.isOpen}
+                onClose={handleCancelRemoveAdmin}
+                onConfirm={handleConfirmRemoveAdmin}
+                userName={removeAdminConfirmation.userName}
+                isPending={removeAdminMutation.isPending}
               />
             </div>
           </div>

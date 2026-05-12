@@ -22,7 +22,7 @@ import { useUser } from "~/hooks/useAuth";
 import {
   useRegionUsers,
   useRegionDetails,
-  useDeleteUser,
+  useRemoveRegionalAdmin,
 } from "~/hooks/useAuthApi";
 import type { ApiUser } from "~/lib/auth/types";
 
@@ -62,7 +62,7 @@ export default function RegionUsersPage({
     "ascending",
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+  const [removeAdminConfirmation, setRemoveAdminConfirmation] = useState<{
     isOpen: boolean;
     userId: string;
     userName: string;
@@ -119,8 +119,8 @@ export default function RegionUsersPage({
     type: sortType,
   });
 
-  // Delete user mutation
-  const deleteUserMutation = useDeleteUser();
+  // Remove regional admin role mutation
+  const removeAdminMutation = useRemoveRegionalAdmin();
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -131,28 +131,31 @@ export default function RegionUsersPage({
     navigate("/");
   };
 
-  const handleDeleteUser = (userId: string, userName: string) => {
-    setDeleteConfirmation({
+  const handleRemoveAdmin = (userId: string, userName: string) => {
+    setRemoveAdminConfirmation({
       isOpen: true,
       userId,
       userName,
     });
   };
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmRemoveAdmin = async () => {
     try {
-      await deleteUserMutation.mutateAsync(deleteConfirmation.userId);
-      setDeleteConfirmation({ isOpen: false, userId: "", userName: "" });
+      await removeAdminMutation.mutateAsync({
+        regionId: actualRegionId,
+        userId: removeAdminConfirmation.userId,
+      });
+      setRemoveAdminConfirmation({ isOpen: false, userId: "", userName: "" });
       // Refetch the current page data
       refetch();
     } catch (error) {
-      console.error("Failed to delete user:", error);
+      console.error("Failed to remove admin role:", error);
       // Error is already logged in the mutation
     }
   };
 
-  const handleCancelDelete = () => {
-    setDeleteConfirmation({ isOpen: false, userId: "", userName: "" });
+  const handleCancelRemoveAdmin = () => {
+    setRemoveAdminConfirmation({ isOpen: false, userId: "", userName: "" });
   };
 
   if (!user || isLoadingRegion) {
@@ -412,21 +415,23 @@ export default function RegionUsersPage({
                         </td>
                         <td className="p-4 text-right">
                           <div className="flex items-center gap-2 justify-end">
+                            {customer.roles.includes("REGIONAL_ADMIN") && (
+                              <button
+                                onClick={() =>
+                                  handleRemoveAdmin(customer.id, customer.name)
+                                }
+                                className="p-2 bg-orange-50 border border-orange-200 text-orange-600 rounded-lg hover:bg-orange-100 hover:border-orange-300 transition-colors"
+                                title="Remove admin role"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
                             <Link
                               to={`/customers/${customer.id}`}
                               className="bg-white border border-[#E0E1E6] text-[#1B173A] text-xs font-bold px-4 py-2 rounded-lg hover:border-[#5850DE] hover:text-[#5850DE] transition inline-block"
                             >
                               View Profile
                             </Link>
-                            <button
-                              onClick={() =>
-                                handleDeleteUser(customer.id, customer.name)
-                              }
-                              className="p-2 bg-red-50 border border-red-200 text-red-600 rounded-lg hover:bg-red-100 hover:border-red-300 transition-colors"
-                              title="Delete user"
-                            >
-                              <Trash2 size={14} />
-                            </button>
                           </div>
                         </td>
                       </tr>
@@ -573,56 +578,55 @@ export default function RegionUsersPage({
           </div>
         </div>
 
-        {/* Delete Confirmation Modal */}
-        {deleteConfirmation.isOpen && (
+        {/* Remove Admin Role Confirmation Modal */}
+        {removeAdminConfirmation.isOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000]">
             <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-extrabold text-red-600 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
+                <h3 className="text-lg font-extrabold text-orange-600 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center">
                     <Trash2 size={20} />
                   </div>
-                  Delete User
+                  Remove Admin Role
                 </h3>
               </div>
 
               <div className="space-y-4">
                 <p className="text-gray-700">
-                  Are you sure you want to delete{" "}
-                  <strong>{deleteConfirmation.userName}</strong>? This action
-                  cannot be undone.
+                  Are you sure you want to remove the regional admin role from{" "}
+                  <strong>{removeAdminConfirmation.userName}</strong>? This will revoke their administrative privileges for this region.
                 </p>
 
-                {deleteUserMutation.error && (
+                {removeAdminMutation.error && (
                   <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                     <p className="text-sm text-red-800">
-                      Failed to delete user. Please try again.
+                      Failed to remove admin role. Please try again.
                     </p>
                   </div>
                 )}
 
                 <div className="flex gap-3 pt-4">
                   <Button
-                    onClick={handleConfirmDelete}
-                    disabled={deleteUserMutation.isPending}
-                    className="flex-1 bg-red-600 hover:bg-red-700"
+                    onClick={handleConfirmRemoveAdmin}
+                    disabled={removeAdminMutation.isPending}
+                    className="flex-1 bg-orange-600 hover:bg-orange-700"
                   >
-                    {deleteUserMutation.isPending ? (
+                    {removeAdminMutation.isPending ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                        Deleting...
+                        Removing...
                       </>
                     ) : (
                       <>
                         <Trash2 size={16} className="mr-2" />
-                        Delete User
+                        Remove Role
                       </>
                     )}
                   </Button>
                   <Button
-                    onClick={handleCancelDelete}
+                    onClick={handleCancelRemoveAdmin}
                     variant="outline"
-                    disabled={deleteUserMutation.isPending}
+                    disabled={removeAdminMutation.isPending}
                     className="flex-1"
                   >
                     Cancel

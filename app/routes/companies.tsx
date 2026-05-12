@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router";
 import type { Route } from "./+types/companies";
-import { Building2, Plus, Mail, Edit, Search, ChevronDown, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { Building2, Plus, Mail, Edit, Search, ChevronDown, Check, ChevronLeft, ChevronRight, UserPlus } from "lucide-react";
 import { Button, Card, Badge, Input } from "~/components/ui";
 import AppSidebar from "../../src/components/shared/AppSidebar";
 import Navbar from "../../src/components/shared/Navbar";
@@ -11,6 +11,7 @@ import { useCompanies } from "~/hooks/useAuthApi";
 import type { ApiCompany } from "~/lib/auth/types";
 import NewCompanyForm from "~/components/forms/NewCompanyForm";
 import { InviteCompanyAdminModal } from "~/components/modals/InviteCompanyAdminModal";
+import { InviteCompanyEmployeeModal } from "~/components/modals/InviteCompanyEmployeeModal";
 
 
 export function meta({}: Route.MetaArgs) {
@@ -47,6 +48,16 @@ export default function CompaniesPage() {
   });
 
   const [inviteModalState, setInviteModalState] = useState<{
+    isOpen: boolean;
+    companyId: string;
+    companyName: string;
+  }>({
+    isOpen: false,
+    companyId: "",
+    companyName: "",
+  });
+
+  const [inviteEmployeeModalState, setInviteEmployeeModalState] = useState<{
     isOpen: boolean;
     companyId: string;
     companyName: string;
@@ -135,6 +146,14 @@ export default function CompaniesPage() {
 
   const handleInviteAdmin = (companyId: string, companyName: string) => {
     setInviteModalState({
+      isOpen: true,
+      companyId,
+      companyName,
+    });
+  };
+
+  const handleInviteEmployee = (companyId: string, companyName: string) => {
+    setInviteEmployeeModalState({
       isOpen: true,
       companyId,
       companyName,
@@ -328,6 +347,12 @@ export default function CompaniesPage() {
                           >
                             <Mail size={16} className="mr-2" /> Invite Admin
                           </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => handleInviteEmployee(comp.id, comp.name)}
+                          >
+                            <UserPlus size={16} className="mr-2" /> Invite Employee
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -387,6 +412,14 @@ export default function CompaniesPage() {
           onClose={() => setInviteModalState({ isOpen: false, companyId: "", companyName: "" })}
           companyId={inviteModalState.companyId}
           companyName={inviteModalState.companyName}
+        />
+
+        {/* Invite Company Employee Modal */}
+        <InviteCompanyEmployeeModal
+          isOpen={inviteEmployeeModalState.isOpen}
+          onClose={() => setInviteEmployeeModalState({ isOpen: false, companyId: "", companyName: "" })}
+          companyId={inviteEmployeeModalState.companyId}
+          companyName={inviteEmployeeModalState.companyName}
         />
           </div>
         </div>

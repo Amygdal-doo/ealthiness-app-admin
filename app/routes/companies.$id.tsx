@@ -20,6 +20,7 @@ import {
   Upload,
   Globe,
   Building2,
+  UserPlus,
 } from "lucide-react";
 import {
   Button,
@@ -55,6 +56,7 @@ import { useCompanyDetails, useUpdateCompany } from "~/hooks/useAuthApi";
 import type { ApiCompany } from "~/lib/auth/types";
 import { useParams } from "react-router";
 import { InviteCompanyAdminModal } from "~/components/modals/InviteCompanyAdminModal";
+import { InviteCompanyEmployeeModal } from "~/components/modals/InviteCompanyEmployeeModal";
 
 // Mock data for company statistics
 const COMPANY_STATS = {
@@ -112,6 +114,7 @@ export default function CompanyDetailPage({
   const [adminNotes, setAdminNotes] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isInviteEmployeeModalOpen, setIsInviteEmployeeModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Check if user can edit (only SUPER_ADMIN, COUNTRY_ADMIN, REGIONAL_ADMIN)
@@ -255,6 +258,14 @@ export default function CompanyDetailPage({
 
   const handleCloseInviteModal = () => {
     setIsInviteModalOpen(false);
+  };
+
+  const handleOpenInviteEmployeeModal = () => {
+    setIsInviteEmployeeModalOpen(true);
+  };
+
+  const handleCloseInviteEmployeeModal = () => {
+    setIsInviteEmployeeModalOpen(false);
   };
 
   if (!user || isLoadingCompany) {
@@ -823,6 +834,15 @@ export default function CompanyDetailPage({
                         <Mail size={16} className="mr-2" />
                         Invite Admin
                       </Button>
+                      <Button
+                        className="w-full mb-3"
+                        variant="outline"
+                        onClick={handleOpenInviteEmployeeModal}
+                        disabled={!canEdit}
+                      >
+                        <UserPlus size={16} className="mr-2" />
+                        Invite Employee
+                      </Button>
                       <Link to={`/companies/${company.id}/employees`}>
                         <Button className="w-full mb-3" variant="outline">
                           <Users size={16} className="mr-2" />
@@ -845,6 +865,14 @@ export default function CompanyDetailPage({
         <InviteCompanyAdminModal
           isOpen={isInviteModalOpen}
           onClose={handleCloseInviteModal}
+          companyId={actualCompanyId}
+          companyName={company.name}
+        />
+
+        {/* Employee Invitation Modal */}
+        <InviteCompanyEmployeeModal
+          isOpen={isInviteEmployeeModalOpen}
+          onClose={handleCloseInviteEmployeeModal}
           companyId={actualCompanyId}
           companyName={company.name}
         />

@@ -511,6 +511,42 @@ export function useInviteCompanyAdmin() {
   });
 }
 
+export function useInviteCompanyEmployee() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      companyId,
+      email,
+    }: {
+      companyId: string;
+      email: string;
+    }): Promise<{ message: string }> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = `/v1/company/${companyId}/invite?email=${encodeURIComponent(email)}`;
+        const response = await apiClient.post<{ message: string }>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error inviting company employee:", error);
+        throw error;
+      }
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch company details to update employee list
+      queryClient.invalidateQueries({ queryKey: ["company", variables.companyId] });
+      // Invalidate company employees list
+      queryClient.invalidateQueries({ queryKey: ["company-employees", variables.companyId] });
+      // Invalidate companies list as well
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
+    },
+  });
+}
+
 export function useCompanyDetails(companyId: string) {
   return useQuery({
     queryKey: ["company", companyId],
@@ -701,6 +737,108 @@ export function useDeleteUser() {
       queryClient.invalidateQueries({ queryKey: ["region-users"] });
       queryClient.invalidateQueries({ queryKey: ["country-users"] });
       queryClient.invalidateQueries({ queryKey: ["company-employees"] });
+    },
+  });
+}
+
+export function useRemoveRegionalAdmin() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      regionId,
+      userId,
+    }: {
+      regionId: string;
+      userId: string;
+    }): Promise<{ message: string }> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = `/v1/admin/region/deallocate/admin?regionId=${regionId}&userId=${userId}`;
+        const response = await apiClient.put<{ message: string }>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error removing regional admin role:", error);
+        throw error;
+      }
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate region users to trigger refetch
+      queryClient.invalidateQueries({ queryKey: ["region-users", variables.regionId] });
+      // Invalidate region details
+      queryClient.invalidateQueries({ queryKey: ["region", variables.regionId] });
+    },
+  });
+}
+
+export function useRemoveCountryAdmin() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      countryId,
+      userId,
+    }: {
+      countryId: string;
+      userId: string;
+    }): Promise<{ message: string }> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = `/v1/admin/country/deallocate/admin?countryId=${countryId}&userId=${userId}`;
+        const response = await apiClient.put<{ message: string }>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error removing country admin role:", error);
+        throw error;
+      }
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate country users to trigger refetch
+      queryClient.invalidateQueries({ queryKey: ["country-users", variables.countryId] });
+      // Invalidate country details
+      queryClient.invalidateQueries({ queryKey: ["country", variables.countryId] });
+    },
+  });
+}
+
+export function useRemoveCompanyAdmin() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      companyId,
+      userId,
+    }: {
+      companyId: string;
+      userId: string;
+    }): Promise<{ message: string }> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = `/v1/admin/company/deallocate/admin?companyId=${companyId}&userId=${userId}`;
+        const response = await apiClient.put<{ message: string }>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error removing company admin role:", error);
+        throw error;
+      }
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate company employees to trigger refetch
+      queryClient.invalidateQueries({ queryKey: ["company-employees", variables.companyId] });
+      // Invalidate company details
+      queryClient.invalidateQueries({ queryKey: ["company", variables.companyId] });
     },
   });
 }
