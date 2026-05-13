@@ -483,9 +483,9 @@ export function buildCountryUsersQueryString(
 }
 
 /**
- * Builds the query string for company employees endpoint
+ * Builds the query string for company users endpoint
  */
-export function buildCompanyEmployeesQueryString(
+export function buildCompanyUsersQueryString(
   companyId: string,
   params: UsersQueryParams = {},
 ): string {
@@ -512,6 +512,112 @@ export function buildCompanyEmployeesQueryString(
     searchParams.append("type", params.type);
   }
 
+  if (params.userType) {
+    searchParams.append("userType", params.userType);
+  }
+
   const queryString = searchParams.toString();
-  return `/v1/admin/company/${companyId}/employees${queryString ? `?${queryString}` : ""}`;
+  return `/v1/admin/company/${companyId}/users${queryString ? `?${queryString}` : ""}`;
+}
+
+/**
+ * Builds the query string for region countries endpoint
+ */
+export function buildRegionCountriesQueryString(
+  regionId: string,
+  params: CountriesQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  // Add parameters only if they have values
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  if (params.search && params.search.trim()) {
+    searchParams.append("search", params.search.trim());
+  }
+
+  if (params.orderBy) {
+    searchParams.append("orderBy", params.orderBy);
+  }
+
+  if (params.type) {
+    searchParams.append("type", params.type);
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/admin/region/${regionId}/countries${queryString ? `?${queryString}` : ""}`;
+}
+
+/**
+ * Builds the query string for region companies endpoint
+ */
+export function buildRegionCompaniesQueryString(
+  regionId: string,
+  params: CompaniesQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  // Add parameters only if they have values
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  if (params.search && params.search.trim()) {
+    searchParams.append("search", params.search.trim());
+  }
+
+  if (params.orderBy) {
+    searchParams.append("orderBy", params.orderBy);
+  }
+
+  if (params.type) {
+    searchParams.append("type", params.type);
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/admin/region/${regionId}/companies${queryString ? `?${queryString}` : ""}`;
+}
+
+/**
+ * Builds the query string for country companies endpoint
+ */
+export function buildCountryCompaniesQueryString(
+  countryId: string,
+  params: CompaniesQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  // Add parameters only if they have values
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  if (params.search && params.search.trim()) {
+    searchParams.append("search", params.search.trim());
+  }
+
+  if (params.orderBy) {
+    searchParams.append("orderBy", params.orderBy);
+  }
+
+  if (params.type) {
+    searchParams.append("type", params.type);
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/admin/country/${countryId}/companies${queryString ? `?${queryString}` : ""}`;
 }

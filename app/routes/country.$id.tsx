@@ -961,10 +961,12 @@ export default function CountryDetailPage({
                           View All Users
                         </Button>
                       </Link>
-                      <Button className="w-full" variant="outline">
-                        <Building size={16} className="mr-2" />
-                        Manage Companies
-                      </Button>
+                      <Link to={`/countries/${actualCountryId}/companies`}>
+                        <Button className="w-full" variant="outline">
+                          <Building size={16} className="mr-2" />
+                          Manage Companies
+                        </Button>
+                      </Link>
                     </div>
                   </Card>
                 </div>

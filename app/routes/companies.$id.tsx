@@ -114,7 +114,8 @@ export default function CompanyDetailPage({
   const [adminNotes, setAdminNotes] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [isInviteEmployeeModalOpen, setIsInviteEmployeeModalOpen] = useState(false);
+  const [isInviteEmployeeModalOpen, setIsInviteEmployeeModalOpen] =
+    useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Check if user can edit (only SUPER_ADMIN, COUNTRY_ADMIN, REGIONAL_ADMIN)
@@ -409,7 +410,8 @@ export default function CompanyDetailPage({
                     <Badge variant="secondary">{company.status}</Badge>
                   </div>
                   <p className="text-[#8E8E93] font-medium mb-6 text-lg">
-                    {company.email} • {company.location} • Created {company.createdAt}
+                    {company.email} • {company.location} • Created{" "}
+                    {company.createdAt}
                   </p>
 
                   <div className="flex flex-wrap justify-center md:justify-start gap-6">
@@ -526,7 +528,6 @@ export default function CompanyDetailPage({
                             className="w-full"
                           />
                         </div>
-
 
                         {/* Logo Upload Info */}
                         {editForm.logo && (
@@ -843,10 +844,10 @@ export default function CompanyDetailPage({
                         <UserPlus size={16} className="mr-2" />
                         Invite Employee
                       </Button>
-                      <Link to={`/companies/${company.id}/employees`}>
+                      <Link to={`/companies/${company.id}/users`}>
                         <Button className="w-full mb-3" variant="outline">
                           <Users size={16} className="mr-2" />
-                          View Employees
+                          View Users
                         </Button>
                       </Link>
                       <Button className="w-full" variant="outline">

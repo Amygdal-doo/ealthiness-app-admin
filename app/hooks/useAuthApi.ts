@@ -2,8 +2,39 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "~/lib/services/api";
 import { clientTokens } from "~/lib/auth/client-cookies";
 import { transformApiUser } from "~/lib/auth/utils";
-import { buildUsersQueryString, buildUserDetailsEndpoint, buildRegionsQueryString, buildCompaniesQueryString, buildCountriesQueryString, buildCountryDetailsEndpoint, buildRegionDetailsEndpoint, buildCompanyDetailsEndpoint, buildRegionUsersQueryString, buildCountryUsersQueryString, buildCompanyEmployeesQueryString } from "~/lib/services/user.service";
-import type { User, LoginCredentials, ApiAuthResponse, UsersResponse, UsersQueryParams, ApiUser, RegionsResponse, RegionsQueryParams, CompaniesResponse, CompaniesQueryParams, CountriesResponse, CountriesQueryParams, ApiCountry, ApiRegion, ApiCompany } from "~/lib/auth/types";
+import {
+  buildUsersQueryString,
+  buildUserDetailsEndpoint,
+  buildRegionsQueryString,
+  buildCompaniesQueryString,
+  buildCountriesQueryString,
+  buildCountryDetailsEndpoint,
+  buildRegionDetailsEndpoint,
+  buildCompanyDetailsEndpoint,
+  buildRegionUsersQueryString,
+  buildCountryUsersQueryString,
+  buildCompanyUsersQueryString,
+  buildRegionCountriesQueryString,
+  buildRegionCompaniesQueryString,
+  buildCountryCompaniesQueryString,
+} from "~/lib/services/user.service";
+import type {
+  User,
+  LoginCredentials,
+  ApiAuthResponse,
+  UsersResponse,
+  UsersQueryParams,
+  ApiUser,
+  RegionsResponse,
+  RegionsQueryParams,
+  CompaniesResponse,
+  CompaniesQueryParams,
+  CountriesResponse,
+  CountriesQueryParams,
+  ApiCountry,
+  ApiRegion,
+  ApiCompany,
+} from "~/lib/auth/types";
 
 interface LoginResponse extends ApiAuthResponse {
   user?: User;
@@ -320,21 +351,21 @@ export function useUpdateRegion() {
 
       try {
         const endpoint = buildRegionDetailsEndpoint(regionId);
-        
+
         // Use FormData if there's a file, otherwise JSON
         if (data.image) {
           const formData = new FormData();
-          if (data.name) formData.append('name', data.name);
-          formData.append('image', data.image);
-          
+          if (data.name) formData.append("name", data.name);
+          formData.append("image", data.image);
+
           const response = await apiClient.put<ApiRegion>(endpoint, formData);
           return response;
         } else {
           // Filter out undefined values and image
           const cleanData = Object.entries(data)
-            .filter(([key, value]) => value !== undefined && key !== 'image')
+            .filter(([key, value]) => value !== undefined && key !== "image")
             .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});
-            
+
           const response = await apiClient.put<ApiRegion>(endpoint, cleanData);
           return response;
         }
@@ -345,7 +376,9 @@ export function useUpdateRegion() {
     },
     onSuccess: (data, variables) => {
       // Invalidate and refetch region details
-      queryClient.invalidateQueries({ queryKey: ["region", variables.regionId] });
+      queryClient.invalidateQueries({
+        queryKey: ["region", variables.regionId],
+      });
       // Invalidate regions list as well
       queryClient.invalidateQueries({ queryKey: ["regions"] });
     },
@@ -376,24 +409,24 @@ export function useUpdateCountry() {
 
       try {
         const endpoint = buildCountryDetailsEndpoint(countryId);
-        
+
         // Use FormData if there's a file, otherwise JSON
         if (data.flag) {
           const formData = new FormData();
-          if (data.name) formData.append('name', data.name);
-          if (data.regionId) formData.append('regionId', data.regionId);
-          if (data.alpha2) formData.append('alpha2', data.alpha2);
-          if (data.alpha3) formData.append('alpha3', data.alpha3);
-          formData.append('flag', data.flag);
-          
+          if (data.name) formData.append("name", data.name);
+          if (data.regionId) formData.append("regionId", data.regionId);
+          if (data.alpha2) formData.append("alpha2", data.alpha2);
+          if (data.alpha3) formData.append("alpha3", data.alpha3);
+          formData.append("flag", data.flag);
+
           const response = await apiClient.put<ApiCountry>(endpoint, formData);
           return response;
         } else {
           // Filter out undefined values and flag
           const cleanData = Object.entries(data)
-            .filter(([key, value]) => value !== undefined && key !== 'flag')
+            .filter(([key, value]) => value !== undefined && key !== "flag")
             .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});
-            
+
           const response = await apiClient.put<ApiCountry>(endpoint, cleanData);
           return response;
         }
@@ -404,7 +437,9 @@ export function useUpdateCountry() {
     },
     onSuccess: (data, variables) => {
       // Invalidate and refetch country details
-      queryClient.invalidateQueries({ queryKey: ["country", variables.countryId] });
+      queryClient.invalidateQueries({
+        queryKey: ["country", variables.countryId],
+      });
       // Invalidate countries list as well
       queryClient.invalidateQueries({ queryKey: ["countries"] });
     },
@@ -438,7 +473,9 @@ export function useInviteCountryAdmin() {
     },
     onSuccess: (data, variables) => {
       // Invalidate and refetch country details to update admin list
-      queryClient.invalidateQueries({ queryKey: ["country", variables.countryId] });
+      queryClient.invalidateQueries({
+        queryKey: ["country", variables.countryId],
+      });
     },
   });
 }
@@ -470,7 +507,9 @@ export function useInviteRegionAdmin() {
     },
     onSuccess: (data, variables) => {
       // Invalidate and refetch region details to update admin list
-      queryClient.invalidateQueries({ queryKey: ["region", variables.regionId] });
+      queryClient.invalidateQueries({
+        queryKey: ["region", variables.regionId],
+      });
       // Invalidate regions list as well
       queryClient.invalidateQueries({ queryKey: ["regions"] });
     },
@@ -504,7 +543,9 @@ export function useInviteCompanyAdmin() {
     },
     onSuccess: (data, variables) => {
       // Invalidate and refetch company details to update admin list
-      queryClient.invalidateQueries({ queryKey: ["company", variables.companyId] });
+      queryClient.invalidateQueries({
+        queryKey: ["company", variables.companyId],
+      });
       // Invalidate companies list as well
       queryClient.invalidateQueries({ queryKey: ["companies"] });
     },
@@ -538,9 +579,12 @@ export function useInviteCompanyEmployee() {
     },
     onSuccess: (data, variables) => {
       // Invalidate and refetch company details to update employee list
-      queryClient.invalidateQueries({ queryKey: ["company", variables.companyId] });
-      // Invalidate company employees list
-      queryClient.invalidateQueries({ queryKey: ["company-employees", variables.companyId] });
+      queryClient.invalidateQueries({
+        queryKey: ["company", variables.companyId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["company-users", variables.companyId],
+      });
       // Invalidate companies list as well
       queryClient.invalidateQueries({ queryKey: ["companies"] });
     },
@@ -597,23 +641,23 @@ export function useUpdateCompany() {
 
       try {
         const endpoint = buildCompanyDetailsEndpoint(companyId);
-        
+
         // Use FormData if there's a file, otherwise JSON
         if (data.logo) {
           const formData = new FormData();
-          if (data.name) formData.append('name', data.name);
-          if (data.email) formData.append('email', data.email);
-          if (data.address) formData.append('address', data.address);
-          formData.append('logo', data.logo);
-          
+          if (data.name) formData.append("name", data.name);
+          if (data.email) formData.append("email", data.email);
+          if (data.address) formData.append("address", data.address);
+          formData.append("logo", data.logo);
+
           const response = await apiClient.put<ApiCompany>(endpoint, formData);
           return response;
         } else {
           // Filter out undefined values and logo
           const cleanData = Object.entries(data)
-            .filter(([key, value]) => value !== undefined && key !== 'logo')
+            .filter(([key, value]) => value !== undefined && key !== "logo")
             .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});
-            
+
           const response = await apiClient.put<ApiCompany>(endpoint, cleanData);
           return response;
         }
@@ -624,14 +668,19 @@ export function useUpdateCompany() {
     },
     onSuccess: (data, variables) => {
       // Invalidate and refetch company details
-      queryClient.invalidateQueries({ queryKey: ["company", variables.companyId] });
+      queryClient.invalidateQueries({
+        queryKey: ["company", variables.companyId],
+      });
       // Invalidate companies list as well
       queryClient.invalidateQueries({ queryKey: ["companies"] });
     },
   });
 }
 
-export function useRegionUsers(regionId: string, params: UsersQueryParams = {}) {
+export function useRegionUsers(
+  regionId: string,
+  params: UsersQueryParams = {},
+) {
   return useQuery({
     queryKey: ["region-users", regionId, params],
     queryFn: async (): Promise<UsersResponse> => {
@@ -658,7 +707,100 @@ export function useRegionUsers(regionId: string, params: UsersQueryParams = {}) 
   });
 }
 
-export function useCountryUsers(countryId: string, params: UsersQueryParams = {}) {
+export function useRegionCountries(
+  regionId: string,
+  params: CountriesQueryParams = {},
+) {
+  return useQuery({
+    queryKey: ["region-countries", regionId, params],
+    queryFn: async (): Promise<CountriesResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildRegionCountriesQueryString(regionId, params);
+        const response = await apiClient.get<CountriesResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching region countries:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get() && !!regionId, // Only run if we have tokens and regionId
+  });
+}
+
+export function useRegionCompanies(
+  regionId: string,
+  params: CompaniesQueryParams = {},
+) {
+  return useQuery({
+    queryKey: ["region-companies", regionId, params],
+    queryFn: async (): Promise<CompaniesResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildRegionCompaniesQueryString(regionId, params);
+        const response = await apiClient.get<CompaniesResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching region companies:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get() && !!regionId, // Only run if we have tokens and regionId
+  });
+}
+
+export function useCountryCompanies(
+  countryId: string,
+  params: CompaniesQueryParams = {},
+) {
+  return useQuery({
+    queryKey: ["country-companies", countryId, params],
+    queryFn: async (): Promise<CompaniesResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildCountryCompaniesQueryString(countryId, params);
+        const response = await apiClient.get<CompaniesResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching country companies:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get() && !!countryId, // Only run if we have tokens and countryId
+  });
+}
+
+export function useCountryUsers(
+  countryId: string,
+  params: UsersQueryParams = {},
+) {
   return useQuery({
     queryKey: ["country-users", countryId, params],
     queryFn: async (): Promise<UsersResponse> => {
@@ -685,9 +827,12 @@ export function useCountryUsers(countryId: string, params: UsersQueryParams = {}
   });
 }
 
-export function useCompanyEmployees(companyId: string, params: UsersQueryParams = {}) {
+export function useCompanyUsers(
+  companyId: string,
+  params: UsersQueryParams = {},
+) {
   return useQuery({
-    queryKey: ["company-employees", companyId, params],
+    queryKey: ["company-users", companyId, params],
     queryFn: async (): Promise<UsersResponse> => {
       const tokens = clientTokens.get();
       if (!tokens) {
@@ -695,11 +840,11 @@ export function useCompanyEmployees(companyId: string, params: UsersQueryParams 
       }
 
       try {
-        const endpoint = buildCompanyEmployeesQueryString(companyId, params);
+        const endpoint = buildCompanyUsersQueryString(companyId, params);
         const response = await apiClient.get<UsersResponse>(endpoint);
         return response;
       } catch (error) {
-        console.error("Error fetching company employees:", error);
+        console.error("Error fetching company users:", error);
         throw error;
       }
     },
@@ -737,6 +882,7 @@ export function useDeleteUser() {
       queryClient.invalidateQueries({ queryKey: ["region-users"] });
       queryClient.invalidateQueries({ queryKey: ["country-users"] });
       queryClient.invalidateQueries({ queryKey: ["company-employees"] });
+      queryClient.invalidateQueries({ queryKey: ["company-users"] });
     },
   });
 }
@@ -768,9 +914,13 @@ export function useRemoveRegionalAdmin() {
     },
     onSuccess: (data, variables) => {
       // Invalidate region users to trigger refetch
-      queryClient.invalidateQueries({ queryKey: ["region-users", variables.regionId] });
+      queryClient.invalidateQueries({
+        queryKey: ["region-users", variables.regionId],
+      });
       // Invalidate region details
-      queryClient.invalidateQueries({ queryKey: ["region", variables.regionId] });
+      queryClient.invalidateQueries({
+        queryKey: ["region", variables.regionId],
+      });
     },
   });
 }
@@ -802,9 +952,13 @@ export function useRemoveCountryAdmin() {
     },
     onSuccess: (data, variables) => {
       // Invalidate country users to trigger refetch
-      queryClient.invalidateQueries({ queryKey: ["country-users", variables.countryId] });
+      queryClient.invalidateQueries({
+        queryKey: ["country-users", variables.countryId],
+      });
       // Invalidate country details
-      queryClient.invalidateQueries({ queryKey: ["country", variables.countryId] });
+      queryClient.invalidateQueries({
+        queryKey: ["country", variables.countryId],
+      });
     },
   });
 }
@@ -835,10 +989,15 @@ export function useRemoveCompanyAdmin() {
       }
     },
     onSuccess: (data, variables) => {
-      // Invalidate company employees to trigger refetch
-      queryClient.invalidateQueries({ queryKey: ["company-employees", variables.companyId] });
+      // Invalidate company  users to trigger refetch
+
+      queryClient.invalidateQueries({
+        queryKey: ["company-users", variables.companyId],
+      });
       // Invalidate company details
-      queryClient.invalidateQueries({ queryKey: ["company", variables.companyId] });
+      queryClient.invalidateQueries({
+        queryKey: ["company", variables.companyId],
+      });
     },
   });
 }

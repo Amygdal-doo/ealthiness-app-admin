@@ -758,14 +758,18 @@ export default function RegionDetailPage({
                         <Mail size={16} className="mr-2" />
                         Invite Admin
                       </Button>
-                      <Button className="w-full" variant="outline">
-                        <Globe size={16} className="mr-2" />
-                        Manage Countries
-                      </Button>
-                      <Button className="w-full" variant="outline">
-                        <Building size={16} className="mr-2" />
-                        View Companies
-                      </Button>
+                      <Link to={`/regions/${actualRegionId}/countries`}>
+                        <Button className="w-full mb-3" variant="outline">
+                          <Globe size={16} className="mr-2" />
+                          Manage Countries
+                        </Button>
+                      </Link>
+                      <Link to={`/regions/${actualRegionId}/companies`}>
+                        <Button className="w-full" variant="outline">
+                          <Building size={16} className="mr-2" />
+                          View Companies
+                        </Button>
+                      </Link>
                       <Link to={`/region/${actualRegionId}/users`}>
                         <Button className="w-full" variant="outline">
                           <Users2 size={16} className="mr-2" />

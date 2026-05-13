@@ -183,6 +183,7 @@ export interface UsersQueryParams {
   orderBy?: 'firstName' | 'lastName' | 'email' | 'username' | 'birthdate';
   type?: 'ascending' | 'descending';
   userRole?: UserRole;
+  userType?: 'all' | 'admins' | 'employees';
 }
 
 // Regions API types
