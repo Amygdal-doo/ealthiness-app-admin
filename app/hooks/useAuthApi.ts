@@ -34,6 +34,8 @@ import type {
   ApiCountry,
   ApiRegion,
   ApiCompany,
+  DashboardOverview,
+  DashboardPeriod,
 } from "~/lib/auth/types";
 
 interface LoginResponse extends ApiAuthResponse {
@@ -137,6 +139,22 @@ export function useRefreshToken() {
       });
 
       return response;
+    },
+  });
+}
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: async (email: string): Promise<{ message: string }> => {
+      const response = await apiClient.post<{ message: string }>(
+        "/v1/user/forgot-password",
+        { email }
+      );
+      
+      // If response is empty, return a default success message
+      return response && Object.keys(response).length > 0 
+        ? response 
+        : { message: "Password reset instructions sent successfully" };
     },
   });
 }
@@ -999,5 +1017,61 @@ export function useRemoveCompanyAdmin() {
         queryKey: ["company", variables.companyId],
       });
     },
+  });
+}
+
+export function useDashboardOverview(period?: DashboardPeriod) {
+  return useQuery({
+    queryKey: ["dashboard-overview", period],
+    queryFn: async (): Promise<DashboardOverview> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const queryParams = period ? `?period=${period}` : '';
+        const endpoint = `/v1/admin/dashboard/overview${queryParams}`;
+        const response = await apiClient.get<DashboardOverview>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching dashboard overview:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get(), // Only run if we have tokens
+  });
+}
+
+export function useScopedDashboardOverview(period?: DashboardPeriod) {
+  return useQuery({
+    queryKey: ["scoped-dashboard-overview", period],
+    queryFn: async (): Promise<DashboardOverview> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const queryParams = period ? `?period=${period}` : '';
+        const endpoint = `/v1/admin/dashboard/scoped/overview${queryParams}`;
+        const response = await apiClient.get<DashboardOverview>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching scoped dashboard overview:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get(), // Only run if we have tokens
   });
 }

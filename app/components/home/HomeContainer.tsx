@@ -48,7 +48,6 @@ import {
   Button,
 } from "~/components/ui";
 import MetricsCard from "./MetricsCard";
-import QuickActions from "./QuickActions";
 import AppSidebar from "../shared/AppSidebar";
 
 // Mock Data
@@ -162,7 +161,8 @@ const RECENT_ACTIVITIES = [
   },
 ];
 
-import type { User } from "~/lib/auth/types";
+import type { User, DashboardPeriod } from "~/lib/auth/types";
+import { useDashboardOverview, useScopedDashboardOverview } from "~/hooks/useAuthApi";
 
 interface UserData {
   userRole: string;
@@ -237,16 +237,26 @@ const AlertItem: React.FC<{ alert: (typeof SYSTEM_ALERTS)[0] }> = ({
 
 const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
   const navigate = useNavigate();
-  const [timeRange, setTimeRange] = useState("7d");
+  const [timeRange, setTimeRange] = useState<DashboardPeriod>("7d");
   const [refreshing, setRefreshing] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const timeRangeOptions = [
-    { value: "24h", label: "Last 24 Hours" },
-    { value: "7d", label: "Last 7 Days" },
-    { value: "30d", label: "Last 30 Days" },
-    { value: "90d", label: "Last 90 Days" },
+    { value: "24h" as DashboardPeriod, label: "Last 24 Hours" },
+    { value: "7d" as DashboardPeriod, label: "Last 7 Days" },
+    { value: "30d" as DashboardPeriod, label: "Last 30 Days" },
   ];
+
+  // Fetch real dashboard data - use different endpoint based on user role
+  const isSuperAdmin = userData.user.role === 'SUPER_ADMIN';
+  const { 
+    data: dashboardData, 
+    isLoading, 
+    error, 
+    refetch 
+  } = isSuperAdmin 
+    ? useDashboardOverview(timeRange) 
+    : useScopedDashboardOverview(timeRange || '30d');
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -262,59 +272,65 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1500);
+    try {
+      await refetch();
+    } catch (error) {
+      console.error('Error refreshing dashboard data:', error);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const handleLogout = () => {
     navigate("/");
   };
 
-  const quickActions = [
-    {
-      icon: Plus,
-      label: "Add Region",
-      onClick: () => navigate("/countries"),
-      color: "text-[#5850DE]",
-      bgColor: "bg-[#E8E6FC]",
-    },
-    {
-      icon: Building2,
-      label: "Manage Companies",
-      onClick: () => navigate("/companies"),
-      color: "text-[#248FEC]",
-      bgColor: "bg-[#E5F3FF]",
-    },
-    {
-      icon: Users,
-      label: "User Directory",
-      onClick: () => navigate("/customers"),
-      color: "text-[#4DAB46]",
-      bgColor: "bg-[#E5F6E4]",
-    },
-    {
-      icon: BarChart3,
-      label: "Analytics",
-      onClick: () => {},
-      color: "text-[#FFB900]",
-      bgColor: "bg-[#FFF4E5]",
-    },
-    {
-      icon: Settings,
-      label: "System Settings",
-      onClick: () => navigate("/settings"),
-      color: "text-[#8E8E93]",
-      bgColor: "bg-[#F0F0F3]",
-    },
-    {
-      icon: Download,
-      label: "Export Data",
-      onClick: () => {},
-      color: "text-[#5850DE]",
-      bgColor: "bg-[#E8E6FC]",
-    },
-  ];
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+        <AppSidebar user={userData.user} />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-8 h-8 border-2 border-[#5850DE] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-[#60646C] font-medium">Loading dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+        <AppSidebar user={userData.user} />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <AlertCircle size={48} className="text-[#EF4444] mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-[#1B173A] mb-2">Error Loading Dashboard</h2>
+            <p className="text-[#60646C] mb-4">Unable to load dashboard data. Please try again.</p>
+            <Button onClick={handleRefresh} className="bg-[#5850DE] hover:bg-[#4940B8]">
+              Retry
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Use real data or fallback to mock data
+  const stats = dashboardData || {
+    totalActiveUsers: 0,
+    globalRegions: 0,
+    totalCompanies: 0,
+    avgHealthScore: 0,
+    activityDistribution: [],
+    recentActivity: []
+  };
 
   return (
     <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
@@ -390,7 +406,7 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <MetricsCard
               title="Total Active Users"
-              value={GLOBAL_STATS.totalUsers}
+              value={stats.totalActiveUsers}
               subtitle="Across all regions"
               icon={Users}
               trend={8.5}
@@ -400,8 +416,8 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
             />
             <MetricsCard
               title="Global Regions"
-              value={GLOBAL_STATS.totalRegions}
-              subtitle={`${GLOBAL_STATS.totalCompanies} companies`}
+              value={stats.globalRegions}
+              subtitle={`${stats.totalCompanies} companies`}
               icon={Globe}
               trend={2.1}
               accentColor="bg-[#E8E6FC]"
@@ -409,7 +425,7 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
             />
             <MetricsCard
               title="Avg Health Score"
-              value={GLOBAL_STATS.avgHealthScore}
+              value={stats.avgHealthScore}
               subtitle="Platform-wide average"
               icon={Activity}
               trend={3.2}
@@ -417,10 +433,10 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
               color="text-[#4DAB46]"
             />
             <MetricsCard
-              title="System Uptime"
-              value={`${GLOBAL_STATS.systemUptime}%`}
-              subtitle="Last 30 days"
-              icon={Shield}
+              title="Total Companies"
+              value={stats.totalCompanies}
+              subtitle="Registered companies"
+              icon={Building2}
               accentColor="bg-[#FFF4E5]"
               color="text-[#FFB900]"
             />
@@ -556,61 +572,74 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64 mb-4">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={ACTIVITY_DISTRIBUTION}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={100}
-                          paddingAngle={2}
-                          dataKey="value"
-                        >
-                          {ACTIVITY_DISTRIBUTION.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <RechartsTooltip
-                          contentStyle={{
-                            borderRadius: "12px",
-                            border: "none",
-                            boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="space-y-3">
-                    {ACTIVITY_DISTRIBUTION.map((item, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: item.color }}
-                          ></div>
-                          <span className="text-sm font-medium text-[#1B173A]">
-                            {item.name}
-                          </span>
-                        </div>
-                        <span className="text-sm font-bold text-[#60646C]">
-                          {item.value}%
-                        </span>
+                  {stats.activityDistribution.length > 0 ? (
+                    <>
+                      <div className="h-64 mb-4">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={stats.activityDistribution.map((item, index) => ({
+                                ...item,
+                                color: ACTIVITY_DISTRIBUTION[index]?.color || "#5850DE"
+                              }))}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={60}
+                              outerRadius={100}
+                              paddingAngle={2}
+                              dataKey="percentage"
+                            >
+                              {stats.activityDistribution.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={ACTIVITY_DISTRIBUTION[index]?.color || "#5850DE"} />
+                              ))}
+                            </Pie>
+                            <RechartsTooltip
+                              contentStyle={{
+                                borderRadius: "12px",
+                                border: "none",
+                                boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+                              }}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
                       </div>
-                    ))}
-                  </div>
+                      <div className="space-y-3">
+                        {stats.activityDistribution.map((item, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: ACTIVITY_DISTRIBUTION[index]?.color || "#5850DE" }}
+                              ></div>
+                              <span className="text-sm font-medium text-[#1B173A]">
+                                {item.category}
+                              </span>
+                            </div>
+                            <span className="text-sm font-bold text-[#60646C]">
+                              {item.percentage}%
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-center h-64 text-[#8E8E93]">
+                      <div className="text-center">
+                        <Target size={48} className="mx-auto mb-4 opacity-50" />
+                        <p className="font-medium">No activity data available</p>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
           </div>
 
-          {/* Regional Performance & Quick Actions */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            {/* Regional Performance */}
+          {/* Regional Performance */}
+          <div className="mb-8">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -659,19 +688,6 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Plus size={20} className="text-[#FFB900]" />
-                  Quick Actions
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <QuickActions actions={quickActions} />
-              </CardContent>
-            </Card>
           </div>
 
           {/* Bottom Row: Alerts & Recent Activity */}
@@ -706,24 +722,51 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4 max-h-80 overflow-y-auto">
-                  {RECENT_ACTIVITIES.map((activity, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start gap-3 p-3 rounded-xl hover:bg-[#F8F9FB] transition-colors"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-[#E8E6FC] flex items-center justify-center shrink-0 mt-0.5">
-                        <activity.icon size={16} className="text-[#5850DE]" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-[#1B173A] leading-tight">
-                          {activity.message}
-                        </p>
-                        <p className="text-xs text-[#8E8E93] mt-1">
-                          {activity.time}
-                        </p>
+                  {stats.recentActivity.length > 0 ? (
+                    stats.recentActivity.map((activity, index) => {
+                      const getIcon = (eventType: string) => {
+                        switch (eventType) {
+                          case 'user_joined':
+                            return Users;
+                          case 'company_registered':
+                            return Building2;
+                          case 'admin_invited':
+                            return Shield;
+                          default:
+                            return Bell;
+                        }
+                      };
+
+                      const IconComponent = getIcon(activity.eventType);
+                      const timeAgo = new Date(activity.createdAt).toLocaleString();
+
+                      return (
+                        <div
+                          key={index}
+                          className="flex items-start gap-3 p-3 rounded-xl hover:bg-[#F8F9FB] transition-colors"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-[#E8E6FC] flex items-center justify-center shrink-0 mt-0.5">
+                            <IconComponent size={16} className="text-[#5850DE]" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-[#1B173A] leading-tight">
+                              {activity.message}
+                            </p>
+                            <p className="text-xs text-[#8E8E93] mt-1">
+                              {timeAgo}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="flex items-center justify-center py-8 text-[#8E8E93]">
+                      <div className="text-center">
+                        <Clock size={48} className="mx-auto mb-4 opacity-50" />
+                        <p className="font-medium">No recent activity</p>
                       </div>
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardContent>
             </Card>

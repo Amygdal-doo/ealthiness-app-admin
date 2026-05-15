@@ -323,3 +323,27 @@ export interface CountriesQueryParams {
   orderBy?: 'name' | 'createdAt';
   type?: 'ascending' | 'descending';
 }
+
+// Dashboard API types
+export interface ActivityDistribution {
+  category: string;
+  count: number;
+  percentage: number;
+}
+
+export interface RecentActivity {
+  eventType: string;
+  message: string;
+  createdAt: string;
+}
+
+export interface DashboardOverview {
+  totalActiveUsers: number;
+  globalRegions: number;
+  totalCompanies: number;
+  avgHealthScore: number;
+  activityDistribution: ActivityDistribution[];
+  recentActivity: RecentActivity[];
+}
+
+export type DashboardPeriod = '24h' | '7d' | '30d';

@@ -27,6 +27,8 @@ export default function Home() {
     );
   }
 
+  // Allow all admin roles to access dashboard (SUPER_ADMIN gets global view, others get scoped view)
+
   const userData = {
     userRole: user.role,
     user: user

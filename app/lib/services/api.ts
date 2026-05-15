@@ -43,7 +43,17 @@ class ApiClient {
         } as ApiError;
       }
 
-      return await response.json();
+      // Handle empty response bodies (common for 201, 204 responses)
+      const text = await response.text();
+      if (!text) {
+        return {} as T;
+      }
+      
+      try {
+        return JSON.parse(text);
+      } catch {
+        return text as T;
+      }
     } catch (error) {
       if (error && typeof error === "object" && "status" in error) {
         throw error;
