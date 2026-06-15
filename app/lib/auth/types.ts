@@ -1,5 +1,5 @@
 export interface User {
-  _id: string;
+  id: string;
   firstName: string;
   lastName: string;
   username: string;
@@ -48,14 +48,19 @@ export interface User {
   activeDietPlanId: any;
   activeUserDietPlanId: any;
   currentDayNumber: any;
-  
+
   // Computed properties for backwards compatibility
-  id: string;
+
   name: string;
   role: UserRole;
 }
 
-export type UserRole = 'COMPANY_ADMIN' | 'REGIONAL_ADMIN' | 'COUNTRY_ADMIN' | 'SUPER_ADMIN' | 'USER';
+export type UserRole =
+  | "COMPANY_ADMIN"
+  | "REGIONAL_ADMIN"
+  | "COUNTRY_ADMIN"
+  | "SUPER_ADMIN"
+  | "USER";
 
 export interface Session {
   userId: string;
@@ -69,7 +74,12 @@ export interface LoginCredentials {
 }
 
 export interface AuthError {
-  type: 'invalid_credentials' | 'user_not_found' | 'session_expired' | 'unauthorized' | 'server_error';
+  type:
+    | "invalid_credentials"
+    | "user_not_found"
+    | "session_expired"
+    | "unauthorized"
+    | "server_error";
   message: string;
 }
 
@@ -155,7 +165,7 @@ export const USER_ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
 
 // Users API types
 export interface ApiUser {
-  _id: string;
+  id: string;
   firstName: string;
   lastName: string;
   username: string;
@@ -180,15 +190,15 @@ export interface UsersQueryParams {
   page?: number;
   limit?: number;
   search?: string;
-  orderBy?: 'firstName' | 'lastName' | 'email' | 'username' | 'birthdate';
-  type?: 'ascending' | 'descending';
+  orderBy?: "firstName" | "lastName" | "email" | "username" | "birthdate";
+  type?: "ascending" | "descending";
   userRole?: UserRole;
-  userType?: 'all' | 'admins' | 'employees';
+  userType?: "all" | "admins" | "employees";
 }
 
 // Regions API types
 export interface ApiRegion {
-  _id: string;
+  id: string;
   name: string;
   __v: number;
   admins: any[];
@@ -218,13 +228,13 @@ export interface RegionsQueryParams {
   page?: number;
   limit?: number;
   search?: string;
-  orderBy?: 'name' | 'createdAt';
-  type?: 'ascending' | 'descending';
+  orderBy?: "name" | "createdAt";
+  type?: "ascending" | "descending";
 }
 
 // Companies API types
 export interface ApiCompany {
-  _id: string;
+  id: string;
   name: string;
   email: string;
   address: string;
@@ -234,7 +244,7 @@ export interface ApiCompany {
     extension: string;
     createdAt: string;
     url: string;
-    _id: string;
+    id: string;
   } | null;
   status: string;
   employees: string[];
@@ -245,12 +255,12 @@ export interface ApiCompany {
   __v: number;
   // New fields from /stats endpoint
   country?: {
-    _id: string;
+    id: string;
     name: string;
     alpha2: string;
     alpha3: string;
     region: {
-      _id: string;
+      id: string;
       name: string;
     };
   };
@@ -270,13 +280,13 @@ export interface CompaniesQueryParams {
   page?: number;
   limit?: number;
   search?: string;
-  orderBy?: 'name' | 'createdAt';
-  type?: 'ascending' | 'descending';
+  orderBy?: "name" | "createdAt";
+  type?: "ascending" | "descending";
 }
 
 // Countries API types
 export interface ApiCountry {
-  _id: string;
+  id: string;
   alpha2: string;
   alpha3: string;
   name: string;
@@ -288,14 +298,14 @@ export interface ApiCountry {
     extension: string;
     createdAt: string;
     url: string;
-    _id: string;
+    id: string;
   };
   createdAt: string;
   updatedAt: string;
   __v: number;
   // New fields from /stat endpoint
   region: {
-    _id: string;
+    id: string;
     name: string;
     __v: number;
     admins: any[];
@@ -320,8 +330,8 @@ export interface CountriesQueryParams {
   page?: number;
   limit?: number;
   search?: string;
-  orderBy?: 'name' | 'createdAt';
-  type?: 'ascending' | 'descending';
+  orderBy?: "name" | "createdAt";
+  type?: "ascending" | "descending";
 }
 
 // Dashboard API types
@@ -346,4 +356,4 @@ export interface DashboardOverview {
   recentActivity: RecentActivity[];
 }
 
-export type DashboardPeriod = '24h' | '7d' | '30d';
+export type DashboardPeriod = "24h" | "7d" | "30d";

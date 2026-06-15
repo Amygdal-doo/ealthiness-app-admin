@@ -292,7 +292,7 @@ const NewCompanyForm: React.FC<NewCompanyFormProps> = ({
             >
               {(() => {
                 const selectedCountry = countriesResponse?.results?.find(
-                  (country) => country._id === watch("countryId"),
+                  (country) => country.id === watch("countryId"),
                 );
 
                 if (countriesLoading) return "Loading countries...";
@@ -311,20 +311,20 @@ const NewCompanyForm: React.FC<NewCompanyFormProps> = ({
               <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E0E1E6] rounded-xl shadow-lg z-50 py-1 max-h-60 overflow-y-auto">
                 {countriesResponse?.results?.map((country) => (
                   <button
-                    key={country._id}
+                    key={country.id}
                     type="button"
                     onClick={() => {
-                      setValue("countryId", country._id);
+                      setValue("countryId", country.id);
                       setIsCountryDropdownOpen(false);
                     }}
                     className={`w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-[#F0F0F3] transition-colors flex items-center justify-between ${
-                      watch("countryId") === country._id
+                      watch("countryId") === country.id
                         ? "text-[#5850DE] bg-[#F0F0F3]"
                         : "text-[#1B173A]"
                     }`}
                   >
                     {country.name}
-                    {watch("countryId") === country._id && (
+                    {watch("countryId") === country.id && (
                       <Check size={16} className="text-[#5850DE]" />
                     )}
                   </button>

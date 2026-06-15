@@ -98,7 +98,7 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
 
   // Transform API users to display format
   const transformUser = (apiUser: ApiUser) => ({
-    id: apiUser._id,
+    id: apiUser.id,
     name: `${apiUser.firstName} ${apiUser.lastName}`,
     roles: apiUser.roles, // Show all roles
     joined: new Date(apiUser.createdAt).toLocaleDateString(),
@@ -265,10 +265,7 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
               </thead>
               <tbody className="divide-y divide-[#E0E1E6]">
                 {visibleUsers.map((user) => (
-                  <tr
-                    key={user.id}
-                    className="hover:bg-gray-50 transition"
-                  >
+                  <tr key={user.id} className="hover:bg-gray-50 transition">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold">
@@ -283,10 +280,7 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
                             {user.gender === "male" ? (
                               <User size={14} className="text-blue-500" />
                             ) : user.gender === "female" ? (
-                              <UserCheck
-                                size={14}
-                                className="text-pink-500"
-                              />
+                              <UserCheck size={14} className="text-pink-500" />
                             ) : null}
                           </div>
                           <span className="text-xs text-[#8E8E93] font-medium">
@@ -394,9 +388,7 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    setCurrentPage(Math.max(1, currentPage - 1))
-                  }
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1 || isLoading}
                   className="flex items-center gap-1"
                 >
@@ -483,9 +475,7 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
                       Math.min(usersResponse.pages, currentPage + 1),
                     )
                   }
-                  disabled={
-                    currentPage === usersResponse.pages || isLoading
-                  }
+                  disabled={currentPage === usersResponse.pages || isLoading}
                   className="flex items-center gap-1"
                 >
                   Next
@@ -497,6 +487,6 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
         )}
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };

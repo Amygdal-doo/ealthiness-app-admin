@@ -142,7 +142,7 @@ export default function RegionCountriesPage({
 
   // Transform API countries to display format
   const transformCountry = (apiCountry: ApiCountry) => ({
-    id: apiCountry._id,
+    id: apiCountry.id,
     name: apiCountry.name,
     code: apiCountry.alpha2,
     alpha3: apiCountry.alpha3,
@@ -179,9 +179,7 @@ export default function RegionCountriesPage({
   };
 
   return (
-    <RoleGuard
-      allowedRoles={["SUPER_ADMIN", "REGIONAL_ADMIN"]}
-    >
+    <RoleGuard allowedRoles={["SUPER_ADMIN", "REGIONAL_ADMIN"]}>
       <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
         <AppSidebar user={user} />
 
@@ -353,7 +351,7 @@ export default function RegionCountriesPage({
                                 </div>
                               )}
                               <div>
-                                <Link 
+                                <Link
                                   to={`/countries/${country.id}`}
                                   className="hover:text-[#5850DE] transition-colors font-bold"
                                 >
@@ -375,12 +373,14 @@ export default function RegionCountriesPage({
                             </td>
                             <td className="p-4 text-right">
                               <div className="flex justify-end gap-2">
-                                {user?.role === 'SUPER_ADMIN' ? (
+                                {user?.role === "SUPER_ADMIN" ? (
                                   <Button
                                     variant="ghost"
                                     className="px-2"
                                     title="Edit Country"
-                                    onClick={() => navigate(`/countries/${country.id}`)}
+                                    onClick={() =>
+                                      navigate(`/countries/${country.id}`)
+                                    }
                                   >
                                     <Edit size={18} />
                                   </Button>
@@ -389,7 +389,9 @@ export default function RegionCountriesPage({
                                     variant="ghost"
                                     className="px-2"
                                     title="View Country"
-                                    onClick={() => navigate(`/countries/${country.id}`)}
+                                    onClick={() =>
+                                      navigate(`/countries/${country.id}`)
+                                    }
                                   >
                                     <Eye size={18} />
                                   </Button>

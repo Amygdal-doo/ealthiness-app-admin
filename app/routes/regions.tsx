@@ -121,7 +121,7 @@ export default function RegionsPage() {
 
   // Transform API regions to display format
   const transformRegion = (apiRegion: ApiRegion) => ({
-    id: apiRegion._id,
+    id: apiRegion.id,
     name: apiRegion.name,
     code: apiRegion.name.substring(0, 3).toUpperCase(), // Generate code from name
     adminCount: apiRegion.admins?.length || 0, // Calculate from admins array

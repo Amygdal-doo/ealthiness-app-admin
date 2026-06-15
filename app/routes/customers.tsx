@@ -115,7 +115,7 @@ export default function CustomersPage() {
 
   // Transform API users to display format
   const transformUser = (apiUser: ApiUser) => ({
-    id: apiUser._id,
+    id: apiUser.id,
     name: `${apiUser.firstName} ${apiUser.lastName}`,
     roles: apiUser.roles, // Show all roles
     joined: new Date(apiUser.createdAt).toLocaleDateString(),

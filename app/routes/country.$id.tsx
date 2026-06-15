@@ -159,7 +159,7 @@ export default function CountryDetailPage({
     if (apiCountry) {
       setEditForm({
         name: apiCountry.name,
-        regionId: apiCountry.regionId || apiCountry.region?._id || "",
+        regionId: apiCountry.regionId || apiCountry.region?.id || "",
         alpha2: apiCountry.alpha2,
         alpha3: apiCountry.alpha3,
         flag: null,
@@ -243,7 +243,7 @@ export default function CountryDetailPage({
     if (apiCountry) {
       setEditForm({
         name: apiCountry.name,
-        regionId: apiCountry.regionId || apiCountry.region?._id || "",
+        regionId: apiCountry.regionId || apiCountry.region?.id || "",
         alpha2: apiCountry.alpha2,
         alpha3: apiCountry.alpha3,
         flag: null,
@@ -262,7 +262,7 @@ export default function CountryDetailPage({
 
       // Only include fields that have changed
       if (editForm.name !== apiCountry?.name) updateData.name = editForm.name;
-      const currentRegionId = apiCountry?.regionId || apiCountry?.region?._id;
+      const currentRegionId = apiCountry?.regionId || apiCountry?.region?.id;
       if (editForm.regionId !== currentRegionId)
         updateData.regionId = editForm.regionId;
       if (editForm.alpha2 !== apiCountry?.alpha2)
@@ -304,12 +304,12 @@ export default function CountryDetailPage({
 
   // Transform API country to display format
   const transformApiCountryToDetails = (apiCountry: ApiCountry) => ({
-    id: apiCountry._id,
+    id: apiCountry.id,
     name: apiCountry.name,
     code: apiCountry.alpha2,
     alpha3: apiCountry.alpha3,
     numericId: apiCountry.numericId,
-    regionId: apiCountry.regionId || apiCountry.region?._id,
+    regionId: apiCountry.regionId || apiCountry.region?.id,
     regionName: apiCountry.region?.name,
     adminCount: apiCountry.admins?.length || 0, // Calculate from admins array
     flag: apiCountry.flag,
@@ -547,8 +547,7 @@ export default function CountryDetailPage({
                               {(() => {
                                 const selectedRegion =
                                   regionsResponse?.results?.find(
-                                    (region) =>
-                                      region._id === editForm.regionId,
+                                    (region) => region.id === editForm.regionId,
                                   );
 
                                 if (selectedRegion) return selectedRegion.name;
@@ -599,23 +598,23 @@ export default function CountryDetailPage({
                               </button>
                               {regionsResponse?.results?.map((region) => (
                                 <button
-                                  key={region._id}
+                                  key={region.id}
                                   type="button"
                                   onClick={() => {
                                     setEditForm((prev) => ({
                                       ...prev,
-                                      regionId: region._id,
+                                      regionId: region.id,
                                     }));
                                     setIsRegionDropdownOpen(false);
                                   }}
                                   className={`w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-[#F0F0F3] transition-colors flex items-center justify-between ${
-                                    editForm.regionId === region._id
+                                    editForm.regionId === region.id
                                       ? "text-[#5850DE] bg-[#F0F0F3]"
                                       : "text-[#1B173A]"
                                   }`}
                                 >
                                   {region.name}
-                                  {editForm.regionId === region._id && (
+                                  {editForm.regionId === region.id && (
                                     <Check
                                       size={16}
                                       className="text-[#5850DE]"

@@ -119,7 +119,7 @@ export default function CountriesPage() {
 
   // Transform API countries to display format
   const transformCountry = (apiCountry: ApiCountry) => ({
-    id: apiCountry._id,
+    id: apiCountry.id,
     name: apiCountry.name,
     code: apiCountry.alpha2,
     alpha3: apiCountry.alpha3,
@@ -155,7 +155,9 @@ export default function CountriesPage() {
   };
 
   return (
-    <RoleGuard allowedRoles={["SUPER_ADMIN", "REGIONAL_ADMIN", "COUNTRY_ADMIN"]}>
+    <RoleGuard
+      allowedRoles={["SUPER_ADMIN", "REGIONAL_ADMIN", "COUNTRY_ADMIN"]}
+    >
       <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
         <AppSidebar user={user} />
 
@@ -364,7 +366,10 @@ export default function CountriesPage() {
                                   <Button
                                     variant="outline"
                                     onClick={() =>
-                                      handleInviteAdmin(country.id, country.name)
+                                      handleInviteAdmin(
+                                        country.id,
+                                        country.name,
+                                      )
                                     }
                                   >
                                     <Mail size={16} className="mr-2" /> Invite

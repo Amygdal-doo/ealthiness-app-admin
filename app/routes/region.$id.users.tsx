@@ -173,7 +173,7 @@ export default function RegionUsersPage({
 
   // Transform API users to display format
   const transformUser = (apiUser: ApiUser) => ({
-    id: apiUser._id,
+    id: apiUser.id,
     name: `${apiUser.firstName} ${apiUser.lastName}`,
     roles: apiUser.roles, // Show all roles
     joined: new Date(apiUser.createdAt).toLocaleDateString(),
@@ -594,7 +594,8 @@ export default function RegionUsersPage({
               <div className="space-y-4">
                 <p className="text-gray-700">
                   Are you sure you want to remove the regional admin role from{" "}
-                  <strong>{removeAdminConfirmation.userName}</strong>? This will revoke their administrative privileges for this region.
+                  <strong>{removeAdminConfirmation.userName}</strong>? This will
+                  revoke their administrative privileges for this region.
                 </p>
 
                 {removeAdminMutation.error && (

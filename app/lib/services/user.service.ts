@@ -102,7 +102,7 @@ export async function authenticateUser(
 
     // Create user object from JWT payload
     const user: User = {
-      _id: userPayload.sub,
+      id: userPayload.sub,
       firstName:
         userPayload.name?.split(" ")[0] || userPayload.email.split("@")[0],
       lastName: userPayload.name?.split(" ")[1] || "",
@@ -142,7 +142,7 @@ export async function authenticateUser(
       activeUserDietPlanId: null,
       currentDayNumber: null,
       // Computed properties for backwards compatibility
-      id: userPayload.sub,
+
       name: userPayload.name || userPayload.email.split("@")[0],
       role: userPayload.role,
     };
@@ -210,7 +210,7 @@ export function getUserFromToken(accessToken: string): User | null {
   if (!payload) return null;
 
   return {
-    _id: payload.sub,
+    id: payload.sub,
     firstName: payload.name?.split(" ")[0] || payload.email.split("@")[0],
     lastName: payload.name?.split(" ")[1] || "",
     username: payload.email.split("@")[0],
@@ -249,7 +249,7 @@ export function getUserFromToken(accessToken: string): User | null {
     activeUserDietPlanId: null,
     currentDayNumber: null,
     // Computed properties for backwards compatibility
-    id: payload.sub,
+
     name: payload.name || payload.email.split("@")[0],
     role: payload.role,
   };

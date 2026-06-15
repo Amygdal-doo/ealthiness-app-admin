@@ -237,7 +237,7 @@ export default function CompanyDetailPage({
 
   // Transform API company to display format
   const transformApiCompanyToDetails = (apiCompany: ApiCompany) => ({
-    id: apiCompany._id,
+    id: apiCompany.id,
     name: apiCompany.name,
     email: apiCompany.email,
     address: apiCompany.address || "No address",

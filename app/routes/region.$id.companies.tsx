@@ -154,7 +154,7 @@ export default function RegionCompaniesPage({
 
   // Transform API companies to display format
   const transformCompany = (apiCompany: ApiCompany) => ({
-    id: apiCompany._id,
+    id: apiCompany.id,
     name: apiCompany.name,
     status: apiCompany.status,
     email: apiCompany.email,
@@ -207,9 +207,7 @@ export default function RegionCompaniesPage({
   };
 
   return (
-    <RoleGuard
-      allowedRoles={["SUPER_ADMIN", "REGIONAL_ADMIN"]}
-    >
+    <RoleGuard allowedRoles={["SUPER_ADMIN", "REGIONAL_ADMIN"]}>
       <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
         <AppSidebar user={user} />
 
@@ -374,7 +372,8 @@ export default function RegionCompaniesPage({
                                       document.createElement("div");
                                     fallback.className =
                                       "w-8 h-8 rounded-lg bg-[#F0F0F3] text-[#1B173A] flex items-center justify-center";
-                                    fallback.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>';
+                                    fallback.innerHTML =
+                                      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>';
                                     e.currentTarget.parentNode?.replaceChild(
                                       fallback,
                                       e.currentTarget,
@@ -387,7 +386,7 @@ export default function RegionCompaniesPage({
                                 </div>
                               )}
                               <div>
-                                <Link 
+                                <Link
                                   to={`/companies/${company.id}`}
                                   className="hover:text-[#5850DE] transition-colors font-bold"
                                 >
@@ -401,7 +400,9 @@ export default function RegionCompaniesPage({
                             <td className="p-4">
                               <Badge
                                 variant={
-                                  company.status === "active" ? "secondary" : "outline"
+                                  company.status === "active"
+                                    ? "secondary"
+                                    : "outline"
                                 }
                               >
                                 {company.status}
@@ -418,12 +419,14 @@ export default function RegionCompaniesPage({
                             </td>
                             <td className="p-4 text-right">
                               <div className="flex justify-end gap-2">
-                                {user?.role === 'SUPER_ADMIN' ? (
+                                {user?.role === "SUPER_ADMIN" ? (
                                   <Button
                                     variant="ghost"
                                     className="px-2"
                                     title="Edit Company"
-                                    onClick={() => navigate(`/companies/${company.id}`)}
+                                    onClick={() =>
+                                      navigate(`/companies/${company.id}`)
+                                    }
                                   >
                                     <Edit size={18} />
                                   </Button>
@@ -432,7 +435,9 @@ export default function RegionCompaniesPage({
                                     variant="ghost"
                                     className="px-2"
                                     title="View Company"
-                                    onClick={() => navigate(`/companies/${company.id}`)}
+                                    onClick={() =>
+                                      navigate(`/companies/${company.id}`)
+                                    }
                                   >
                                     <Eye size={18} />
                                   </Button>
@@ -443,15 +448,20 @@ export default function RegionCompaniesPage({
                                     handleInviteAdmin(company.id, company.name)
                                   }
                                 >
-                                  <Mail size={16} className="mr-2" /> Invite Admin
+                                  <Mail size={16} className="mr-2" /> Invite
+                                  Admin
                                 </Button>
                                 <Button
                                   variant="outline"
                                   onClick={() =>
-                                    handleInviteEmployee(company.id, company.name)
+                                    handleInviteEmployee(
+                                      company.id,
+                                      company.name,
+                                    )
                                   }
                                 >
-                                  <UserPlus size={16} className="mr-2" /> Invite Employee
+                                  <UserPlus size={16} className="mr-2" /> Invite
+                                  Employee
                                 </Button>
                               </div>
                             </td>

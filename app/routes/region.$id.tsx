@@ -216,7 +216,7 @@ export default function RegionDetailPage({
 
   // Transform API region to display format
   const transformApiRegionToDetails = (apiRegion: ApiRegion) => ({
-    id: apiRegion._id,
+    id: apiRegion.id,
     name: apiRegion.name,
     adminCount: apiRegion.admins?.length || 0, // Calculate from admins array
     image: apiRegion.image?.url || null, // Extract URL from image object

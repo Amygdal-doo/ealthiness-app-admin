@@ -10,13 +10,21 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, role, title }) => {
-  const userRole: UserRole = role === "super_admin" ? "SUPER_ADMIN" : 
-                             role === "country_admin" ? "COUNTRY_ADMIN" : 
-                             "COMPANY_ADMIN";
-                             
+  const userRole: UserRole =
+    role === "super_admin"
+      ? "SUPER_ADMIN"
+      : role === "country_admin"
+        ? "COUNTRY_ADMIN"
+        : "COMPANY_ADMIN";
+
   const user: User = {
-    _id: "layout-user",
-    firstName: role === "super_admin" ? "Super" : role === "country_admin" ? "Country" : "Company",
+    id: "layout-user",
+    firstName:
+      role === "super_admin"
+        ? "Super"
+        : role === "country_admin"
+          ? "Country"
+          : "Company",
     lastName: "Admin",
     username: "admin",
     email: ["admin@example.com"],
@@ -35,7 +43,7 @@ const Layout: React.FC<LayoutProps> = ({ children, role, title }) => {
       dailyMood: true,
       drinkWater: true,
       quotes: { send: true, minutes: 60 },
-      facts: { send: true, minutes: 60 }
+      facts: { send: true, minutes: 60 },
     },
     accomplishments: [],
     rating: 0,
@@ -53,9 +61,12 @@ const Layout: React.FC<LayoutProps> = ({ children, role, title }) => {
     activeDietPlanId: null,
     activeUserDietPlanId: null,
     currentDayNumber: null,
-    get id() { return this._id },
-    get name() { return `${this.firstName} ${this.lastName}` },
-    get role() { return this.currentRole }
+    get name() {
+      return `${this.firstName} ${this.lastName}`;
+    },
+    get role() {
+      return this.currentRole;
+    },
   };
 
   const getRoleShortCode = (role: string) => {
@@ -73,7 +84,7 @@ const Layout: React.FC<LayoutProps> = ({ children, role, title }) => {
 
   return (
     <div className="flex h-screen bg-[#F8F9FB] font-sans selection:bg-[#5850DE] selection:text-white overflow-hidden">
-      <AppSidebar user={user} role={role} />
+      <AppSidebar user={user} />
       <main className="flex-1 overflow-y-auto relative">
         {/* Top Header */}
         {title && (

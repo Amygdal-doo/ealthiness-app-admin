@@ -28,8 +28,8 @@ import {
 import type { ApiUser, UsersQueryParams } from "~/lib/auth/types";
 
 // Local type for company users with restricted orderBy options
-interface CompanyUsersQueryParams extends Omit<UsersQueryParams, 'orderBy'> {
-  orderBy?: 'firstName' | 'lastName' | 'email' | undefined;
+interface CompanyUsersQueryParams extends Omit<UsersQueryParams, "orderBy"> {
+  orderBy?: "firstName" | "lastName" | "email" | undefined;
 }
 
 export function meta({}: Route.MetaArgs) {
@@ -67,7 +67,9 @@ export default function CompanyUsersPage({
   const [sortType, setSortType] = useState<"ascending" | "descending">(
     "ascending",
   );
-  const [userType, setUserType] = useState<"all" | "admins" | "employees">("all");
+  const [userType, setUserType] = useState<"all" | "admins" | "employees">(
+    "all",
+  );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isUserTypeDropdownOpen, setIsUserTypeDropdownOpen] = useState(false);
   const [removeAdminConfirmation, setRemoveAdminConfirmation] = useState<{
@@ -194,7 +196,7 @@ export default function CompanyUsersPage({
 
   // Transform API users to display format
   const transformUser = (apiUser: ApiUser) => ({
-    id: apiUser._id,
+    id: apiUser.id,
     name: `${apiUser.firstName} ${apiUser.lastName}`,
     roles: apiUser.roles, // Show all roles
     joined: new Date(apiUser.createdAt).toLocaleDateString(),
@@ -285,13 +287,16 @@ export default function CompanyUsersPage({
                     <div className="relative" ref={userTypeDropdownRef}>
                       <Button
                         variant="outline"
-                        onClick={() => setIsUserTypeDropdownOpen(!isUserTypeDropdownOpen)}
+                        onClick={() =>
+                          setIsUserTypeDropdownOpen(!isUserTypeDropdownOpen)
+                        }
                         className="justify-between min-w-[140px] bg-white border border-[#E0E1E6] rounded-xl px-4 py-2.5 text-sm font-semibold text-[#1B173A] hover:border-[#5850DE] hover:bg-white focus:border-[#5850DE] focus:ring-2 focus:ring-[#5850DE]/10 transition-all duration-200 shadow-sm hover:shadow-md"
                       >
                         <Filter size={16} className="mr-2" />
                         {
-                          userTypeOptions.find((option) => option.value === userType)
-                            ?.label
+                          userTypeOptions.find(
+                            (option) => option.value === userType,
+                          )?.label
                         }
                         <ChevronDown
                           size={16}
@@ -669,7 +674,8 @@ export default function CompanyUsersPage({
               <div className="space-y-4">
                 <p className="text-gray-700">
                   Are you sure you want to remove the company admin role from{" "}
-                  <strong>{removeAdminConfirmation.userName}</strong>? This will revoke their administrative privileges for this company.
+                  <strong>{removeAdminConfirmation.userName}</strong>? This will
+                  revoke their administrative privileges for this company.
                 </p>
 
                 {removeAdminMutation.error && (

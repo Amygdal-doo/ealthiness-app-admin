@@ -143,7 +143,7 @@ export default function CompaniesPage() {
 
   // Transform API companies to display format
   const transformCompany = (apiCompany: ApiCompany) => ({
-    id: apiCompany._id,
+    id: apiCompany.id,
     name: apiCompany.name,
     status: apiCompany.status,
     email: apiCompany.email,

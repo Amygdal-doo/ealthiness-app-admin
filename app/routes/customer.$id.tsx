@@ -110,7 +110,7 @@ export default function CustomerDetailPage({ loaderData }: Route.ComponentProps)
   
   // Transform API user to display format
   const transformApiUserToCustomer = (apiUser: ApiUser) => ({
-    id: apiUser._id,
+    id: apiUser.id,
     name: `${apiUser.firstName} ${apiUser.lastName}`,
     role: apiUser.roles.includes('USER') ? 'User' : apiUser.roles.filter(r => r !== 'USER')[0] || 'User',
     joined: new Date(apiUser.createdAt).toLocaleDateString(),
