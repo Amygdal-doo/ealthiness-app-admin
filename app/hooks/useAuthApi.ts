@@ -498,6 +498,38 @@ export function useInviteCountryAdmin() {
   });
 }
 
+export function useInvitePsychologist() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      email,
+    }: {
+      email: string;
+    }): Promise<{ message: string }> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = `/v1/admin/psychologist/invite`;
+        const response = await apiClient.post<{ message: string }>(endpoint, {
+          email,
+        });
+        return response;
+      } catch (error) {
+        console.error("Error inviting psychologist:", error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      // Invalidate psychologists list once it is backed by a real API.
+      queryClient.invalidateQueries({ queryKey: ["psychologists"] });
+    },
+  });
+}
+
 export function useInviteRegionAdmin() {
   const queryClient = useQueryClient();
 

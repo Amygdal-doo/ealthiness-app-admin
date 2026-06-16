@@ -8,6 +8,9 @@ import {
   HeartPulse,
   Settings,
   MapPin,
+  Dumbbell,
+  Brain,
+  Stethoscope,
 } from "lucide-react";
 
 import type { User } from "~/lib/auth/types";
@@ -112,6 +115,27 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
         "COMPANY_ADMIN",
       ],
       path: "/customers",
+    },
+    {
+      id: "doctors",
+      label: "Doctors",
+      icon: Stethoscope,
+      roles: ["SUPER_ADMIN"],
+      path: "/doctors",
+    },
+    {
+      id: "psychologists",
+      label: "Psychologists",
+      icon: Brain,
+      roles: ["SUPER_ADMIN"],
+      path: "/psychologists",
+    },
+    {
+      id: "coaches",
+      label: "Coaches",
+      icon: Dumbbell,
+      roles: ["SUPER_ADMIN"],
+      path: "/coaches",
     },
   ];
 
