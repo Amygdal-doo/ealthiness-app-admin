@@ -21,11 +21,17 @@ export default function Index() {
   useEffect(() => {
     // If already authenticated and has admin role, redirect to home
     if (!isLoading && isAuthenticated && user) {
-      const adminRoles = ['SUPER_ADMIN', 'COUNTRY_ADMIN', 'REGIONAL_ADMIN', 'COMPANY_ADMIN'];
+      const adminRoles = [
+        "SUPER_ADMIN",
+        "COUNTRY_ADMIN",
+        "REGIONAL_ADMIN",
+        "COMPANY_ADMIN",
+        "PSYCHOLOGIST",
+      ];
       if (adminRoles.includes(user.role)) {
-        navigate('/home', { replace: true });
+        navigate("/home", { replace: true });
       } else {
-        navigate('/unauthorized', { replace: true });
+        navigate("/unauthorized", { replace: true });
       }
     }
   }, [isAuthenticated, user, isLoading, navigate]);
