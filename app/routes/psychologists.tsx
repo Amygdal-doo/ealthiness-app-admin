@@ -4,8 +4,8 @@ import { Link } from "react-router";
 import type { Route } from "./+types/psychologists";
 import {
   Brain,
-  User,
-  UserCheck,
+  Users,
+  Building2,
   UserPlus,
   Search,
   ChevronDown,
@@ -18,7 +18,8 @@ import AppSidebar from "~/components/shared/AppSidebar";
 import Navbar from "~/components/shared/Navbar";
 import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
-import type { ApiUser } from "~/lib/auth/types";
+import { usePsychologists } from "~/hooks/useAuthApi";
+import type { ApiPsychologist } from "~/lib/auth/types";
 import { InvitePsychologistModal } from "~/components/modals/InvitePsychologistModal";
 
 export function meta({}: Route.MetaArgs) {
@@ -30,88 +31,6 @@ export function meta({}: Route.MetaArgs) {
     },
   ];
 }
-
-// TODO: Replace with real psychologists API once available.
-const DUMMY_PSYCHOLOGISTS: ApiUser[] = [
-  {
-    id: "psy-1",
-    firstName: "Olivia",
-    lastName: "Bennett",
-    username: "obennett",
-    email: ["olivia.bennett@ealthiness.com"],
-    roles: ["PSYCHOLOGIST"],
-    height: 166,
-    weight: 60,
-    gender: "female",
-    createdAt: "2024-01-18T09:00:00.000Z",
-    updatedAt: "2024-01-18T09:00:00.000Z",
-  },
-  {
-    id: "psy-2",
-    firstName: "Daniel",
-    lastName: "Foster",
-    username: "dfoster",
-    email: ["daniel.foster@ealthiness.com"],
-    roles: ["PSYCHOLOGIST"],
-    height: 180,
-    weight: 79,
-    gender: "male",
-    createdAt: "2024-02-09T09:00:00.000Z",
-    updatedAt: "2024-02-09T09:00:00.000Z",
-  },
-  {
-    id: "psy-3",
-    firstName: "Priya",
-    lastName: "Nair",
-    username: "pnair",
-    email: ["priya.nair@ealthiness.com"],
-    roles: ["PSYCHOLOGIST"],
-    height: 162,
-    weight: 55,
-    gender: "female",
-    createdAt: "2024-03-03T09:00:00.000Z",
-    updatedAt: "2024-03-03T09:00:00.000Z",
-  },
-  {
-    id: "psy-4",
-    firstName: "Thomas",
-    lastName: "Müller",
-    username: "tmuller",
-    email: ["thomas.muller@ealthiness.com"],
-    roles: ["PSYCHOLOGIST"],
-    height: 184,
-    weight: 82,
-    gender: "male",
-    createdAt: "2024-03-27T09:00:00.000Z",
-    updatedAt: "2024-03-27T09:00:00.000Z",
-  },
-  {
-    id: "psy-5",
-    firstName: "Grace",
-    lastName: "Okafor",
-    username: "gokafor",
-    email: ["grace.okafor@ealthiness.com"],
-    roles: ["PSYCHOLOGIST"],
-    height: 171,
-    weight: 64,
-    gender: "female",
-    createdAt: "2024-04-19T09:00:00.000Z",
-    updatedAt: "2024-04-19T09:00:00.000Z",
-  },
-  {
-    id: "psy-6",
-    firstName: "Lucas",
-    lastName: "Silva",
-    username: "lsilva",
-    email: ["lucas.silva@ealthiness.com"],
-    roles: ["PSYCHOLOGIST"],
-    height: 177,
-    weight: 76,
-    gender: "male",
-    createdAt: "2024-05-11T09:00:00.000Z",
-    updatedAt: "2024-05-11T09:00:00.000Z",
-  },
-];
 
 const PAGE_SIZE = 10;
 
@@ -164,49 +83,23 @@ export default function PsychologistsPage() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Dummy data source — filtered/sorted/paginated client-side to mirror the
-  // users API response shape used by the customers page.
-  const isLoading = false;
-
-  const filteredPsychologists = DUMMY_PSYCHOLOGISTS.filter((psychologist) => {
-    if (!debouncedSearchTerm) return true;
-    const term = debouncedSearchTerm.toLowerCase();
-    return (
-      `${psychologist.firstName} ${psychologist.lastName}`
-        .toLowerCase()
-        .includes(term) ||
-      psychologist.username.toLowerCase().includes(term) ||
-      psychologist.email[0].toLowerCase().includes(term)
-    );
-  });
-
-  const sortedPsychologists = [...filteredPsychologists].sort((a, b) => {
-    const getValue = (psychologist: ApiUser) =>
-      orderBy === "birthdate"
-        ? psychologist.createdAt
-        : (psychologist[orderBy] ?? "");
-    const aValue = getValue(a).toString().toLowerCase();
-    const bValue = getValue(b).toString().toLowerCase();
-    const comparison = aValue.localeCompare(bValue);
-    return sortType === "ascending" ? comparison : -comparison;
-  });
-
-  const total = sortedPsychologists.length;
-  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const usersResponse = {
-    limit: PAGE_SIZE,
+  // Search, ordering and pagination are all handled server-side.
+  const {
+    data: psychologistsResponse,
+    isLoading,
+    isFetching,
+    refetch,
+  } = usePsychologists({
     page: currentPage,
-    pages,
-    total,
-    results: sortedPsychologists.slice(
-      (currentPage - 1) * PAGE_SIZE,
-      currentPage * PAGE_SIZE,
-    ),
-  };
+    limit: PAGE_SIZE,
+    search: debouncedSearchTerm,
+    orderBy,
+    type: sortType,
+  });
 
   const handleRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 500);
+    refetch().finally(() => setRefreshing(false));
   };
 
   const handleLogout = () => {
@@ -228,22 +121,22 @@ export default function PsychologistsPage() {
     );
   }
 
-  // Transform API users to display format
-  const transformUser = (apiUser: ApiUser) => ({
-    id: apiUser.id,
-    name: `${apiUser.firstName} ${apiUser.lastName}`,
-    roles: apiUser.roles, // Show all roles
-    joined: new Date(apiUser.createdAt).toLocaleDateString(),
-    status: "Active", // API doesn't provide status, defaulting to Active
-    weight: apiUser.weight ? `${apiUser.weight}kg` : "N/A",
-    height: apiUser.height ? `${apiUser.height}cm` : "N/A",
-    username: apiUser.username,
-    email: apiUser.email[0],
-    gender: apiUser.gender, // Include gender for icon display
+  // Transform API psychologists to display format
+  const transformPsychologist = (apiPsychologist: ApiPsychologist) => ({
+    id: apiPsychologist.id,
+    name: `${apiPsychologist.firstName} ${apiPsychologist.lastName}`,
+    roles: apiPsychologist.roles, // Show all roles
+    joined: new Date(apiPsychologist.createdAt).toLocaleDateString(),
+    country: apiPsychologist.country ?? "—",
+    patientsCount: apiPsychologist.patientsCount ?? 0,
+    companiesCount: apiPsychologist.companiesCount ?? 0,
+    username: apiPsychologist.username,
+    email: apiPsychologist.email[0] ?? "—",
+    profileImage: apiPsychologist.profileImage,
   });
 
   const visiblePsychologists =
-    usersResponse?.results?.map(transformUser) || [];
+    psychologistsResponse?.results?.map(transformPsychologist) ?? [];
   const pageTitle = "Psychologists";
 
   return (
@@ -256,7 +149,7 @@ export default function PsychologistsPage() {
             user={user}
             onLogout={handleLogout}
             onRefresh={handleRefresh}
-            refreshing={refreshing}
+            refreshing={refreshing || isFetching}
           />
 
           <div className="flex-1 p-6">
@@ -270,8 +163,8 @@ export default function PsychologistsPage() {
                     {pageTitle}
                   </h2>
                   <p className="text-[#60646C] text-sm font-medium mt-1">
-                    Total {usersResponse?.total || 0} users found (
-                    {visiblePsychologists.length} psychologists on this page)
+                    Total {psychologistsResponse?.total || 0} psychologists
+                    found ({visiblePsychologists.length} on this page)
                   </p>
                 </div>
                 <Button onClick={handleInvitePsychologist}>
@@ -385,10 +278,13 @@ export default function PsychologistsPage() {
                         Roles
                       </th>
                       <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Height
+                        Country
                       </th>
                       <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Weight
+                        Patients
+                      </th>
+                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                        Companies
                       </th>
                       <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
                         Joined
@@ -406,24 +302,21 @@ export default function PsychologistsPage() {
                       >
                         <td className="p-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold">
-                              {psychologist.name.charAt(0)}
+                            <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold overflow-hidden shrink-0">
+                              {psychologist.profileImage ? (
+                                <img
+                                  src={psychologist.profileImage}
+                                  alt={psychologist.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                psychologist.name.charAt(0)
+                              )}
                             </div>
                             <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-[#1B173A] leading-tight">
-                                  {psychologist.name}
-                                </span>
-                                {/* Gender icon */}
-                                {psychologist.gender === "male" ? (
-                                  <User size={14} className="text-blue-500" />
-                                ) : psychologist.gender === "female" ? (
-                                  <UserCheck
-                                    size={14}
-                                    className="text-pink-500"
-                                  />
-                                ) : null}
-                              </div>
+                              <span className="font-bold text-[#1B173A] leading-tight block">
+                                {psychologist.name}
+                              </span>
                               <span className="text-xs text-[#8E8E93] font-medium">
                                 {psychologist.email}
                               </span>
@@ -451,10 +344,19 @@ export default function PsychologistsPage() {
                           </div>
                         </td>
                         <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
-                          {psychologist.height}
+                          {psychologist.country}
                         </td>
-                        <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
-                          {psychologist.weight}
+                        <td className="p-4 hidden md:table-cell">
+                          <div className="flex items-center gap-2 font-medium text-[#60646C]">
+                            <Users size={14} className="text-[#5850DE]" />
+                            {psychologist.patientsCount}
+                          </div>
+                        </td>
+                        <td className="p-4 hidden md:table-cell">
+                          <div className="flex items-center gap-2 font-medium text-[#60646C]">
+                            <Building2 size={14} className="text-[#248FEC]" />
+                            {psychologist.companiesCount}
+                          </div>
                         </td>
                         <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
                           {psychologist.joined}
@@ -488,14 +390,14 @@ export default function PsychologistsPage() {
               </div>
 
               {/* Pagination */}
-              {usersResponse && usersResponse.pages > 1 && (
+              {psychologistsResponse && psychologistsResponse.pages > 1 && (
                 <div className="bg-white rounded-xl border border-[#E0E1E6] mt-6 p-4 shadow-sm">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-[#60646C]">
                         Showing {(currentPage - 1) * 10 + 1} to{" "}
-                        {Math.min(currentPage * 10, usersResponse.total)} of{" "}
-                        {usersResponse.total} results
+                        {Math.min(currentPage * 10, psychologistsResponse.total)} of{" "}
+                        {psychologistsResponse.total} results
                       </span>
                     </div>
 
@@ -517,7 +419,7 @@ export default function PsychologistsPage() {
                       {/* Page Numbers */}
                       <div className="flex items-center gap-1">
                         {(() => {
-                          const totalPages = usersResponse.pages;
+                          const totalPages = psychologistsResponse.pages;
                           const current = currentPage;
                           let pages = [];
 
@@ -590,11 +492,11 @@ export default function PsychologistsPage() {
                         size="sm"
                         onClick={() =>
                           setCurrentPage(
-                            Math.min(usersResponse.pages, currentPage + 1),
+                            Math.min(psychologistsResponse.pages, currentPage + 1),
                           )
                         }
                         disabled={
-                          currentPage === usersResponse.pages || isLoading
+                          currentPage === psychologistsResponse.pages || isLoading
                         }
                         className="flex items-center gap-1"
                       >

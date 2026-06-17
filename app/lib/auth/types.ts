@@ -60,6 +60,7 @@ export type UserRole =
   | "REGIONAL_ADMIN"
   | "COUNTRY_ADMIN"
   | "SUPER_ADMIN"
+  | "PSYCHOLOGIST"
   | "USER";
 
 export interface Session {
@@ -153,6 +154,14 @@ export const USER_ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
     canViewAnalytics: true,
     canManageSystem: false,
   },
+  PSYCHOLOGIST: {
+    canManageUsers: false,
+    canManageCompanies: false,
+    canManageRegions: false,
+    canManageCountries: false,
+    canViewAnalytics: false,
+    canManageSystem: false,
+  },
   USER: {
     canManageUsers: false,
     canManageCompanies: false,
@@ -194,6 +203,37 @@ export interface UsersQueryParams {
   type?: "ascending" | "descending";
   userRole?: UserRole;
   userType?: "all" | "admins" | "employees";
+}
+
+// Psychologists API types
+export interface ApiPsychologist {
+  id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string[];
+  profileImage: string | null;
+  roles: string[];
+  country?: string;
+  patientsCount: number;
+  companiesCount: number;
+  createdAt: string;
+}
+
+export interface PsychologistsResponse {
+  limit: number;
+  page: number;
+  pages: number;
+  total: number;
+  results: ApiPsychologist[];
+}
+
+export interface PsychologistsQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  orderBy?: "firstName" | "lastName" | "email" | "username" | "birthdate";
+  type?: "ascending" | "descending";
 }
 
 // Regions API types
@@ -357,3 +397,74 @@ export interface DashboardOverview {
 }
 
 export type DashboardPeriod = "24h" | "7d" | "30d";
+
+// Therapy sessions API types
+export type TranscriptionStatus =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "failed";
+
+export interface TherapySessionAudio {
+  name: string;
+  extension: string;
+  createdAt: string;
+  url: string;
+}
+
+export interface TherapySession {
+  id: string;
+  psychologist: string;
+  client: string;
+  title: string;
+  sessionDate: string;
+  language: string;
+  audio?: TherapySessionAudio;
+  transcriptionStatus: TranscriptionStatus;
+  transcriptionUpdatedAt?: string;
+  summaryStatus: TranscriptionStatus;
+  summaryUpdatedAt?: string;
+  transcript?: string;
+  summary?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TherapySessionsResponse {
+  limit: number;
+  page: number;
+  pages: number;
+  total: number;
+  results: TherapySession[];
+}
+
+export interface TherapySessionsQueryParams {
+  page?: number;
+  limit?: number;
+  order?: "asc" | "desc";
+}
+
+// Therapy patients API types
+export type PatientScope = "all" | "direct" | "company";
+
+export interface ApiPatient {
+  id: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  email: string[];
+}
+
+export interface PatientsResponse {
+  limit: number;
+  page: number;
+  pages: number;
+  total: number;
+  results: ApiPatient[];
+}
+
+export interface PatientsQueryParams {
+  page?: number;
+  limit?: number;
+  scope?: PatientScope;
+}

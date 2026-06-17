@@ -8,6 +8,9 @@ import type {
   RegionsQueryParams,
   CompaniesQueryParams,
   CountriesQueryParams,
+  TherapySessionsQueryParams,
+  PsychologistsQueryParams,
+  PatientsQueryParams,
 } from "../auth/types";
 
 const API_BASE_URL =
@@ -292,6 +295,38 @@ export function buildUsersQueryString(params: UsersQueryParams = {}): string {
  */
 export function buildUserDetailsEndpoint(userId: string): string {
   return `/v1/admin/users/${userId}`;
+}
+
+/**
+ * Builds the query string for the psychologists endpoint
+ */
+export function buildPsychologistsQueryString(
+  params: PsychologistsQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  if (params.search && params.search.trim()) {
+    searchParams.append("search", params.search.trim());
+  }
+
+  if (params.orderBy) {
+    searchParams.append("orderBy", params.orderBy);
+  }
+
+  if (params.type) {
+    searchParams.append("type", params.type);
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/admin/psychologist${queryString ? `?${queryString}` : ""}`;
 }
 
 /**
@@ -620,4 +655,52 @@ export function buildCountryCompaniesQueryString(
 
   const queryString = searchParams.toString();
   return `/v1/admin/country/${countryId}/companies${queryString ? `?${queryString}` : ""}`;
+}
+
+/**
+ * Builds the query string for the authenticated psychologist's therapy sessions
+ */
+export function buildPsychologistSessionsQueryString(
+  params: TherapySessionsQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  if (params.order) {
+    searchParams.append("order", params.order);
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/therapy-sessions/psychologist/all${queryString ? `?${queryString}` : ""}`;
+}
+
+/**
+ * Builds the query string for the authenticated psychologist's patients
+ */
+export function buildPatientsQueryString(
+  params: PatientsQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  if (params.scope) {
+    searchParams.append("scope", params.scope);
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/therapy-sessions/patients${queryString ? `?${queryString}` : ""}`;
 }

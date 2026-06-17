@@ -17,6 +17,9 @@ import {
   buildRegionCountriesQueryString,
   buildRegionCompaniesQueryString,
   buildCountryCompaniesQueryString,
+  buildPsychologistSessionsQueryString,
+  buildPsychologistsQueryString,
+  buildPatientsQueryString,
 } from "~/lib/services/user.service";
 import type {
   User,
@@ -36,6 +39,12 @@ import type {
   ApiCompany,
   DashboardOverview,
   DashboardPeriod,
+  TherapySessionsResponse,
+  TherapySessionsQueryParams,
+  PsychologistsResponse,
+  PsychologistsQueryParams,
+  PatientsResponse,
+  PatientsQueryParams,
 } from "~/lib/auth/types";
 
 interface LoginResponse extends ApiAuthResponse {
@@ -210,6 +219,33 @@ export function useUserDetails(userId: string) {
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: !!clientTokens.get() && !!userId, // Only run if we have tokens and userId
+  });
+}
+
+export function usePsychologists(params: PsychologistsQueryParams = {}) {
+  return useQuery({
+    queryKey: ["psychologists", params],
+    queryFn: async (): Promise<PsychologistsResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildPsychologistsQueryString(params);
+        const response = await apiClient.get<PsychologistsResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching psychologists:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get(), // Only run if we have tokens
   });
 }
 
@@ -1068,6 +1104,63 @@ export function useDashboardOverview(period?: DashboardPeriod) {
         return response;
       } catch (error) {
         console.error("Error fetching dashboard overview:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get(), // Only run if we have tokens
+  });
+}
+
+export function usePsychologistSessions(
+  params: TherapySessionsQueryParams = {},
+) {
+  return useQuery({
+    queryKey: ["psychologist-sessions", params],
+    queryFn: async (): Promise<TherapySessionsResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildPsychologistSessionsQueryString(params);
+        const response =
+          await apiClient.get<TherapySessionsResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching psychologist sessions:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get(), // Only run if we have tokens
+  });
+}
+
+export function usePsychologistPatients(params: PatientsQueryParams = {}) {
+  return useQuery({
+    queryKey: ["psychologist-patients", params],
+    queryFn: async (): Promise<PatientsResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildPatientsQueryString(params);
+        const response = await apiClient.get<PatientsResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching patients:", error);
         throw error;
       }
     },

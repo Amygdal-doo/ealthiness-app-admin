@@ -11,6 +11,7 @@ import {
   Dumbbell,
   Brain,
   Stethoscope,
+  CalendarClock,
 } from "lucide-react";
 
 import type { User } from "~/lib/auth/types";
@@ -60,6 +61,8 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
         return "Company Admin";
       case "REGIONAL_ADMIN":
         return "Regional Admin";
+      case "PSYCHOLOGIST":
+        return "Psychologist";
       default:
         return "Admin";
     }
@@ -77,6 +80,27 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
         "COMPANY_ADMIN",
       ],
       path: "/home",
+    },
+    {
+      id: "psych-overview",
+      label: "Overview",
+      icon: LayoutGrid,
+      roles: ["PSYCHOLOGIST"],
+      path: "/psychologist",
+    },
+    {
+      id: "psych-sessions",
+      label: "Sessions",
+      icon: CalendarClock,
+      roles: ["PSYCHOLOGIST"],
+      path: "/psychologist/sessions",
+    },
+    {
+      id: "psych-patients",
+      label: "Patients",
+      icon: Users,
+      roles: ["PSYCHOLOGIST"],
+      path: "/psychologist/patients",
     },
     {
       id: "regions",
@@ -164,6 +188,9 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
   const isActiveRoute = (itemId: string, itemPath: string) => {
     if (itemId === "dashboard") {
       return location.pathname === "/" || location.pathname === "/home";
+    }
+    if (itemId === "psych-overview") {
+      return location.pathname === "/psychologist";
     }
     return location.pathname.startsWith(itemPath);
   };

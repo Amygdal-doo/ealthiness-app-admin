@@ -26,9 +26,10 @@ export default function Index() {
         "COUNTRY_ADMIN",
         "REGIONAL_ADMIN",
         "COMPANY_ADMIN",
-        "PSYCHOLOGIST",
       ];
-      if (adminRoles.includes(user.role)) {
+      if (user.role === "PSYCHOLOGIST") {
+        navigate("/psychologist", { replace: true });
+      } else if (adminRoles.includes(user.role)) {
         navigate("/home", { replace: true });
       } else {
         navigate("/unauthorized", { replace: true });
