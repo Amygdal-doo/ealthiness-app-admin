@@ -121,6 +121,32 @@ class ApiClient {
     });
   }
 
+  async patch<T>(
+    endpoint: string,
+    data?: any,
+    options?: RequestInit,
+  ): Promise<T> {
+    const body =
+      data instanceof FormData ? data : data ? JSON.stringify(data) : undefined;
+
+    const defaultHeaders: Record<string, string> =
+      data instanceof FormData
+        ? {}
+        : data
+          ? { "Content-Type": "application/json" }
+          : {};
+
+    return this.request<T>(endpoint, {
+      method: "PATCH",
+      body,
+      ...options,
+      headers: {
+        ...defaultHeaders,
+        ...options?.headers,
+      },
+    });
+  }
+
   async delete<T>(endpoint: string): Promise<T> {
     return this.request<T>(endpoint, {
       method: "DELETE",

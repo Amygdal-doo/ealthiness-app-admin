@@ -170,7 +170,10 @@ export default function PsychologistPatientsPage() {
                       return (
                         <tr
                           key={patient.id}
-                          className="hover:bg-gray-50 transition"
+                          onClick={() =>
+                            navigate(`/psychologist/patients/${patient.id}`)
+                          }
+                          className="hover:bg-gray-50 transition cursor-pointer"
                         >
                           <td className="p-4">
                             <div className="flex items-center gap-3">
@@ -201,6 +204,12 @@ export default function PsychologistPatientsPage() {
                               variant="ghost"
                               className="px-2"
                               title="View Patient"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(
+                                  `/psychologist/patients/${patient.id}`,
+                                );
+                              }}
                             >
                               <Eye size={18} />
                             </Button>

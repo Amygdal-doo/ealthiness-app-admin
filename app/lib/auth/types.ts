@@ -426,6 +426,7 @@ export interface TherapySession {
   summaryUpdatedAt?: string;
   transcript?: string;
   summary?: string;
+  doctorNotes?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -18,6 +18,10 @@ import {
   buildRegionCompaniesQueryString,
   buildCountryCompaniesQueryString,
   buildPsychologistSessionsQueryString,
+  buildSessionDetailsEndpoint,
+  buildSessionNotesEndpoint,
+  buildPatientDetailsEndpoint,
+  buildPatientSessionsQueryString,
   buildPsychologistsQueryString,
   buildPatientsQueryString,
 } from "~/lib/services/user.service";
@@ -39,10 +43,12 @@ import type {
   ApiCompany,
   DashboardOverview,
   DashboardPeriod,
+  TherapySession,
   TherapySessionsResponse,
   TherapySessionsQueryParams,
   PsychologistsResponse,
   PsychologistsQueryParams,
+  ApiPatient,
   PatientsResponse,
   PatientsQueryParams,
 } from "~/lib/auth/types";
@@ -1146,6 +1152,33 @@ export function usePsychologistSessions(
   });
 }
 
+export function usePsychologistSession(sessionId: string) {
+  return useQuery({
+    queryKey: ["therapy-session", sessionId],
+    queryFn: async (): Promise<TherapySession> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildSessionDetailsEndpoint(sessionId);
+        const response = await apiClient.get<TherapySession>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching therapy session:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get() && !!sessionId, // Only run if we have tokens and sessionId
+  });
+}
+
 export function usePsychologistPatients(params: PatientsQueryParams = {}) {
   return useQuery({
     queryKey: ["psychologist-patients", params],
@@ -1170,6 +1203,131 @@ export function usePsychologistPatients(params: PatientsQueryParams = {}) {
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: !!clientTokens.get(), // Only run if we have tokens
+  });
+}
+
+export function useUpdateSessionNotes() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      sessionId,
+      doctorNotes,
+    }: {
+      sessionId: string;
+      doctorNotes: string;
+    }): Promise<TherapySession> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildSessionNotesEndpoint(sessionId);
+        const response = await apiClient.patch<TherapySession>(endpoint, {
+          doctorNotes,
+        });
+        return response;
+      } catch (error) {
+        console.error("Error updating session notes:", error);
+        throw error;
+      }
+    },
+    onSuccess: (data, variables) => {
+      // Update the cached session immediately and refetch lists
+      queryClient.setQueryData(
+        ["therapy-session", variables.sessionId],
+        data,
+      );
+      queryClient.invalidateQueries({
+        queryKey: ["therapy-session", variables.sessionId],
+      });
+    },
+  });
+}
+
+export function useDeleteSession() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (sessionId: string): Promise<void> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildSessionDetailsEndpoint(sessionId);
+        await apiClient.delete<void>(endpoint);
+      } catch (error) {
+        console.error("Error deleting session:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, sessionId) => {
+      // Drop the deleted session's cache and refresh any session lists
+      queryClient.removeQueries({ queryKey: ["therapy-session", sessionId] });
+      queryClient.invalidateQueries({ queryKey: ["psychologist-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["patient-sessions"] });
+    },
+  });
+}
+
+export function usePsychologistPatient(patientId: string) {
+  return useQuery({
+    queryKey: ["therapy-patient", patientId],
+    queryFn: async (): Promise<ApiPatient> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildPatientDetailsEndpoint(patientId);
+        const response = await apiClient.get<ApiPatient>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching patient details:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get() && !!patientId, // Only run if we have tokens and patientId
+  });
+}
+
+export function usePatientSessions(
+  patientId: string,
+  params: TherapySessionsQueryParams = {},
+) {
+  return useQuery({
+    queryKey: ["patient-sessions", patientId, params],
+    queryFn: async (): Promise<TherapySessionsResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildPatientSessionsQueryString(patientId, params);
+        const response =
+          await apiClient.get<TherapySessionsResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching patient sessions:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get() && !!patientId, // Only run if we have tokens and patientId
   });
 }
 

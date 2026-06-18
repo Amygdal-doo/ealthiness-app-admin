@@ -9,6 +9,7 @@ import {
   FileText,
   Sparkles,
   Eye,
+  Trash2,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -16,8 +17,12 @@ import { Badge, Input, Button } from "~/components/ui";
 import AppSidebar from "~/components/shared/AppSidebar";
 import Navbar from "~/components/shared/Navbar";
 import { RoleGuard } from "~/components/auth/RoleGuard";
+import { ConfirmDeleteModal } from "~/components/modals/ConfirmDeleteModal";
 import { useUser } from "~/hooks/useAuth";
-import { usePsychologistSessions } from "~/hooks/useAuthApi";
+import {
+  usePsychologistSessions,
+  useDeleteSession,
+} from "~/hooks/useAuthApi";
 import type { TherapySession, TranscriptionStatus } from "~/lib/auth/types";
 
 export function meta({}: Route.MetaArgs) {
@@ -70,6 +75,17 @@ export default function PsychologistSessionsPage() {
     refetch,
     isFetching,
   } = usePsychologistSessions({ page, limit: PAGE_SIZE, order });
+
+  const deleteSession = useDeleteSession();
+  const [sessionToDelete, setSessionToDelete] =
+    useState<TherapySession | null>(null);
+
+  const handleConfirmDelete = () => {
+    if (!sessionToDelete) return;
+    deleteSession.mutate(sessionToDelete.id, {
+      onSuccess: () => setSessionToDelete(null),
+    });
+  };
 
   // Server handles ordering/pagination; search filters the current page locally.
   const visibleSessions = useMemo(() => {
@@ -197,7 +213,10 @@ export default function PsychologistSessionsPage() {
                       return (
                         <tr
                           key={session.id}
-                          className="hover:bg-gray-50 transition"
+                          onClick={() =>
+                            navigate(`/psychologist/sessions/${session.id}`)
+                          }
+                          className="hover:bg-gray-50 transition cursor-pointer"
                         >
                           <td className="p-4">
                             <div className="flex items-center gap-3">
@@ -242,13 +261,32 @@ export default function PsychologistSessionsPage() {
                             </Badge>
                           </td>
                           <td className="p-4 text-right">
-                            <Button
-                              variant="ghost"
-                              className="px-2"
-                              title="View Session"
-                            >
-                              <Eye size={18} />
-                            </Button>
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                className="px-2"
+                                title="View Session"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(
+                                    `/psychologist/sessions/${session.id}`,
+                                  );
+                                }}
+                              >
+                                <Eye size={18} />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                className="px-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                title="Delete Session"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSessionToDelete(session);
+                                }}
+                              >
+                                <Trash2 size={18} />
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -331,6 +369,24 @@ export default function PsychologistSessionsPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={sessionToDelete !== null}
+        onClose={() => setSessionToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={deleteSession.isPending}
+        title="Delete Session"
+        confirmLabel="Delete Session"
+        description={
+          <>
+            Are you sure you want to delete{" "}
+            <span className="font-semibold text-[#1B173A]">
+              {sessionToDelete?.title}
+            </span>
+            ? This action cannot be undone.
+          </>
+        }
+      />
     </RoleGuard>
   );
 }

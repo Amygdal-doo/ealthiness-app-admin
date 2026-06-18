@@ -682,6 +682,52 @@ export function buildPsychologistSessionsQueryString(
 }
 
 /**
+ * Builds the endpoint for getting a single therapy session by ID
+ */
+export function buildSessionDetailsEndpoint(sessionId: string): string {
+  return `/v1/therapy-sessions/${sessionId}`;
+}
+
+/**
+ * Builds the endpoint for updating a therapy session's doctor notes
+ */
+export function buildSessionNotesEndpoint(sessionId: string): string {
+  return `/v1/therapy-sessions/${sessionId}/notes`;
+}
+
+/**
+ * Builds the endpoint for getting a single patient by ID
+ */
+export function buildPatientDetailsEndpoint(patientId: string): string {
+  return `/v1/therapy-sessions/patients/${patientId}`;
+}
+
+/**
+ * Builds the query string for a single patient's therapy sessions
+ */
+export function buildPatientSessionsQueryString(
+  patientId: string,
+  params: TherapySessionsQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  if (params.order) {
+    searchParams.append("order", params.order);
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/therapy-sessions/psychologist/patient/${patientId}${queryString ? `?${queryString}` : ""}`;
+}
+
+/**
  * Builds the query string for the authenticated psychologist's patients
  */
 export function buildPatientsQueryString(
