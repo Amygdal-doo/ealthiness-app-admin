@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import type { Route } from "./+types/psychologist.session.$id";
 import {
@@ -16,6 +16,9 @@ import {
   Save,
   X,
   Trash2,
+  Volume2,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { Badge, Button, Textarea } from "~/components/ui";
 import AppSidebar from "~/components/shared/AppSidebar";
@@ -27,8 +30,18 @@ import {
   usePsychologistSession,
   useUpdateSessionNotes,
   useDeleteSession,
+  useGenerateSummaryAudio,
 } from "~/hooks/useAuthApi";
 import type { TranscriptionStatus } from "~/lib/auth/types";
+import { TtsGrokVoice } from "~/lib/auth/types";
+
+const VOICE_OPTIONS: { value: TtsGrokVoice; label: string }[] = [
+  { value: TtsGrokVoice.EVE, label: "Eve" },
+  { value: TtsGrokVoice.ARA, label: "Ara" },
+  { value: TtsGrokVoice.REX, label: "Rex" },
+  { value: TtsGrokVoice.SAL, label: "Sal" },
+  { value: TtsGrokVoice.LEO, label: "Leo" },
+];
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -103,6 +116,53 @@ export default function PsychologistSessionDetailPage() {
     );
   };
 
+  const generateSummaryAudio = useGenerateSummaryAudio();
+  const [selectedVoice, setSelectedVoice] = useState<TtsGrokVoice>(
+    TtsGrokVoice.ARA,
+  );
+
+  const summaryAudioStatus = session?.summaryAudioStatus;
+  // "pending" is the default state before audio has ever been requested, so only
+  // an in-flight request or "processing" counts as actively generating.
+  const isGeneratingAudio =
+    generateSummaryAudio.isPending || summaryAudioStatus === "processing";
+
+  // Audio generation runs asynchronously on the backend (~60s). After kicking it
+  // off we re-fetch the session once after a minute to pick up the new audio.
+  const audioRefetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  useEffect(() => {
+    return () => {
+      if (audioRefetchTimeoutRef.current) {
+        clearTimeout(audioRefetchTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleGenerateSummaryAudio = () => {
+    if (!id) return;
+    generateSummaryAudio.mutate(
+      {
+        sessionId: id,
+        voice: selectedVoice,
+        // Force regeneration only when an audio already exists.
+        force: Boolean(session?.summaryAudio?.url),
+      },
+      {
+        onSuccess: () => {
+          if (audioRefetchTimeoutRef.current) {
+            clearTimeout(audioRefetchTimeoutRef.current);
+          }
+          audioRefetchTimeoutRef.current = setTimeout(() => {
+            refetch();
+          }, 60000);
+        },
+      },
+    );
+  };
+
   const deleteSession = useDeleteSession();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -124,9 +184,7 @@ export default function PsychologistSessionDetailPage() {
     );
   }
 
-  const sessionDateTime = session
-    ? formatDateTime(session.sessionDate)
-    : null;
+  const sessionDateTime = session ? formatDateTime(session.sessionDate) : null;
 
   return (
     <RoleGuard allowedRoles={["PSYCHOLOGIST", "SUPER_ADMIN"]}>
@@ -221,9 +279,7 @@ export default function PsychologistSessionDetailPage() {
                         </div>
                         <div className="flex flex-wrap items-center gap-2 mt-4">
                           <Badge
-                            variant={statusVariant(
-                              session.transcriptionStatus,
-                            )}
+                            variant={statusVariant(session.transcriptionStatus)}
                             className="text-xs"
                           >
                             <FileText size={12} />
@@ -304,6 +360,114 @@ export default function PsychologistSessionDetailPage() {
                       <p className="text-sm text-[#8E8E93] italic">
                         No summary available.
                       </p>
+                    )}
+
+                    {/* Summary Audio */}
+                    {session.summaryStatus === "completed" && (
+                      <div className="mt-6 pt-6 border-t border-[#E0E1E6]">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="text-base font-bold text-[#1B173A] flex items-center gap-2">
+                            <Volume2 size={16} className="text-[#5850DE]" />
+                            Summary Audio
+                          </h4>
+                          {session.summaryAudio?.url && (
+                            <a
+                              href={session.summaryAudio.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-sm font-semibold text-[#5850DE] hover:underline"
+                            >
+                              <Download size={14} />
+                              Download
+                            </a>
+                          )}
+                        </div>
+
+                        {/* Existing audio player */}
+                        {session.summaryAudio?.url && (
+                          <audio
+                            controls
+                            src={session.summaryAudio.url}
+                            className="w-full mb-2"
+                          >
+                            Your browser does not support the audio element.
+                          </audio>
+                        )}
+
+                        {/* Last generated timestamp */}
+                        {session.summaryAudioUpdatedAt && (
+                          <p className="text-xs text-[#8E8E93] mb-4">
+                            Last generated:{" "}
+                            {formatDateTime(session.summaryAudioUpdatedAt).date}{" "}
+                            ·{" "}
+                            {formatDateTime(session.summaryAudioUpdatedAt).time}
+                          </p>
+                        )}
+
+                        {/* Voice selection */}
+                        <p className="text-xs font-semibold text-[#60646C] mb-2">
+                          Select a voice
+                        </p>
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {VOICE_OPTIONS.map((voice) => {
+                            const isActive = selectedVoice === voice.value;
+                            return (
+                              <button
+                                key={voice.value}
+                                type="button"
+                                onClick={() => setSelectedVoice(voice.value)}
+                                disabled={isGeneratingAudio}
+                                className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                                  isActive
+                                    ? "bg-[#5850DE] text-white border-[#5850DE]"
+                                    : "bg-white text-[#60646C] border-[#E0E1E6] hover:border-[#5850DE] hover:text-[#5850DE]"
+                                }`}
+                              >
+                                {voice.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <Button
+                            onClick={handleGenerateSummaryAudio}
+                            disabled={isGeneratingAudio}
+                            className="flex items-center gap-1.5"
+                          >
+                            {isGeneratingAudio ? (
+                              <>
+                                <Loader2 size={14} className="animate-spin" />
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Volume2 size={14} />
+                                {session.summaryAudio?.url
+                                  ? "Regenerate Audio"
+                                  : "Generate Summary Audio"}
+                              </>
+                            )}
+                          </Button>
+
+                          {summaryAudioStatus === "processing" && (
+                            <span className="text-xs text-[#60646C] font-medium">
+                              Audio is being generated, this may take a
+                              moment...
+                            </span>
+                          )}
+                        </div>
+
+                        {(generateSummaryAudio.isError ||
+                          summaryAudioStatus === "failed" ||
+                          session.summaryAudioError) && (
+                          <p className="mt-3 text-sm text-red-500 font-medium flex items-center gap-1.5">
+                            <AlertCircle size={14} />
+                            {session.summaryAudioError ||
+                              "Couldn't generate summary audio. Please try again."}
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
 

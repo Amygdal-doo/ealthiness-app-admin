@@ -412,6 +412,15 @@ export interface TherapySessionAudio {
   url: string;
 }
 
+// Available voices for generating the summary audio (text-to-speech).
+export enum TtsGrokVoice {
+  EVE = "eve",
+  ARA = "ara",
+  REX = "rex",
+  SAL = "sal",
+  LEO = "leo",
+}
+
 export interface TherapySession {
   id: string;
   psychologist: string;
@@ -426,6 +435,11 @@ export interface TherapySession {
   summaryUpdatedAt?: string;
   transcript?: string;
   summary?: string;
+  summaryAudioText?: string;
+  summaryAudio?: TherapySessionAudio;
+  summaryAudioStatus?: TranscriptionStatus;
+  summaryAudioUpdatedAt?: string;
+  summaryAudioError?: string | null;
   doctorNotes?: string;
   createdAt: string;
   updatedAt: string;

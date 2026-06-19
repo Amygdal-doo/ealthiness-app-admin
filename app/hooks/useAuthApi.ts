@@ -20,6 +20,7 @@ import {
   buildPsychologistSessionsQueryString,
   buildSessionDetailsEndpoint,
   buildSessionNotesEndpoint,
+  buildSessionSummaryAudioEndpoint,
   buildPatientDetailsEndpoint,
   buildPatientSessionsQueryString,
   buildPsychologistsQueryString,
@@ -51,6 +52,7 @@ import type {
   ApiPatient,
   PatientsResponse,
   PatientsQueryParams,
+  TtsGrokVoice,
 } from "~/lib/auth/types";
 
 interface LoginResponse extends ApiAuthResponse {
@@ -1176,6 +1178,48 @@ export function usePsychologistSession(sessionId: string) {
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: !!clientTokens.get() && !!sessionId, // Only run if we have tokens and sessionId
+  });
+}
+
+export function useGenerateSummaryAudio() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      sessionId,
+      voice,
+      force = false,
+    }: {
+      sessionId: string;
+      voice: TtsGrokVoice;
+      force?: boolean;
+    }): Promise<TherapySession> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildSessionSummaryAudioEndpoint(sessionId);
+        const response = await apiClient.post<TherapySession>(endpoint, {
+          voice,
+          force,
+        });
+        return response;
+      } catch (error) {
+        console.error("Error generating summary audio:", error);
+        throw error;
+      }
+    },
+    onSuccess: (data, variables) => {
+      // Update the cached session immediately so polling picks up the new status
+      if (data && data.id) {
+        queryClient.setQueryData(["therapy-session", variables.sessionId], data);
+      }
+      queryClient.invalidateQueries({
+        queryKey: ["therapy-session", variables.sessionId],
+      });
+    },
   });
 }
 

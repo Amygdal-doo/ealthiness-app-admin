@@ -696,6 +696,13 @@ export function buildSessionNotesEndpoint(sessionId: string): string {
 }
 
 /**
+ * Builds the endpoint for generating a therapy session's summary audio
+ */
+export function buildSessionSummaryAudioEndpoint(sessionId: string): string {
+  return `/v1/therapy-sessions/${sessionId}/summary-audio`;
+}
+
+/**
  * Builds the endpoint for getting a single patient by ID
  */
 export function buildPatientDetailsEndpoint(patientId: string): string {
