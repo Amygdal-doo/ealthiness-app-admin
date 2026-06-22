@@ -677,6 +677,10 @@ export function buildPsychologistSessionsQueryString(
     searchParams.append("order", params.order);
   }
 
+  if (params.search) {
+    searchParams.append("search", params.search);
+  }
+
   const queryString = searchParams.toString();
   return `/v1/therapy-sessions/psychologist/all${queryString ? `?${queryString}` : ""}`;
 }
@@ -752,6 +756,10 @@ export function buildPatientsQueryString(
 
   if (params.scope) {
     searchParams.append("scope", params.scope);
+  }
+
+  if (params.search) {
+    searchParams.append("search", params.search);
   }
 
   const queryString = searchParams.toString();

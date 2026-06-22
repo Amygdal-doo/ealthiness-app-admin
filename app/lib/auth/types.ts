@@ -457,6 +457,7 @@ export interface TherapySessionsQueryParams {
   page?: number;
   limit?: number;
   order?: "asc" | "desc";
+  search?: string;
 }
 
 // Therapy patients API types
@@ -482,4 +483,5 @@ export interface PatientsQueryParams {
   page?: number;
   limit?: number;
   scope?: PatientScope;
+  search?: string;
 }

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import type { Route } from "./+types/psychologist.sessions";
 import {
@@ -65,8 +65,19 @@ export default function PsychologistSessionsPage() {
   const user = useUser();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
+
+  // Debounce search term to avoid firing a request on every keystroke.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+      setPage(1); // Reset to first page when search changes
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const {
     data: sessionsResponse,
@@ -74,7 +85,12 @@ export default function PsychologistSessionsPage() {
     isError,
     refetch,
     isFetching,
-  } = usePsychologistSessions({ page, limit: PAGE_SIZE, order });
+  } = usePsychologistSessions({
+    page,
+    limit: PAGE_SIZE,
+    order,
+    search: debouncedSearchTerm || undefined,
+  });
 
   const deleteSession = useDeleteSession();
   const [sessionToDelete, setSessionToDelete] =
@@ -87,15 +103,8 @@ export default function PsychologistSessionsPage() {
     });
   };
 
-  // Server handles ordering/pagination; search filters the current page locally.
-  const visibleSessions = useMemo(() => {
-    const results = sessionsResponse?.results ?? [];
-    const term = searchTerm.trim().toLowerCase();
-    if (!term) return results;
-    return results.filter((session) =>
-      session.title.toLowerCase().includes(term),
-    );
-  }, [sessionsResponse, searchTerm]);
+  // Search, ordering and pagination are all handled server-side.
+  const visibleSessions = sessionsResponse?.results ?? [];
 
   if (!user) {
     return (

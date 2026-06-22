@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import type { Route } from "./+types/psychologist.patients";
 import { Users, AtSign, Search, Eye } from "lucide-react";
@@ -32,7 +32,17 @@ export default function PsychologistPatientsPage() {
   const user = useUser();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [scope, setScope] = useState<PatientScope>("all");
+
+  // Debounce search term to avoid firing a request on every keystroke.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const {
     data: patientsResponse,
@@ -40,22 +50,15 @@ export default function PsychologistPatientsPage() {
     isError,
     isFetching,
     refetch,
-  } = usePsychologistPatients({ page: 1, limit: PAGE_LIMIT, scope });
+  } = usePsychologistPatients({
+    page: 1,
+    limit: PAGE_LIMIT,
+    scope,
+    search: debouncedSearchTerm || undefined,
+  });
 
-  // Scope is handled server-side; search filters the loaded list locally.
-  const visiblePatients = useMemo(() => {
-    const results = patientsResponse?.results ?? [];
-    const term = searchTerm.trim().toLowerCase();
-    if (!term) return results;
-    return results.filter((patient) => {
-      const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
-      return (
-        fullName.includes(term) ||
-        patient.username.toLowerCase().includes(term) ||
-        patient.email.some((email) => email.toLowerCase().includes(term))
-      );
-    });
-  }, [patientsResponse, searchTerm]);
+  // Search and scope are both handled server-side.
+  const visiblePatients = patientsResponse?.results ?? [];
 
   if (!user) {
     return (
