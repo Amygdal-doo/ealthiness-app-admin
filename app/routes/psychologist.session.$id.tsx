@@ -19,6 +19,7 @@ import {
   Volume2,
   Loader2,
   AlertCircle,
+  ChevronDown,
 } from "lucide-react";
 import { Badge, Button, Textarea } from "~/components/ui";
 import AppSidebar from "~/components/shared/AppSidebar";
@@ -77,6 +78,25 @@ const formatDateTime = (iso: string) => {
   };
 };
 
+// Strip markdown / HTML artifacts so the summary reads as clean plain text.
+const cleanSummaryText = (text: string): string =>
+  text
+    // remove HTML / XML-like tags: <b>, </p>, <br/>, etc.
+    .replace(/<\/?[^>]*>/g, "")
+    // unwrap markdown links [label](url) -> label
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    // drop markdown emphasis/heading/quote/code markers: ** __ * _ # > ` ~
+    .replace(/[*_`~#>]+/g, "")
+    // normalize bullet markers at the start of a line to "• "
+    .replace(/^[ \t]*[-•]\s+/gm, "• ")
+    // collapse stray repeated punctuation like ",.." or "..." -> "."
+    .replace(/[,.]{2,}/g, ".")
+    // collapse leftover multiple spaces
+    .replace(/[ \t]{2,}/g, " ")
+    // trim trailing spaces on each line
+    .replace(/[ \t]+$/gm, "")
+    .trim();
+
 export default function PsychologistSessionDetailPage() {
   const user = useUser();
   const navigate = useNavigate();
@@ -89,6 +109,11 @@ export default function PsychologistSessionDetailPage() {
     refetch,
     isFetching,
   } = usePsychologistSession(id ?? "");
+
+  // Accordion: transcript and summary sections are collapsed until their
+  // button is clicked.
+  const [openTranscript, setOpenTranscript] = useState(false);
+  const [openSummary, setOpenSummary] = useState(false);
 
   const updateNotes = useUpdateSessionNotes();
   const [isEditingNotes, setIsEditingNotes] = useState(false);
@@ -329,33 +354,184 @@ export default function PsychologistSessionDetailPage() {
                     </div>
                   )}
 
-                  {/* Transcript */}
+                  {/* Doctor Notes */}
                   <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
-                    <h3 className="text-lg font-bold text-[#1B173A] flex items-center gap-2 mb-4">
-                      <FileText size={18} className="text-[#5850DE]" />
-                      Transcript
-                    </h3>
-                    {session.transcript ? (
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-bold text-[#1B173A] flex items-center gap-2">
+                        <NotebookPen size={18} className="text-[#5850DE]" />
+                        Doctor Notes
+                      </h3>
+                      {!isEditingNotes && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsEditingNotes(true)}
+                          className="flex items-center gap-1.5"
+                        >
+                          {hasNotes ? (
+                            <>
+                              <Pencil size={14} />
+                              Edit
+                            </>
+                          ) : (
+                            <>
+                              <Plus size={14} />
+                              Add Notes
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+
+                    {isEditingNotes ? (
+                      <div className="space-y-3">
+                        <Textarea
+                          value={notesDraft}
+                          onChange={(e) => setNotesDraft(e.target.value)}
+                          placeholder="Write your notes about this session..."
+                          rows={6}
+                          className="w-full"
+                          disabled={updateNotes.isPending}
+                        />
+                        {updateNotes.isError && (
+                          <p className="text-sm text-red-500 font-medium">
+                            Couldn't save notes. Please try again.
+                          </p>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <Button
+                            onClick={handleSaveNotes}
+                            disabled={
+                              updateNotes.isPending || !notesDraft.trim()
+                            }
+                            className="flex items-center gap-1.5"
+                          >
+                            <Save size={14} />
+                            {updateNotes.isPending ? "Saving..." : "Save"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsEditingNotes(false)}
+                            disabled={updateNotes.isPending}
+                            className="flex items-center gap-1.5"
+                          >
+                            <X size={14} />
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : hasNotes ? (
                       <p className="text-sm text-[#1B173A] leading-relaxed whitespace-pre-wrap">
-                        {session.transcript}
+                        {session.doctorNotes}
                       </p>
                     ) : (
                       <p className="text-sm text-[#8E8E93] italic">
-                        No transcript available.
+                        No notes yet. Add your notes for this session.
                       </p>
                     )}
                   </div>
 
-                  {/* Summary */}
-                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+                  {/* Transcript & Summary toggle buttons */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setOpenTranscript((v) => !v)}
+                      aria-expanded={openTranscript}
+                      className={`flex items-center justify-between gap-3 rounded-[20px] border p-5 text-left transition-all shadow-sm ${
+                        openTranscript
+                          ? "bg-[#E8E6FC] border-[#5850DE]"
+                          : "bg-white border-[#E0E1E6] hover:border-[#5850DE]"
+                      }`}
+                    >
+                      <span className="flex items-center gap-3">
+                        <span className="w-10 h-10 rounded-xl bg-[#E1F0FD] text-[#248FEC] flex items-center justify-center shrink-0">
+                          <FileText size={18} />
+                        </span>
+                        <span>
+                          <span className="block text-base font-bold text-[#1B173A]">
+                            View Transcript
+                          </span>
+                          <span className="block text-xs font-medium text-[#8E8E93]">
+                            {formatStatus(session.transcriptionStatus)}
+                          </span>
+                        </span>
+                      </span>
+                      <ChevronDown
+                        size={20}
+                        className={`text-[#5850DE] transition-transform duration-200 shrink-0 ${
+                          openTranscript ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setOpenSummary((v) => !v)}
+                      aria-expanded={openSummary}
+                      className={`flex items-center justify-between gap-3 rounded-[20px] border p-5 text-left transition-all shadow-sm ${
+                        openSummary
+                          ? "bg-[#E8E6FC] border-[#5850DE]"
+                          : "bg-white border-[#E0E1E6] hover:border-[#5850DE]"
+                      }`}
+                    >
+                      <span className="flex items-center gap-3">
+                        <span className="w-10 h-10 rounded-xl bg-[#F0E9FE] text-[#7C3AED] flex items-center justify-center shrink-0">
+                          <Sparkles size={18} />
+                        </span>
+                        <span>
+                          <span className="block text-base font-bold text-[#1B173A]">
+                            View Summary
+                          </span>
+                          <span className="block text-xs font-medium text-[#8E8E93]">
+                            {formatStatus(session.summaryStatus)}
+                          </span>
+                        </span>
+                      </span>
+                      <ChevronDown
+                        size={20}
+                        className={`text-[#5850DE] transition-transform duration-200 shrink-0 ${
+                          openSummary ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Transcript panel */}
+                  {openTranscript && (
+                    <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <h3 className="text-lg font-bold text-[#1B173A] flex items-center gap-2 mb-4">
+                        <FileText size={18} className="text-[#5850DE]" />
+                        Transcript
+                      </h3>
+                      {session.transcript ? (
+                        <p className="text-sm text-[#1B173A] leading-relaxed whitespace-pre-wrap">
+                          {session.transcript}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-[#8E8E93] italic">
+                          No transcript available.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Summary panel */}
+                  {openSummary && (
+                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6 animate-in fade-in slide-in-from-top-2 duration-200">
                     <h3 className="text-lg font-bold text-[#1B173A] flex items-center gap-2 mb-4">
                       <Sparkles size={18} className="text-[#5850DE]" />
                       Summary
                     </h3>
                     {session.summary ? (
-                      <p className="text-sm text-[#1B173A] leading-relaxed whitespace-pre-wrap">
-                        {session.summary}
-                      </p>
+                      <p
+                        className="text-sm text-[#1B173A] leading-relaxed whitespace-pre-wrap"
+                        dangerouslySetInnerHTML={{
+                          __html: session.summary.replace(
+                            /\*\*(.+?)\*\*/g,
+                            "<strong>$1</strong>",
+                          ),
+                        }}
+                      />
                     ) : (
                       <p className="text-sm text-[#8E8E93] italic">
                         No summary available.
@@ -470,83 +646,7 @@ export default function PsychologistSessionDetailPage() {
                       </div>
                     )}
                   </div>
-
-                  {/* Doctor Notes */}
-                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-bold text-[#1B173A] flex items-center gap-2">
-                        <NotebookPen size={18} className="text-[#5850DE]" />
-                        Doctor Notes
-                      </h3>
-                      {!isEditingNotes && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setIsEditingNotes(true)}
-                          className="flex items-center gap-1.5"
-                        >
-                          {hasNotes ? (
-                            <>
-                              <Pencil size={14} />
-                              Edit
-                            </>
-                          ) : (
-                            <>
-                              <Plus size={14} />
-                              Add Notes
-                            </>
-                          )}
-                        </Button>
-                      )}
-                    </div>
-
-                    {isEditingNotes ? (
-                      <div className="space-y-3">
-                        <Textarea
-                          value={notesDraft}
-                          onChange={(e) => setNotesDraft(e.target.value)}
-                          placeholder="Write your notes about this session..."
-                          rows={6}
-                          className="w-full"
-                          disabled={updateNotes.isPending}
-                        />
-                        {updateNotes.isError && (
-                          <p className="text-sm text-red-500 font-medium">
-                            Couldn't save notes. Please try again.
-                          </p>
-                        )}
-                        <div className="flex items-center gap-2">
-                          <Button
-                            onClick={handleSaveNotes}
-                            disabled={
-                              updateNotes.isPending || !notesDraft.trim()
-                            }
-                            className="flex items-center gap-1.5"
-                          >
-                            <Save size={14} />
-                            {updateNotes.isPending ? "Saving..." : "Save"}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={() => setIsEditingNotes(false)}
-                            disabled={updateNotes.isPending}
-                            className="flex items-center gap-1.5"
-                          >
-                            <X size={14} />
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    ) : hasNotes ? (
-                      <p className="text-sm text-[#1B173A] leading-relaxed whitespace-pre-wrap">
-                        {session.doctorNotes}
-                      </p>
-                    ) : (
-                      <p className="text-sm text-[#8E8E93] italic">
-                        No notes yet. Add your notes for this session.
-                      </p>
-                    )}
-                  </div>
+                  )}
                 </div>
               )}
             </div>
