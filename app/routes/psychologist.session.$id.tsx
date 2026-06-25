@@ -21,8 +21,9 @@ import {
   AlertCircle,
   ChevronDown,
 } from "lucide-react";
-import { Badge, Button, Textarea } from "~/components/ui";
+import { Badge, Button } from "~/components/ui";
 import AppSidebar from "~/components/shared/AppSidebar";
+import TiptapEditor from "~/components/shared/TiptapEditor";
 import Navbar from "~/components/shared/Navbar";
 import { RoleGuard } from "~/components/auth/RoleGuard";
 import { ConfirmDeleteModal } from "~/components/modals/ConfirmDeleteModal";
@@ -78,6 +79,14 @@ const formatDateTime = (iso: string) => {
   };
 };
 
+// Doctor notes are stored as rich-text HTML. Strip tags to tell whether there
+// is any actual content (an "empty" editor still yields "<p></p>").
+const htmlToText = (html: string): string =>
+  html
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .trim();
+
 // Strip markdown / HTML artifacts so the summary reads as clean plain text.
 const cleanSummaryText = (text: string): string =>
   text
@@ -119,8 +128,8 @@ export default function PsychologistSessionDetailPage() {
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [notesDraft, setNotesDraft] = useState("");
 
-  const existingNotes = session?.doctorNotes?.trim() ?? "";
-  const hasNotes = existingNotes.length > 0;
+  const existingNotes = session?.doctorNotes ?? "";
+  const hasNotes = htmlToText(existingNotes).length > 0;
 
   // Seed the draft from the latest server value when entering edit mode.
   useEffect(() => {
@@ -131,10 +140,9 @@ export default function PsychologistSessionDetailPage() {
 
   const handleSaveNotes = () => {
     if (!id) return;
-    const trimmed = notesDraft.trim();
-    if (!trimmed) return;
+    if (!htmlToText(notesDraft)) return;
     updateNotes.mutate(
-      { sessionId: id, doctorNotes: trimmed },
+      { sessionId: id, doctorNotes: notesDraft },
       {
         onSuccess: () => setIsEditingNotes(false),
       },
@@ -385,13 +393,11 @@ export default function PsychologistSessionDetailPage() {
 
                     {isEditingNotes ? (
                       <div className="space-y-3">
-                        <Textarea
+                        <TiptapEditor
                           value={notesDraft}
-                          onChange={(e) => setNotesDraft(e.target.value)}
+                          onChange={setNotesDraft}
+                          editable={!updateNotes.isPending}
                           placeholder="Write your notes about this session..."
-                          rows={6}
-                          className="w-full"
-                          disabled={updateNotes.isPending}
                         />
                         {updateNotes.isError && (
                           <p className="text-sm text-red-500 font-medium">
@@ -402,7 +408,7 @@ export default function PsychologistSessionDetailPage() {
                           <Button
                             onClick={handleSaveNotes}
                             disabled={
-                              updateNotes.isPending || !notesDraft.trim()
+                              updateNotes.isPending || !htmlToText(notesDraft)
                             }
                             className="flex items-center gap-1.5"
                           >
@@ -421,9 +427,12 @@ export default function PsychologistSessionDetailPage() {
                         </div>
                       </div>
                     ) : hasNotes ? (
-                      <p className="text-sm text-[#1B173A] leading-relaxed whitespace-pre-wrap">
-                        {session.doctorNotes}
-                      </p>
+                      <div
+                        className="rich-text text-sm text-[#1B173A] leading-relaxed"
+                        dangerouslySetInnerHTML={{
+                          __html: session.doctorNotes ?? "",
+                        }}
+                      />
                     ) : (
                       <p className="text-sm text-[#8E8E93] italic">
                         No notes yet. Add your notes for this session.
