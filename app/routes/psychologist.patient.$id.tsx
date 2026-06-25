@@ -14,6 +14,8 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
+  HeartPulse,
+  Tag,
 } from "lucide-react";
 import { Badge, Button } from "~/components/ui";
 import AppSidebar from "~/components/shared/AppSidebar";
@@ -23,8 +25,13 @@ import { useUser } from "~/hooks/useAuth";
 import {
   usePsychologistPatient,
   usePatientSessions,
+  usePatientRecentMood,
 } from "~/hooks/useAuthApi";
-import type { TherapySession, TranscriptionStatus } from "~/lib/auth/types";
+import type {
+  TherapySession,
+  TranscriptionStatus,
+  PatientMoodEntry,
+} from "~/lib/auth/types";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -62,6 +69,60 @@ const formatDateTime = (iso: string) => {
   };
 };
 
+// Mood is a 0–100 score. Map it to a visual mood band.
+const getMoodDisplay = (mood: number) => {
+  if (mood >= 80) {
+    return {
+      label: "Great",
+      emoji: "😄",
+      accent: "#16A34A",
+      bg: "#E3F6EA",
+      track: "#BBE9CB",
+    };
+  }
+  if (mood >= 60) {
+    return {
+      label: "Good",
+      emoji: "🙂",
+      accent: "#248FEC",
+      bg: "#E1F0FD",
+      track: "#BBDDF8",
+    };
+  }
+  if (mood >= 40) {
+    return {
+      label: "Okay",
+      emoji: "😐",
+      accent: "#EAB308",
+      bg: "#FEF6DC",
+      track: "#F6E4A6",
+    };
+  }
+  if (mood >= 20) {
+    return {
+      label: "Low",
+      emoji: "🙁",
+      accent: "#EA580C",
+      bg: "#FDEDE3",
+      track: "#F8CFB4",
+    };
+  }
+  return {
+    label: "Very low",
+    emoji: "😢",
+    accent: "#DC2626",
+    bg: "#FDE7E7",
+    track: "#F6BCBC",
+  };
+};
+
+const formatTag = (tag: string) =>
+  tag
+    .toLowerCase()
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+
 export default function PsychologistPatientDetailPage() {
   const user = useUser();
   const navigate = useNavigate();
@@ -86,6 +147,12 @@ export default function PsychologistPatientDetailPage() {
     isFetching: sessionsFetching,
     refetch: refetchSessions,
   } = usePatientSessions(patientId, { page, limit: PAGE_SIZE, order });
+
+  const {
+    data: recentMood,
+    isLoading: moodLoading,
+    isError: moodError,
+  } = usePatientRecentMood(patientId);
 
   if (!user) {
     return (
@@ -185,6 +252,13 @@ export default function PsychologistPatientDetailPage() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Recent mood */}
+                  <RecentMoodCard
+                    mood={recentMood}
+                    isLoading={moodLoading}
+                    isError={moodError}
+                  />
 
                   {/* Details */}
                   <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
@@ -471,5 +545,125 @@ export default function PsychologistPatientDetailPage() {
         </div>
       </div>
     </RoleGuard>
+  );
+}
+
+function RecentMoodCard({
+  mood,
+  isLoading,
+  isError,
+}: {
+  mood: PatientMoodEntry | undefined;
+  isLoading: boolean;
+  isError: boolean;
+}) {
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+        <div className="flex items-center gap-2 text-gray-600">
+          <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <span className="font-medium text-sm">Loading recent mood...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // A missing recent mood is an expected state (e.g. 404) — show a soft empty state.
+  if (isError || !mood) {
+    return (
+      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+        <h3 className="text-lg font-bold text-[#1B173A] flex items-center gap-2 mb-1">
+          <HeartPulse size={18} className="text-[#5850DE]" />
+          Recent Mood
+        </h3>
+        <p className="text-sm text-[#8E8E93] italic">
+          No mood entries recorded yet.
+        </p>
+      </div>
+    );
+  }
+
+  const display = getMoodDisplay(mood.mood);
+  const { date, time } = formatDateTime(mood.createdAt);
+  const tags = [...mood.tags, ...mood.specificMoodTags];
+
+  return (
+    <div
+      className="rounded-[24px] border shadow-sm p-6 overflow-hidden"
+      style={{ backgroundColor: display.bg, borderColor: display.track }}
+    >
+      <div className="flex items-center justify-between gap-3 mb-5">
+        <h3 className="text-lg font-bold text-[#1B173A] flex items-center gap-2">
+          <HeartPulse size={18} style={{ color: display.accent }} />
+          Recent Mood
+        </h3>
+        <span className="text-xs font-semibold text-[#60646C] flex items-center gap-1">
+          <Clock size={12} className="text-[#8E8E93]" />
+          {date} · {time}
+        </span>
+      </div>
+
+      <div className="flex items-center gap-5">
+        <div
+          className="w-20 h-20 rounded-3xl bg-white flex items-center justify-center text-4xl shrink-0 shadow-sm"
+          aria-hidden
+        >
+          {display.emoji}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-baseline gap-2">
+            <span
+              className="text-3xl font-extrabold"
+              style={{ color: display.accent }}
+            >
+              {mood.mood}
+            </span>
+            <span className="text-sm font-medium text-[#60646C]">/ 100</span>
+            <span
+              className="ml-1 px-2.5 py-0.5 rounded-full text-xs font-bold text-white"
+              style={{ backgroundColor: display.accent }}
+            >
+              {display.label}
+            </span>
+          </div>
+
+          {/* Mood meter */}
+          <div
+            className="mt-3 h-2.5 w-full rounded-full overflow-hidden"
+            style={{ backgroundColor: display.track }}
+          >
+            <div
+              className="h-full rounded-full transition-all"
+              style={{
+                width: `${Math.max(0, Math.min(100, mood.mood))}%`,
+                backgroundColor: display.accent,
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {mood.description && (
+        <p className="mt-5 text-sm font-medium text-[#1B173A] bg-white/70 rounded-xl p-4 leading-relaxed">
+          "{mood.description}"
+        </p>
+      )}
+
+      {tags.length > 0 && (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {tags.map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-xs font-semibold text-[#60646C] border"
+              style={{ borderColor: display.track }}
+            >
+              <Tag size={11} style={{ color: display.accent }} />
+              {formatTag(tag)}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

@@ -52,6 +52,8 @@ import type {
   ApiPatient,
   PatientsResponse,
   PatientsQueryParams,
+  PsychologistDashboardOverview,
+  PatientMoodEntry,
   TtsGrokVoice,
 } from "~/lib/auth/types";
 
@@ -1154,6 +1156,34 @@ export function usePsychologistSessions(
   });
 }
 
+export function usePsychologistDashboardOverview() {
+  return useQuery({
+    queryKey: ["psychologist-dashboard-overview"],
+    queryFn: async (): Promise<PsychologistDashboardOverview> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = "/v1/psychologist-dashboard/overview";
+        const response =
+          await apiClient.get<PsychologistDashboardOverview>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching psychologist dashboard overview:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get(), // Only run if we have tokens
+  });
+}
+
 export function usePsychologistSession(sessionId: string) {
   return useQuery({
     queryKey: ["therapy-session", sessionId],
@@ -1332,6 +1362,33 @@ export function usePsychologistPatient(patientId: string) {
         return response;
       } catch (error) {
         console.error("Error fetching patient details:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get() && !!patientId, // Only run if we have tokens and patientId
+  });
+}
+
+export function usePatientRecentMood(patientId: string) {
+  return useQuery({
+    queryKey: ["patient-recent-mood", patientId],
+    queryFn: async (): Promise<PatientMoodEntry> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = `/v1/mental/psychologist/patient/${patientId}/recent`;
+        const response = await apiClient.get<PatientMoodEntry>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching patient recent mood:", error);
         throw error;
       }
     },

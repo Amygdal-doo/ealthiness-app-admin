@@ -398,6 +398,14 @@ export interface DashboardOverview {
 
 export type DashboardPeriod = "24h" | "7d" | "30d";
 
+export interface PsychologistDashboardOverview {
+  activePatients: number;
+  sessionsToday: number;
+  sessionsThisWeek: number;
+  sessionsThisMonth: number;
+  therapyPlanCompletionRate: number | null;
+}
+
 // Therapy sessions API types
 export type TranscriptionStatus =
   | "pending"
@@ -484,4 +492,18 @@ export interface PatientsQueryParams {
   limit?: number;
   scope?: PatientScope;
   search?: string;
+}
+
+// Mental / mood API types
+export interface PatientMoodEntry {
+  id: string;
+  description: string | null;
+  type: string;
+  mood: number;
+  tags: string[];
+  specificMoodTags: string[];
+  creator: string;
+  media: string | null;
+  createdAt: string;
+  updatedAt: string;
 }

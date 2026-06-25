@@ -13,6 +13,7 @@ import AppSidebar from "~/components/shared/AppSidebar";
 import Navbar from "~/components/shared/Navbar";
 import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
+import { usePsychologistDashboardOverview } from "~/hooks/useAuthApi";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -24,41 +25,11 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-// TODO: Replace with real psychologist dashboard API once available.
-const STATS = [
-  {
-    id: "patients",
-    label: "Active Patients",
-    value: "18",
-    icon: Users,
-    accent: "text-[#5850DE]",
-    bg: "bg-[#E8E6FC]",
-  },
-  {
-    id: "sessions-week",
-    label: "Sessions This Week",
-    value: "12",
-    icon: CalendarClock,
-    accent: "text-[#248FEC]",
-    bg: "bg-[#E1F0FD]",
-  },
-  {
-    id: "hours",
-    label: "Hours Logged",
-    value: "24h",
-    icon: Clock,
-    accent: "text-[#16A34A]",
-    bg: "bg-[#E3F6EA]",
-  },
-  {
-    id: "completion",
-    label: "Completion Rate",
-    value: "96%",
-    icon: TrendingUp,
-    accent: "text-[#EA580C]",
-    bg: "bg-[#FDEDE3]",
-  },
-];
+const formatCompletionRate = (rate: number | null): string => {
+  if (rate === null || rate === undefined) return "—";
+  // BE returns a 0–1 ratio; render as a whole percentage.
+  return `${Math.round(rate * 100)}%`;
+};
 
 const UPCOMING_SESSIONS = [
   {
@@ -84,6 +55,55 @@ const UPCOMING_SESSIONS = [
 export default function PsychologistOverviewPage() {
   const user = useUser();
   const navigate = useNavigate();
+
+  const {
+    data: overview,
+    isLoading: isOverviewLoading,
+    isError: isOverviewError,
+  } = usePsychologistDashboardOverview();
+
+  const stats = [
+    {
+      id: "patients",
+      label: "Active Patients",
+      value: overview?.activePatients ?? 0,
+      icon: Users,
+      accent: "text-[#5850DE]",
+      bg: "bg-[#E8E6FC]",
+    },
+    {
+      id: "sessions-today",
+      label: "Sessions Today",
+      value: overview?.sessionsToday ?? 0,
+      icon: Clock,
+      accent: "text-[#16A34A]",
+      bg: "bg-[#E3F6EA]",
+    },
+    {
+      id: "sessions-week",
+      label: "Sessions This Week",
+      value: overview?.sessionsThisWeek ?? 0,
+      icon: CalendarClock,
+      accent: "text-[#248FEC]",
+      bg: "bg-[#E1F0FD]",
+    },
+    {
+      id: "sessions-month",
+      label: "Sessions This Month",
+      value: overview?.sessionsThisMonth ?? 0,
+      icon: CalendarClock,
+      accent: "text-[#7C3AED]",
+      bg: "bg-[#F0E9FE]",
+    },
+    {
+      id: "completion",
+      label: "Completion Rate",
+      value: formatCompletionRate(overview?.therapyPlanCompletionRate ?? null),
+      icon: TrendingUp,
+      accent: "text-[#EA580C]",
+      bg: "bg-[#FDEDE3]",
+    },
+  ];
 
   if (!user) {
     return (
@@ -119,8 +139,13 @@ export default function PsychologistOverviewPage() {
               </div>
 
               {/* Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                {STATS.map((stat) => {
+              {isOverviewError && (
+                <div className="bg-red-50 border border-red-100 rounded-2xl p-4 mb-6 text-sm font-medium text-red-500">
+                  Couldn't load your practice overview. Please try refreshing.
+                </div>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                {stats.map((stat) => {
                   const Icon = stat.icon;
                   return (
                     <div
@@ -133,7 +158,11 @@ export default function PsychologistOverviewPage() {
                         <Icon size={20} />
                       </div>
                       <div className="text-2xl font-extrabold text-[#1B173A]">
-                        {stat.value}
+                        {isOverviewLoading ? (
+                          <span className="inline-block h-7 w-12 rounded-md bg-[#F0F0F3] animate-pulse" />
+                        ) : (
+                          stat.value
+                        )}
                       </div>
                       <div className="text-sm font-medium text-[#60646C] mt-1">
                         {stat.label}
