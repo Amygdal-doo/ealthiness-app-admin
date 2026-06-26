@@ -3,6 +3,9 @@ export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 export { Badge, badgeVariants } from './badge';
 export { Input } from './input';
 export { Textarea } from './textarea';
+export { DatePicker } from './date-picker';
+export { Select } from './select';
+export type { SelectOption } from './select';
 export { ScrollArea } from './scroll-area';
 export { Separator } from './separator';
 export { 

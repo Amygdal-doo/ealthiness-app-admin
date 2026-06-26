@@ -431,24 +431,40 @@ export enum TtsGrokVoice {
 
 export interface TherapySession {
   id: string;
+  /** Psychologist (owner) id. */
   psychologist: string;
+  /** Patient (client) id. */
   client: string;
   title: string;
+  /** ISO datetime of the session. */
   sessionDate: string;
+  /** ISO 639-1 language code, e.g. "en". */
   language: string;
   audio?: TherapySessionAudio;
+
+  // Transcription
   transcriptionStatus: TranscriptionStatus;
   transcriptionUpdatedAt?: string;
+  transcript?: string;
+
+  // Summary (rich text)
   summaryStatus: TranscriptionStatus;
   summaryUpdatedAt?: string;
-  transcript?: string;
   summary?: string;
+
+  // Summary audio (text-to-speech of the summary)
   summaryAudioText?: string;
   summaryAudio?: TherapySessionAudio;
   summaryAudioStatus?: TranscriptionStatus;
+  summaryAudioVoice?: TtsGrokVoice;
   summaryAudioUpdatedAt?: string;
   summaryAudioError?: string | null;
+
+  /** Doctor notes stored as rich-text HTML. */
   doctorNotes?: string;
+  /** Linked therapy plan id, if one has been created for this session. */
+  therapyPlan?: string;
+
   createdAt: string;
   updatedAt: string;
 }
@@ -504,6 +520,32 @@ export interface PatientMoodEntry {
   specificMoodTags: string[];
   creator: string;
   media: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Therapy plan API types
+export interface CreateTherapyPlanPayload {
+  patientId: string;
+  sessionId: string;
+  title: string;
+  reason: string;
+  generalInstructions: string;
+  startDate: string;
+  endDate: string;
+  items: unknown[];
+}
+
+export interface TherapyPlan {
+  id: string;
+  patientId: string;
+  sessionId: string;
+  title: string;
+  reason: string;
+  generalInstructions: string;
+  startDate: string;
+  endDate: string;
+  items: unknown[];
   createdAt: string;
   updatedAt: string;
 }

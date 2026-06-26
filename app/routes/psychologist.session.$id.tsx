@@ -20,8 +20,10 @@ import {
   Loader2,
   AlertCircle,
   ChevronDown,
+  ClipboardList,
 } from "lucide-react";
 import { Badge, Button } from "~/components/ui";
+import TherapyPlanForm from "~/components/forms/TherapyPlanForm";
 import AppSidebar from "~/components/shared/AppSidebar";
 import TiptapEditor from "~/components/shared/TiptapEditor";
 import Navbar from "~/components/shared/Navbar";
@@ -199,6 +201,8 @@ export default function PsychologistSessionDetailPage() {
   const deleteSession = useDeleteSession();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+  const [isTherapyPlanOpen, setIsTherapyPlanOpen] = useState(false);
+
   const handleConfirmDelete = () => {
     if (!id) return;
     deleteSession.mutate(id, {
@@ -287,16 +291,28 @@ export default function PsychologistSessionDetailPage() {
                           <h2 className="text-2xl font-extrabold text-[#1B173A] break-words">
                             {session.title}
                           </h2>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsDeleteModalOpen(true)}
-                            disabled={deleteSession.isPending}
-                            className="shrink-0 flex items-center gap-1.5 text-red-500 border-red-200 hover:text-red-600 hover:bg-red-50 hover:border-red-300"
-                          >
-                            <Trash2 size={14} />
-                            {deleteSession.isPending ? "Deleting..." : "Delete"}
-                          </Button>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Button
+                              size="sm"
+                              onClick={() => setIsTherapyPlanOpen(true)}
+                              className="flex items-center gap-1.5"
+                            >
+                              <ClipboardList size={14} />
+                              Therapy Plan
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setIsDeleteModalOpen(true)}
+                              disabled={deleteSession.isPending}
+                              className="flex items-center gap-1.5 text-red-500 border-red-200 hover:text-red-600 hover:bg-red-50 hover:border-red-300"
+                            >
+                              <Trash2 size={14} />
+                              {deleteSession.isPending
+                                ? "Deleting..."
+                                : "Delete"}
+                            </Button>
+                          </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-3 text-sm text-[#60646C] font-medium">
                           {sessionDateTime && (
@@ -662,6 +678,18 @@ export default function PsychologistSessionDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Therapy plan creation modal */}
+      {isTherapyPlanOpen && session && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overflow-y-auto">
+          <TherapyPlanForm
+            patientId={session.client}
+            sessionId={session.id}
+            onCancel={() => setIsTherapyPlanOpen(false)}
+            onSuccess={() => setIsTherapyPlanOpen(false)}
+          />
+        </div>
+      )}
 
       <ConfirmDeleteModal
         isOpen={isDeleteModalOpen}

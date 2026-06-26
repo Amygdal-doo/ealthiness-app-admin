@@ -25,6 +25,7 @@ import {
   buildPatientSessionsQueryString,
   buildPsychologistsQueryString,
   buildPatientsQueryString,
+  buildTherapyPlanEndpoint,
 } from "~/lib/services/user.service";
 import type {
   User,
@@ -55,6 +56,8 @@ import type {
   PsychologistDashboardOverview,
   PatientMoodEntry,
   TtsGrokVoice,
+  CreateTherapyPlanPayload,
+  TherapyPlan,
 } from "~/lib/auth/types";
 
 interface LoginResponse extends ApiAuthResponse {
@@ -1457,5 +1460,38 @@ export function useScopedDashboardOverview(period?: DashboardPeriod) {
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: !!clientTokens.get(), // Only run if we have tokens
+  });
+}
+
+export function useCreateTherapyPlan() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      payload: CreateTherapyPlanPayload,
+    ): Promise<TherapyPlan> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildTherapyPlanEndpoint();
+        const response = await apiClient.post<TherapyPlan>(endpoint, payload);
+        return response;
+      } catch (error) {
+        console.error("Error creating therapy plan:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, variables) => {
+      // Refresh any views scoped to this patient / session.
+      queryClient.invalidateQueries({
+        queryKey: ["therapy-plans", variables.patientId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["therapy-session", variables.sessionId],
+      });
+    },
   });
 }

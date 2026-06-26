@@ -707,6 +707,13 @@ export function buildSessionSummaryAudioEndpoint(sessionId: string): string {
 }
 
 /**
+ * Builds the endpoint for creating a therapy plan
+ */
+export function buildTherapyPlanEndpoint(): string {
+  return `/v1/therapy-plan`;
+}
+
+/**
  * Builds the endpoint for getting a single patient by ID
  */
 export function buildPatientDetailsEndpoint(patientId: string): string {
