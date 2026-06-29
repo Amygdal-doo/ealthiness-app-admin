@@ -21,9 +21,16 @@ import {
   AlertCircle,
   ChevronDown,
   ClipboardList,
+  Target,
+  ListChecks,
+  CalendarRange,
+  User,
+  AtSign,
+  Mail,
 } from "lucide-react";
 import { Badge, Button } from "~/components/ui";
 import TherapyPlanForm from "~/components/forms/TherapyPlanForm";
+import TherapyPlanItems from "~/components/therapy/TherapyPlanItems";
 import AppSidebar from "~/components/shared/AppSidebar";
 import TiptapEditor from "~/components/shared/TiptapEditor";
 import Navbar from "~/components/shared/Navbar";
@@ -35,8 +42,15 @@ import {
   useUpdateSessionNotes,
   useDeleteSession,
   useGenerateSummaryAudio,
+  useTherapyPlan,
+  useDeleteTherapyPlan,
 } from "~/hooks/useAuthApi";
-import type { TranscriptionStatus } from "~/lib/auth/types";
+import type {
+  TranscriptionStatus,
+  TherapyPlan,
+  TherapyPlanStatus,
+  SessionClient,
+} from "~/lib/auth/types";
 import { TtsGrokVoice } from "~/lib/auth/types";
 
 const VOICE_OPTIONS: { value: TtsGrokVoice; label: string }[] = [
@@ -80,6 +94,137 @@ const formatDateTime = (iso: string) => {
     time: date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
   };
 };
+
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
+const PLAN_STATUS_STYLE: Record<
+  TherapyPlanStatus,
+  { label: string; className: string }
+> = {
+  draft: { label: "Draft", className: "bg-[#F0F0F3] text-[#60646C]" },
+  active: { label: "Active", className: "bg-[#E6F6EC] text-[#1A7F45]" },
+  completed: { label: "Completed", className: "bg-[#E8E6FC] text-[#5850DE]" },
+  cancelled: { label: "Cancelled", className: "bg-red-50 text-red-500" },
+};
+
+function TherapyPlanCard({
+  plan,
+  isLoading,
+  isError,
+  onRetry,
+  onDelete,
+  isDeleting,
+}: {
+  plan: TherapyPlan | undefined;
+  isLoading: boolean;
+  isError: boolean;
+  onRetry: () => void;
+  onDelete: () => void;
+  isDeleting: boolean;
+}) {
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+        <div className="flex items-center gap-2 text-gray-600">
+          <Loader2 size={18} className="animate-spin text-[#5850DE]" />
+          <span className="font-medium text-sm">Loading therapy plan...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !plan) {
+    return (
+      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-lg font-bold text-[#1B173A] flex items-center gap-2">
+            <ClipboardList size={18} className="text-[#5850DE]" />
+            Therapy Plan
+          </h3>
+          <Button variant="outline" size="sm" onClick={onRetry}>
+            Try again
+          </Button>
+        </div>
+        <p className="text-sm text-[#8E8E93] italic mt-2">
+          Couldn't load the therapy plan for this session.
+        </p>
+      </div>
+    );
+  }
+
+  const status = PLAN_STATUS_STYLE[plan.status] ?? {
+    label: plan.status,
+    className: "bg-[#F0F0F3] text-[#60646C]",
+  };
+
+  return (
+    <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+      <div className="flex items-start justify-between gap-3 mb-5">
+        <h3 className="text-lg font-bold text-[#1B173A] flex items-center gap-2">
+          <ClipboardList size={18} className="text-[#5850DE]" />
+          Therapy Plan
+        </h3>
+        <div className="flex items-center gap-2 shrink-0">
+          <span
+            className={`text-xs font-bold uppercase px-2.5 py-1 rounded-full ${status.className}`}
+          >
+            {status.label}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onDelete}
+            disabled={isDeleting}
+            className="flex items-center gap-1.5 text-red-500 border-red-200 hover:text-red-600 hover:bg-red-50 hover:border-red-300"
+          >
+            <Trash2 size={14} />
+            {isDeleting ? "Deleting..." : "Delete"}
+          </Button>
+        </div>
+      </div>
+
+      <h4 className="text-xl font-extrabold text-[#1B173A] break-words">
+        {plan.title}
+      </h4>
+
+      <div className="flex items-center gap-2 mt-3 text-sm text-[#60646C] font-medium">
+        <CalendarRange size={15} className="text-[#8E8E93]" />
+        {formatDate(plan.startDate)} — {formatDate(plan.endDate)}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+        <div className="rounded-2xl bg-[#F8F9FB] border border-[#E0E1E6] p-4">
+          <p className="text-xs font-bold text-[#8E8E93] uppercase flex items-center gap-2 mb-1.5">
+            <Target size={13} />
+            Reason
+          </p>
+          <p className="text-sm text-[#1B173A] leading-relaxed whitespace-pre-wrap">
+            {plan.reason}
+          </p>
+        </div>
+        <div className="rounded-2xl bg-[#F8F9FB] border border-[#E0E1E6] p-4">
+          <p className="text-xs font-bold text-[#8E8E93] uppercase flex items-center gap-2 mb-1.5">
+            <ListChecks size={13} />
+            General Instructions
+          </p>
+          <p className="text-sm text-[#1B173A] leading-relaxed whitespace-pre-wrap">
+            {plan.generalInstructions}
+          </p>
+        </div>
+      </div>
+
+      {/* Items live in the same section, below a divider */}
+      <div className="mt-6 pt-6 border-t border-[#E0E1E6]">
+        <TherapyPlanItems planId={plan.id} />
+      </div>
+    </div>
+  );
+}
 
 // Doctor notes are stored as rich-text HTML. Strip tags to tell whether there
 // is any actual content (an "empty" editor still yields "<p></p>").
@@ -203,10 +348,43 @@ export default function PsychologistSessionDetailPage() {
 
   const [isTherapyPlanOpen, setIsTherapyPlanOpen] = useState(false);
 
+  const deleteTherapyPlan = useDeleteTherapyPlan();
+  const [isDeletePlanModalOpen, setIsDeletePlanModalOpen] = useState(false);
+  // Remember which plan was just deleted so we stop fetching it while the
+  // session refetches and its `therapyPlan` reference clears.
+  const [deletedPlanId, setDeletedPlanId] = useState<string | null>(null);
+
+  // Treat the plan as gone the moment it's deleted, even before the session
+  // refetch lands — this keeps us from calling the plan GET on a deleted id.
+  const planId =
+    session?.therapyPlan && session.therapyPlan !== deletedPlanId
+      ? session.therapyPlan
+      : "";
+
+  const {
+    data: therapyPlan,
+    isLoading: isPlanLoading,
+    isError: isPlanError,
+    refetch: refetchPlan,
+  } = useTherapyPlan(planId);
+
   const handleConfirmDelete = () => {
     if (!id) return;
     deleteSession.mutate(id, {
       onSuccess: () => navigate("/psychologist/sessions"),
+    });
+  };
+
+  const handleConfirmDeletePlan = () => {
+    if (!session?.therapyPlan) return;
+    const targetPlanId = session.therapyPlan;
+    deleteTherapyPlan.mutate(targetPlanId, {
+      onSuccess: () => {
+        setDeletedPlanId(targetPlanId);
+        setIsDeletePlanModalOpen(false);
+        // Refresh the session so its `therapyPlan` reference clears.
+        refetch();
+      },
     });
   };
 
@@ -292,14 +470,16 @@ export default function PsychologistSessionDetailPage() {
                             {session.title}
                           </h2>
                           <div className="flex items-center gap-2 shrink-0">
-                            <Button
-                              size="sm"
-                              onClick={() => setIsTherapyPlanOpen(true)}
-                              className="flex items-center gap-1.5"
-                            >
-                              <ClipboardList size={14} />
-                              Therapy Plan
-                            </Button>
+                            {!planId && (
+                              <Button
+                                size="sm"
+                                onClick={() => setIsTherapyPlanOpen(true)}
+                                className="flex items-center gap-1.5"
+                              >
+                                <ClipboardList size={14} />
+                                Create Plan
+                              </Button>
+                            )}
                             <Button
                               variant="outline"
                               size="sm"
@@ -343,9 +523,49 @@ export default function PsychologistSessionDetailPage() {
                             Summary: {formatStatus(session.summaryStatus)}
                           </Badge>
                         </div>
+
+                        {/* Patient details */}
+                        <div className="mt-5 pt-5 border-t border-[#E0E1E6]">
+                          <p className="text-xs font-bold text-[#8E8E93] uppercase flex items-center gap-2 mb-2.5">
+                            <User size={13} />
+                            Patient Details
+                          </p>
+                          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[#60646C] font-medium">
+                            <span className="flex items-center gap-1.5 text-[#1B173A] font-bold">
+                              {session.client.firstName}{" "}
+                              {session.client.lastName}
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                              <AtSign size={14} className="text-[#8E8E93]" />
+                              {session.client.username}
+                            </span>
+                            {session.client.email.map((email) => (
+                              <a
+                                key={email}
+                                href={`mailto:${email}`}
+                                className="flex items-center gap-1.5 hover:text-[#5850DE] transition-colors"
+                              >
+                                <Mail size={14} className="text-[#8E8E93]" />
+                                {email}
+                              </a>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
+
+                  {/* Therapy Plan (with its items) */}
+                  {planId && (
+                    <TherapyPlanCard
+                      plan={therapyPlan}
+                      isLoading={isPlanLoading}
+                      isError={isPlanError}
+                      onRetry={() => refetchPlan()}
+                      onDelete={() => setIsDeletePlanModalOpen(true)}
+                      isDeleting={deleteTherapyPlan.isPending}
+                    />
+                  )}
 
                   {/* Audio */}
                   {session.audio && (
@@ -683,7 +903,7 @@ export default function PsychologistSessionDetailPage() {
       {isTherapyPlanOpen && session && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overflow-y-auto">
           <TherapyPlanForm
-            patientId={session.client}
+            patientId={session.client.id}
             sessionId={session.id}
             onCancel={() => setIsTherapyPlanOpen(false)}
             onSuccess={() => setIsTherapyPlanOpen(false)}
@@ -705,6 +925,24 @@ export default function PsychologistSessionDetailPage() {
               {session?.title}
             </span>
             ? This action cannot be undone.
+          </>
+        }
+      />
+
+      <ConfirmDeleteModal
+        isOpen={isDeletePlanModalOpen}
+        onClose={() => setIsDeletePlanModalOpen(false)}
+        onConfirm={handleConfirmDeletePlan}
+        isDeleting={deleteTherapyPlan.isPending}
+        title="Delete Therapy Plan"
+        confirmLabel="Delete Plan"
+        description={
+          <>
+            Are you sure you want to delete{" "}
+            <span className="font-semibold text-[#1B173A]">
+              {therapyPlan?.title ?? "this therapy plan"}
+            </span>
+            ? Its items will be removed too. This action cannot be undone.
           </>
         }
       />

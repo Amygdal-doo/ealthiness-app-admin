@@ -477,6 +477,32 @@ export interface TherapySessionsResponse {
   results: TherapySession[];
 }
 
+/**
+ * Patient (client) embedded in a single-session response. The list endpoint
+ * returns `client` as a plain id string; the by-id endpoint populates it.
+ */
+export interface SessionClient {
+  id: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  email: string[];
+  accomplishments: string[];
+  rating: number;
+  reviews: number;
+  price: number;
+  currency: string;
+  createdAt: string;
+}
+
+/**
+ * Single therapy session (GET /v1/therapy-sessions/:id). Differs from the list
+ * shape only in that `client` is the populated patient object.
+ */
+export interface TherapySessionDetail extends Omit<TherapySession, "client"> {
+  client: SessionClient;
+}
+
 export interface TherapySessionsQueryParams {
   page?: number;
   limit?: number;
@@ -516,8 +542,8 @@ export interface PatientMoodEntry {
   description: string | null;
   type: string;
   mood: number;
-  tags: string[];
-  specificMoodTags: string[];
+  tags: string[] | null;
+  specificMoodTags: string[] | null;
   creator: string;
   media: string | null;
   createdAt: string;
@@ -536,16 +562,28 @@ export interface CreateTherapyPlanPayload {
   items: unknown[];
 }
 
+export type TherapyPlanStatus =
+  | "draft"
+  | "active"
+  | "completed"
+  | "cancelled";
+
 export interface TherapyPlan {
   id: string;
-  patientId: string;
-  sessionId: string;
+  /** Patient (client) id. */
+  patient: string;
+  /** Creator (psychologist) id. */
+  creator: string;
   title: string;
   reason: string;
   generalInstructions: string;
+  /** ISO datetime. */
   startDate: string;
+  /** ISO datetime. */
   endDate: string;
-  items: unknown[];
+  status: TherapyPlanStatus;
+  /** Plan items — omitted by endpoints that don't populate them. */
+  items?: unknown[];
   createdAt: string;
   updatedAt: string;
 }

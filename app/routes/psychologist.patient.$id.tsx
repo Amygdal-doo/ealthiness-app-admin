@@ -585,7 +585,10 @@ function RecentMoodCard({
 
   const display = getMoodDisplay(mood.mood);
   const { date, time } = formatDateTime(mood.createdAt);
-  const tags = [...mood.tags, ...mood.specificMoodTags];
+  const tags = [
+    ...(Array.isArray(mood.tags) ? mood.tags : []),
+    ...(Array.isArray(mood.specificMoodTags) ? mood.specificMoodTags : []),
+  ];
 
   return (
     <div

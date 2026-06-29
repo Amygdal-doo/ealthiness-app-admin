@@ -250,3 +250,51 @@ export function describeItem(item: TherapyItemFormValue): string {
   if (item.dueDate.trim()) parts.push(`due ${item.dueDate.trim()}`);
   return parts.join(" · ");
 }
+
+/* -------------------------------------------------------------------------- */
+/*  API response types (GET /v1/therapy-plan/:id/items)                       */
+/* -------------------------------------------------------------------------- */
+
+/** A persisted therapy plan item as returned by the backend. */
+export interface TherapyPlanItem {
+  id: string;
+  patient: string;
+  therapyPlan: string;
+  type: TherapyItemType;
+  /** Role that issued the item, e.g. "psychologist". */
+  issuedBy: string;
+  /** Id of the user who issued the item. */
+  issuedByUser: string;
+  title: string;
+  description: string | null;
+  supplementProduct: string | null;
+  amount: string | null;
+  frequency: TherapyFrequency | null;
+  customFrequencyNote: string | null;
+  timing: TherapyTiming | null;
+  customTimingNote: string | null;
+  duration: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  dueDate: string | null;
+  instructions: string | null;
+  safetyNote: string | null;
+  status: TherapyItemStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TherapyPlanItemsResponse {
+  limit: number;
+  page: number;
+  pages: number;
+  total: number;
+  results: TherapyPlanItem[];
+}
+
+export interface TherapyPlanItemsQueryParams {
+  page?: number;
+  limit?: number;
+  type?: TherapyItemType;
+  status?: TherapyItemStatus;
+}

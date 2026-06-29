@@ -12,6 +12,7 @@ import type {
   PsychologistsQueryParams,
   PatientsQueryParams,
 } from "../auth/types";
+import type { TherapyPlanItemsQueryParams } from "../therapy/therapy-item";
 
 const API_BASE_URL =
   "https://elathiness-backend-app-company-idea-production.up.railway.app";
@@ -711,6 +712,43 @@ export function buildSessionSummaryAudioEndpoint(sessionId: string): string {
  */
 export function buildTherapyPlanEndpoint(): string {
   return `/v1/therapy-plan`;
+}
+
+/**
+ * Builds the endpoint for getting a single therapy plan by ID
+ */
+export function buildTherapyPlanDetailsEndpoint(planId: string): string {
+  return `/v1/therapy-plan/${planId}`;
+}
+
+/**
+ * Builds the endpoint for listing a therapy plan's items, with optional
+ * pagination and type / status filters.
+ */
+export function buildTherapyPlanItemsQueryString(
+  planId: string,
+  params: TherapyPlanItemsQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  if (params.type) {
+    searchParams.append("type", params.type);
+  }
+
+  if (params.status) {
+    searchParams.append("status", params.status);
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/therapy-plan/${planId}/items${queryString ? `?${queryString}` : ""}`;
 }
 
 /**
