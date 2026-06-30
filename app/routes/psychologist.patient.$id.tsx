@@ -553,7 +553,7 @@ function RecentMoodCard({
   isLoading,
   isError,
 }: {
-  mood: PatientMoodEntry | undefined;
+  mood: PatientMoodEntry | null | undefined;
   isLoading: boolean;
   isError: boolean;
 }) {

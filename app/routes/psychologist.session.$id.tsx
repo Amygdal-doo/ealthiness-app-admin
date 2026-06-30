@@ -24,11 +24,13 @@ import {
   Target,
   ListChecks,
   CalendarRange,
+  ChevronLeft,
+  ChevronRight,
   User,
   AtSign,
   Mail,
 } from "lucide-react";
-import { Badge, Button } from "~/components/ui";
+import { Badge, Button, Select } from "~/components/ui";
 import TherapyPlanForm from "~/components/forms/TherapyPlanForm";
 import TherapyPlanItems from "~/components/therapy/TherapyPlanItems";
 import AppSidebar from "~/components/shared/AppSidebar";
@@ -42,7 +44,7 @@ import {
   useUpdateSessionNotes,
   useDeleteSession,
   useGenerateSummaryAudio,
-  useTherapyPlan,
+  usePatientTherapyPlans,
   useDeleteTherapyPlan,
 } from "~/hooks/useAuthApi";
 import type {
@@ -112,51 +114,26 @@ const PLAN_STATUS_STYLE: Record<
   cancelled: { label: "Cancelled", className: "bg-red-50 text-red-500" },
 };
 
+const PLAN_STATUS_OPTIONS: { value: TherapyPlanStatus; label: string }[] = [
+  { value: "active", label: "Active" },
+  { value: "draft", label: "Draft" },
+  { value: "completed", label: "Completed" },
+  { value: "cancelled", label: "Cancelled" },
+];
+
 function TherapyPlanCard({
   plan,
-  isLoading,
-  isError,
-  onRetry,
   onDelete,
   isDeleting,
+  isExpanded,
+  onToggleItems,
 }: {
-  plan: TherapyPlan | undefined;
-  isLoading: boolean;
-  isError: boolean;
-  onRetry: () => void;
+  plan: TherapyPlan;
   onDelete: () => void;
   isDeleting: boolean;
+  isExpanded: boolean;
+  onToggleItems: () => void;
 }) {
-  if (isLoading) {
-    return (
-      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
-        <div className="flex items-center gap-2 text-gray-600">
-          <Loader2 size={18} className="animate-spin text-[#5850DE]" />
-          <span className="font-medium text-sm">Loading therapy plan...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (isError || !plan) {
-    return (
-      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
-        <div className="flex items-center justify-between gap-3">
-          <h3 className="text-lg font-bold text-[#1B173A] flex items-center gap-2">
-            <ClipboardList size={18} className="text-[#5850DE]" />
-            Therapy Plan
-          </h3>
-          <Button variant="outline" size="sm" onClick={onRetry}>
-            Try again
-          </Button>
-        </div>
-        <p className="text-sm text-[#8E8E93] italic mt-2">
-          Couldn't load the therapy plan for this session.
-        </p>
-      </div>
-    );
-  }
-
   const status = PLAN_STATUS_STYLE[plan.status] ?? {
     label: plan.status,
     className: "bg-[#F0F0F3] text-[#60646C]",
@@ -165,10 +142,9 @@ function TherapyPlanCard({
   return (
     <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
       <div className="flex items-start justify-between gap-3 mb-5">
-        <h3 className="text-lg font-bold text-[#1B173A] flex items-center gap-2">
-          <ClipboardList size={18} className="text-[#5850DE]" />
-          Therapy Plan
-        </h3>
+        <h4 className="text-xl font-extrabold text-[#1B173A] break-words">
+          {plan.title}
+        </h4>
         <div className="flex items-center gap-2 shrink-0">
           <span
             className={`text-xs font-bold uppercase px-2.5 py-1 rounded-full ${status.className}`}
@@ -188,11 +164,7 @@ function TherapyPlanCard({
         </div>
       </div>
 
-      <h4 className="text-xl font-extrabold text-[#1B173A] break-words">
-        {plan.title}
-      </h4>
-
-      <div className="flex items-center gap-2 mt-3 text-sm text-[#60646C] font-medium">
+      <div className="flex items-center gap-2 text-sm text-[#60646C] font-medium">
         <CalendarRange size={15} className="text-[#8E8E93]" />
         {formatDate(plan.startDate)} — {formatDate(plan.endDate)}
       </div>
@@ -218,9 +190,29 @@ function TherapyPlanCard({
         </div>
       </div>
 
-      {/* Items live in the same section, below a divider */}
+      {/* Plan items load lazily — only when "View Plan Items" is clicked. */}
       <div className="mt-6 pt-6 border-t border-[#E0E1E6]">
-        <TherapyPlanItems planId={plan.id} />
+        <button
+          type="button"
+          onClick={onToggleItems}
+          aria-expanded={isExpanded}
+          className="flex items-center gap-2 text-sm font-semibold text-[#5850DE] hover:text-[#473fd0] transition-colors"
+        >
+          <ListChecks size={16} />
+          {isExpanded ? "Hide Plan Items" : "View Plan Items"}
+          <ChevronDown
+            size={18}
+            className={`transition-transform duration-200 ${
+              isExpanded ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+
+        {isExpanded && (
+          <div className="mt-5 animate-in fade-in slide-in-from-top-2 duration-200">
+            <TherapyPlanItems planId={plan.id} />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -349,24 +341,36 @@ export default function PsychologistSessionDetailPage() {
   const [isTherapyPlanOpen, setIsTherapyPlanOpen] = useState(false);
 
   const deleteTherapyPlan = useDeleteTherapyPlan();
-  const [isDeletePlanModalOpen, setIsDeletePlanModalOpen] = useState(false);
-  // Remember which plan was just deleted so we stop fetching it while the
-  // session refetches and its `therapyPlan` reference clears.
-  const [deletedPlanId, setDeletedPlanId] = useState<string | null>(null);
+  // Plan targeted by the delete confirmation modal.
+  const [planToDelete, setPlanToDelete] = useState<TherapyPlan | null>(null);
+  // Which plan's items are expanded — items are fetched lazily on expand.
+  const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null);
 
-  // Treat the plan as gone the moment it's deleted, even before the session
-  // refetch lands — this keeps us from calling the plan GET on a deleted id.
-  const planId =
-    session?.therapyPlan && session.therapyPlan !== deletedPlanId
-      ? session.therapyPlan
-      : "";
+  // Patient's therapy plans, filtered by status and paginated.
+  const [planStatus, setPlanStatus] = useState<TherapyPlanStatus>("active");
+  const [planPage, setPlanPage] = useState(1);
 
+  const patientId = session?.client.id ?? "";
   const {
-    data: therapyPlan,
-    isLoading: isPlanLoading,
-    isError: isPlanError,
-    refetch: refetchPlan,
-  } = useTherapyPlan(planId);
+    data: plansData,
+    isLoading: isPlansLoading,
+    isError: isPlansError,
+    refetch: refetchPlans,
+    isFetching: isPlansFetching,
+  } = usePatientTherapyPlans(patientId, {
+    page: planPage,
+    limit: 10,
+    status: planStatus,
+  });
+
+  const plans = plansData?.results ?? [];
+  const planTotalPages = plansData?.pages ?? 1;
+
+  const handlePlanStatusChange = (value: string) => {
+    setPlanStatus(value as TherapyPlanStatus);
+    setPlanPage(1);
+    setExpandedPlanId(null);
+  };
 
   const handleConfirmDelete = () => {
     if (!id) return;
@@ -376,14 +380,14 @@ export default function PsychologistSessionDetailPage() {
   };
 
   const handleConfirmDeletePlan = () => {
-    if (!session?.therapyPlan) return;
-    const targetPlanId = session.therapyPlan;
+    if (!planToDelete) return;
+    const targetPlanId = planToDelete.id;
     deleteTherapyPlan.mutate(targetPlanId, {
       onSuccess: () => {
-        setDeletedPlanId(targetPlanId);
-        setIsDeletePlanModalOpen(false);
-        // Refresh the session so its `therapyPlan` reference clears.
-        refetch();
+        if (expandedPlanId === targetPlanId) setExpandedPlanId(null);
+        setPlanToDelete(null);
+        // Refresh the patient's plan list now that one is gone.
+        refetchPlans();
       },
     });
   };
@@ -470,16 +474,14 @@ export default function PsychologistSessionDetailPage() {
                             {session.title}
                           </h2>
                           <div className="flex items-center gap-2 shrink-0">
-                            {!planId && (
-                              <Button
-                                size="sm"
-                                onClick={() => setIsTherapyPlanOpen(true)}
-                                className="flex items-center gap-1.5"
-                              >
-                                <ClipboardList size={14} />
-                                Create Plan
-                              </Button>
-                            )}
+                            <Button
+                              size="sm"
+                              onClick={() => setIsTherapyPlanOpen(true)}
+                              className="flex items-center gap-1.5"
+                            >
+                              <ClipboardList size={14} />
+                              Create Plan
+                            </Button>
                             <Button
                               variant="outline"
                               size="sm"
@@ -555,17 +557,119 @@ export default function PsychologistSessionDetailPage() {
                     </div>
                   </div>
 
-                  {/* Therapy Plan (with its items) */}
-                  {planId && (
-                    <TherapyPlanCard
-                      plan={therapyPlan}
-                      isLoading={isPlanLoading}
-                      isError={isPlanError}
-                      onRetry={() => refetchPlan()}
-                      onDelete={() => setIsDeletePlanModalOpen(true)}
-                      isDeleting={deleteTherapyPlan.isPending}
-                    />
-                  )}
+                  {/* Therapy Plans for this patient */}
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <h3 className="text-lg font-bold text-[#1B173A] flex items-center gap-2">
+                        <ClipboardList size={18} className="text-[#5850DE]" />
+                        Therapy Plans
+                        {plansData && (
+                          <span className="text-sm font-semibold text-[#8E8E93]">
+                            ({plansData.total})
+                          </span>
+                        )}
+                      </h3>
+                      <div className="w-44">
+                        <Select
+                          value={planStatus}
+                          onChange={handlePlanStatusChange}
+                          options={PLAN_STATUS_OPTIONS}
+                        />
+                      </div>
+                    </div>
+
+                    {isPlansLoading ? (
+                      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Loader2
+                            size={18}
+                            className="animate-spin text-[#5850DE]"
+                          />
+                          <span className="font-medium text-sm">
+                            Loading therapy plans...
+                          </span>
+                        </div>
+                      </div>
+                    ) : isPlansError ? (
+                      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm text-[#8E8E93] italic">
+                            Couldn't load therapy plans.
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => refetchPlans()}
+                          >
+                            Try again
+                          </Button>
+                        </div>
+                      </div>
+                    ) : plans.length === 0 ? (
+                      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+                        <p className="text-sm text-[#8E8E93] italic">
+                          No {PLAN_STATUS_STYLE[planStatus].label.toLowerCase()}{" "}
+                          therapy plans for this patient.
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        {plans.map((plan) => (
+                          <TherapyPlanCard
+                            key={plan.id}
+                            plan={plan}
+                            onDelete={() => setPlanToDelete(plan)}
+                            isDeleting={
+                              deleteTherapyPlan.isPending &&
+                              planToDelete?.id === plan.id
+                            }
+                            isExpanded={expandedPlanId === plan.id}
+                            onToggleItems={() =>
+                              setExpandedPlanId((current) =>
+                                current === plan.id ? null : plan.id,
+                              )
+                            }
+                          />
+                        ))}
+
+                        {planTotalPages > 1 && (
+                          <div className="flex items-center justify-between bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm px-6 py-4">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={planPage <= 1 || isPlansFetching}
+                              onClick={() =>
+                                setPlanPage((p) => Math.max(1, p - 1))
+                              }
+                              className="flex items-center gap-1.5"
+                            >
+                              <ChevronLeft size={15} />
+                              Previous
+                            </Button>
+                            <span className="text-xs font-semibold text-[#60646C]">
+                              Page {planPage} of {planTotalPages}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={
+                                planPage >= planTotalPages || isPlansFetching
+                              }
+                              onClick={() =>
+                                setPlanPage((p) =>
+                                  Math.min(planTotalPages, p + 1),
+                                )
+                              }
+                              className="flex items-center gap-1.5"
+                            >
+                              Next
+                              <ChevronRight size={15} />
+                            </Button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
 
                   {/* Audio */}
                   {session.audio && (
@@ -930,8 +1034,8 @@ export default function PsychologistSessionDetailPage() {
       />
 
       <ConfirmDeleteModal
-        isOpen={isDeletePlanModalOpen}
-        onClose={() => setIsDeletePlanModalOpen(false)}
+        isOpen={planToDelete !== null}
+        onClose={() => setPlanToDelete(null)}
         onConfirm={handleConfirmDeletePlan}
         isDeleting={deleteTherapyPlan.isPending}
         title="Delete Therapy Plan"
@@ -940,7 +1044,7 @@ export default function PsychologistSessionDetailPage() {
           <>
             Are you sure you want to delete{" "}
             <span className="font-semibold text-[#1B173A]">
-              {therapyPlan?.title ?? "this therapy plan"}
+              {planToDelete?.title ?? "this therapy plan"}
             </span>
             ? Its items will be removed too. This action cannot be undone.
           </>

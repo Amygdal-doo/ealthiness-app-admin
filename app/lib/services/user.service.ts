@@ -11,6 +11,7 @@ import type {
   TherapySessionsQueryParams,
   PsychologistsQueryParams,
   PatientsQueryParams,
+  PatientTherapyPlansQueryParams,
 } from "../auth/types";
 import type { TherapyPlanItemsQueryParams } from "../therapy/therapy-item";
 
@@ -716,9 +717,36 @@ export function buildTherapyPlanEndpoint(): string {
 
 /**
  * Builds the endpoint for getting a single therapy plan by ID
+ * (still used for deleting a plan by id).
  */
 export function buildTherapyPlanDetailsEndpoint(planId: string): string {
   return `/v1/therapy-plan/${planId}`;
+}
+
+/**
+ * Builds the endpoint for listing a patient's therapy plans, with optional
+ * pagination and status filter (active / draft / completed / cancelled).
+ */
+export function buildPatientTherapyPlansQueryString(
+  patientId: string,
+  params: PatientTherapyPlansQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  if (params.status) {
+    searchParams.append("status", params.status);
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/therapy-plan/patient/${patientId}${queryString ? `?${queryString}` : ""}`;
 }
 
 /**

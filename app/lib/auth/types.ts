@@ -587,3 +587,17 @@ export interface TherapyPlan {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface PatientTherapyPlansQueryParams {
+  page?: number;
+  limit?: number;
+  status?: TherapyPlanStatus;
+}
+
+export interface TherapyPlansResponse {
+  limit: number;
+  page: number;
+  pages: number;
+  total: number;
+  results: TherapyPlan[];
+}

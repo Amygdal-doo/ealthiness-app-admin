@@ -27,6 +27,7 @@ import {
   buildPatientsQueryString,
   buildTherapyPlanEndpoint,
   buildTherapyPlanDetailsEndpoint,
+  buildPatientTherapyPlansQueryString,
   buildTherapyPlanItemsQueryString,
 } from "~/lib/services/user.service";
 import type {
@@ -64,6 +65,8 @@ import type {
   TtsGrokVoice,
   CreateTherapyPlanPayload,
   TherapyPlan,
+  TherapyPlansResponse,
+  PatientTherapyPlansQueryParams,
 } from "~/lib/auth/types";
 
 interface LoginResponse extends ApiAuthResponse {
@@ -1383,10 +1386,17 @@ export function usePsychologistPatient(patientId: string) {
   });
 }
 
+// Errors from apiClient are plain `ApiError` objects carrying the HTTP status.
+const isNotFoundError = (error: unknown): boolean =>
+  typeof error === "object" &&
+  error !== null &&
+  (error as { status?: number }).status === 404;
+
 export function usePatientRecentMood(patientId: string) {
   return useQuery({
+    // `null` is a valid result here: the patient simply has no recorded mood.
     queryKey: ["patient-recent-mood", patientId],
-    queryFn: async (): Promise<PatientMoodEntry> => {
+    queryFn: async (): Promise<PatientMoodEntry | null> => {
       const tokens = clientTokens.get();
       if (!tokens) {
         throw new Error("No access token available");
@@ -1394,16 +1404,29 @@ export function usePatientRecentMood(patientId: string) {
 
       try {
         const endpoint = `/v1/mental/psychologist/patient/${patientId}/recent`;
-        const response = await apiClient.get<PatientMoodEntry>(endpoint);
+        const response = await apiClient.get<PatientMoodEntry | null>(endpoint);
+        // No mood entry is an expected state — the API may answer with an empty
+        // body or an object without an `id`. Normalize all of these to `null`
+        // so callers can distinguish "no mood" from a real fetch error.
+        if (!response || !response.id) {
+          return null;
+        }
         return response;
       } catch (error) {
+        // A 404 means the patient has no recent mood — treat it as empty, not
+        // as an error, so the UI shows the soft empty state instead of a retry.
+        if (isNotFoundError(error)) {
+          return null;
+        }
         console.error("Error fetching patient recent mood:", error);
         throw error;
       }
     },
     retry: (failureCount, error) => {
-      // Don't retry if no tokens or auth error
-      return failureCount < 2 && !!clientTokens.get();
+      // Don't retry if no tokens, or if the patient simply has no mood (404).
+      return (
+        failureCount < 2 && !!clientTokens.get() && !isNotFoundError(error)
+      );
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: !!clientTokens.get() && !!patientId, // Only run if we have tokens and patientId
@@ -1469,27 +1492,30 @@ export function useScopedDashboardOverview(period?: DashboardPeriod) {
   });
 }
 
-export function useTherapyPlan(planId: string) {
+export function usePatientTherapyPlans(
+  patientId: string,
+  params: PatientTherapyPlansQueryParams = {},
+) {
   return useQuery({
-    queryKey: ["therapy-plan", planId],
-    queryFn: async (): Promise<TherapyPlan> => {
+    queryKey: ["therapy-plans", patientId, params],
+    queryFn: async (): Promise<TherapyPlansResponse> => {
       const tokens = clientTokens.get();
       if (!tokens) {
         throw new Error("No access token available");
       }
 
       try {
-        const endpoint = buildTherapyPlanDetailsEndpoint(planId);
-        const response = await apiClient.get<TherapyPlan>(endpoint);
+        const endpoint = buildPatientTherapyPlansQueryString(patientId, params);
+        const response = await apiClient.get<TherapyPlansResponse>(endpoint);
         return response;
       } catch (error) {
-        console.error("Error fetching therapy plan:", error);
+        console.error("Error fetching patient therapy plans:", error);
         throw error;
       }
     },
     retry: (failureCount) => failureCount < 2 && !!clientTokens.get(),
     staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: !!clientTokens.get() && !!planId, // Only run when we have a plan id
+    enabled: !!clientTokens.get() && !!patientId, // Only run when we have a patient id
   });
 }
 
