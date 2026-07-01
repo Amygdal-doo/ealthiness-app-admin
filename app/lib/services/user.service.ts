@@ -11,9 +11,10 @@ import type {
   TherapySessionsQueryParams,
   PsychologistsQueryParams,
   PatientsQueryParams,
-  PatientTherapyPlansQueryParams,
+  SessionTherapyPlansQueryParams,
 } from "../auth/types";
 import type { TherapyPlanItemsQueryParams } from "../therapy/therapy-item";
+import type { ProductSearchQueryParams } from "../products/product";
 
 const API_BASE_URL =
   "https://elathiness-backend-app-company-idea-production.up.railway.app";
@@ -724,12 +725,12 @@ export function buildTherapyPlanDetailsEndpoint(planId: string): string {
 }
 
 /**
- * Builds the endpoint for listing a patient's therapy plans, with optional
+ * Builds the endpoint for listing a session's therapy plans, with optional
  * pagination and status filter (active / draft / completed / cancelled).
  */
-export function buildPatientTherapyPlansQueryString(
-  patientId: string,
-  params: PatientTherapyPlansQueryParams = {},
+export function buildSessionTherapyPlansQueryString(
+  sessionId: string,
+  params: SessionTherapyPlansQueryParams = {},
 ): string {
   const searchParams = new URLSearchParams();
 
@@ -746,7 +747,7 @@ export function buildPatientTherapyPlansQueryString(
   }
 
   const queryString = searchParams.toString();
-  return `/v1/therapy-plan/patient/${patientId}${queryString ? `?${queryString}` : ""}`;
+  return `/v1/therapy-plan/session/${sessionId}${queryString ? `?${queryString}` : ""}`;
 }
 
 /**
@@ -777,6 +778,47 @@ export function buildTherapyPlanItemsQueryString(
 
   const queryString = searchParams.toString();
   return `/v1/therapy-plan/${planId}/items${queryString ? `?${queryString}` : ""}`;
+}
+
+/**
+ * Builds the endpoint for creating a new item within a therapy plan.
+ */
+export function buildTherapyPlanItemCreateEndpoint(planId: string): string {
+  return `/v1/therapy-plan/${planId}/items`;
+}
+
+/**
+ * Builds the endpoint for deleting a single item from a therapy plan.
+ */
+export function buildTherapyPlanItemDeleteEndpoint(
+  planId: string,
+  itemId: string,
+): string {
+  return `/v1/therapy-plan/${planId}/items/${itemId}`;
+}
+
+/**
+ * Builds the query string for the product search endpoint.
+ */
+export function buildProductSearchQueryString(
+  params: ProductSearchQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  if (params.search && params.search.trim()) {
+    searchParams.append("search", params.search.trim());
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/products/search${queryString ? `?${queryString}` : ""}`;
 }
 
 /**

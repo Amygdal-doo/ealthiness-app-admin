@@ -153,7 +153,10 @@ export interface TherapyItemFormValue {
   dueDate: string;
   customFrequencyNote: string;
   customTimingNote: string;
+  /** Linked product id (sent to the API). */
   supplementProduct: string;
+  /** Linked product display name — UI only, never sent to the API. */
+  supplementProductName: string;
   status: TherapyItemStatus | "";
 }
 
@@ -168,6 +171,7 @@ export const EMPTY_ITEM: TherapyItemFormValue = {
   customFrequencyNote: "",
   customTimingNote: "",
   supplementProduct: "",
+  supplementProductName: "",
   status: "",
 };
 
@@ -205,6 +209,7 @@ export const itemSchema = yup.object({
   customFrequencyNote: yup.string().trim().max(200),
   customTimingNote: yup.string().trim().max(200),
   supplementProduct: yup.string().trim().max(120),
+  supplementProductName: yup.string(),
   status: yup.string(),
 });
 

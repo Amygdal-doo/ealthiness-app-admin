@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { Badge, Button, Select } from "~/components/ui";
 import TherapyPlanForm from "~/components/forms/TherapyPlanForm";
+import EditTherapyPlanForm from "~/components/forms/EditTherapyPlanForm";
 import TherapyPlanItems from "~/components/therapy/TherapyPlanItems";
 import AppSidebar from "~/components/shared/AppSidebar";
 import TiptapEditor from "~/components/shared/TiptapEditor";
@@ -44,7 +45,7 @@ import {
   useUpdateSessionNotes,
   useDeleteSession,
   useGenerateSummaryAudio,
-  usePatientTherapyPlans,
+  useSessionTherapyPlans,
   useDeleteTherapyPlan,
 } from "~/hooks/useAuthApi";
 import type {
@@ -123,12 +124,14 @@ const PLAN_STATUS_OPTIONS: { value: TherapyPlanStatus; label: string }[] = [
 
 function TherapyPlanCard({
   plan,
+  onEdit,
   onDelete,
   isDeleting,
   isExpanded,
   onToggleItems,
 }: {
   plan: TherapyPlan;
+  onEdit: () => void;
   onDelete: () => void;
   isDeleting: boolean;
   isExpanded: boolean;
@@ -151,6 +154,16 @@ function TherapyPlanCard({
           >
             {status.label}
           </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onEdit}
+            disabled={isDeleting}
+            className="flex items-center gap-1.5"
+          >
+            <Pencil size={14} />
+            Edit
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -343,21 +356,23 @@ export default function PsychologistSessionDetailPage() {
   const deleteTherapyPlan = useDeleteTherapyPlan();
   // Plan targeted by the delete confirmation modal.
   const [planToDelete, setPlanToDelete] = useState<TherapyPlan | null>(null);
+  // Plan currently open in the edit modal.
+  const [planToEdit, setPlanToEdit] = useState<TherapyPlan | null>(null);
   // Which plan's items are expanded — items are fetched lazily on expand.
   const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null);
 
-  // Patient's therapy plans, filtered by status and paginated.
+  // This session's therapy plans, filtered by status and paginated.
   const [planStatus, setPlanStatus] = useState<TherapyPlanStatus>("active");
   const [planPage, setPlanPage] = useState(1);
 
-  const patientId = session?.client.id ?? "";
+  const sessionId = session?.id ?? id ?? "";
   const {
     data: plansData,
     isLoading: isPlansLoading,
     isError: isPlansError,
     refetch: refetchPlans,
     isFetching: isPlansFetching,
-  } = usePatientTherapyPlans(patientId, {
+  } = useSessionTherapyPlans(sessionId, {
     page: planPage,
     limit: 10,
     status: planStatus,
@@ -618,6 +633,7 @@ export default function PsychologistSessionDetailPage() {
                           <TherapyPlanCard
                             key={plan.id}
                             plan={plan}
+                            onEdit={() => setPlanToEdit(plan)}
                             onDelete={() => setPlanToDelete(plan)}
                             isDeleting={
                               deleteTherapyPlan.isPending &&
@@ -1011,6 +1027,20 @@ export default function PsychologistSessionDetailPage() {
             sessionId={session.id}
             onCancel={() => setIsTherapyPlanOpen(false)}
             onSuccess={() => setIsTherapyPlanOpen(false)}
+          />
+        </div>
+      )}
+
+      {/* Therapy plan edit modal */}
+      {planToEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overflow-y-auto">
+          <EditTherapyPlanForm
+            plan={planToEdit}
+            onCancel={() => setPlanToEdit(null)}
+            onSuccess={() => {
+              setPlanToEdit(null);
+              refetchPlans();
+            }}
           />
         </div>
       )}

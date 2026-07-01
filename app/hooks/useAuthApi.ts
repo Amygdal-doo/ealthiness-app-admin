@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { apiClient } from "~/lib/services/api";
 import { clientTokens } from "~/lib/auth/client-cookies";
 import { transformApiUser } from "~/lib/auth/utils";
@@ -27,13 +32,22 @@ import {
   buildPatientsQueryString,
   buildTherapyPlanEndpoint,
   buildTherapyPlanDetailsEndpoint,
-  buildPatientTherapyPlansQueryString,
+  buildSessionTherapyPlansQueryString,
   buildTherapyPlanItemsQueryString,
+  buildTherapyPlanItemCreateEndpoint,
+  buildTherapyPlanItemDeleteEndpoint,
+  buildProductSearchQueryString,
 } from "~/lib/services/user.service";
 import type {
   TherapyPlanItemsResponse,
   TherapyPlanItemsQueryParams,
+  TherapyPlanItem,
 } from "~/lib/therapy/therapy-item";
+import {
+  PRODUCT_SEARCH_MIN_CHARS,
+  type ProductSearchResponse,
+  type ProductSearchQueryParams,
+} from "~/lib/products/product";
 import type {
   User,
   LoginCredentials,
@@ -64,9 +78,10 @@ import type {
   PatientMoodEntry,
   TtsGrokVoice,
   CreateTherapyPlanPayload,
+  UpdateTherapyPlanPayload,
   TherapyPlan,
   TherapyPlansResponse,
-  PatientTherapyPlansQueryParams,
+  SessionTherapyPlansQueryParams,
 } from "~/lib/auth/types";
 
 interface LoginResponse extends ApiAuthResponse {
@@ -1492,12 +1507,12 @@ export function useScopedDashboardOverview(period?: DashboardPeriod) {
   });
 }
 
-export function usePatientTherapyPlans(
-  patientId: string,
-  params: PatientTherapyPlansQueryParams = {},
+export function useSessionTherapyPlans(
+  sessionId: string,
+  params: SessionTherapyPlansQueryParams = {},
 ) {
   return useQuery({
-    queryKey: ["therapy-plans", patientId, params],
+    queryKey: ["therapy-plans", sessionId, params],
     queryFn: async (): Promise<TherapyPlansResponse> => {
       const tokens = clientTokens.get();
       if (!tokens) {
@@ -1505,17 +1520,17 @@ export function usePatientTherapyPlans(
       }
 
       try {
-        const endpoint = buildPatientTherapyPlansQueryString(patientId, params);
+        const endpoint = buildSessionTherapyPlansQueryString(sessionId, params);
         const response = await apiClient.get<TherapyPlansResponse>(endpoint);
         return response;
       } catch (error) {
-        console.error("Error fetching patient therapy plans:", error);
+        console.error("Error fetching session therapy plans:", error);
         throw error;
       }
     },
     retry: (failureCount) => failureCount < 2 && !!clientTokens.get(),
     staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: !!clientTokens.get() && !!patientId, // Only run when we have a patient id
+    enabled: !!clientTokens.get() && !!sessionId, // Only run when we have a session id
   });
 }
 
@@ -1546,6 +1561,73 @@ export function useTherapyPlanItems(
   });
 }
 
+export function useAddTherapyPlanItem() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      planId,
+      item,
+    }: {
+      planId: string;
+      item: Record<string, unknown>;
+    }): Promise<TherapyPlanItem> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildTherapyPlanItemCreateEndpoint(planId);
+        const response = await apiClient.post<TherapyPlanItem>(endpoint, item);
+        return response;
+      } catch (error) {
+        console.error("Error adding therapy plan item:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, variables) => {
+      // Refresh the plan's item list to include the newly added item.
+      queryClient.invalidateQueries({
+        queryKey: ["therapy-plan-items", variables.planId],
+      });
+    },
+  });
+}
+
+export function useDeleteTherapyPlanItem() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      planId,
+      itemId,
+    }: {
+      planId: string;
+      itemId: string;
+    }): Promise<void> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildTherapyPlanItemDeleteEndpoint(planId, itemId);
+        await apiClient.delete<void>(endpoint);
+      } catch (error) {
+        console.error("Error deleting therapy plan item:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, variables) => {
+      // Refresh the plan's item list now that one is gone.
+      queryClient.invalidateQueries({
+        queryKey: ["therapy-plan-items", variables.planId],
+      });
+    },
+  });
+}
+
 export function useCreateTherapyPlan() {
   const queryClient = useQueryClient();
 
@@ -1568,13 +1650,45 @@ export function useCreateTherapyPlan() {
       }
     },
     onSuccess: (_data, variables) => {
-      // Refresh any views scoped to this patient / session.
+      // Refresh any views scoped to this session.
       queryClient.invalidateQueries({
-        queryKey: ["therapy-plans", variables.patientId],
+        queryKey: ["therapy-plans", variables.sessionId],
       });
       queryClient.invalidateQueries({
         queryKey: ["therapy-session", variables.sessionId],
       });
+    },
+  });
+}
+
+export function useUpdateTherapyPlan() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      planId,
+      data,
+    }: {
+      planId: string;
+      data: UpdateTherapyPlanPayload;
+    }): Promise<TherapyPlan> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildTherapyPlanDetailsEndpoint(planId);
+        const response = await apiClient.patch<TherapyPlan>(endpoint, data);
+        return response;
+      } catch (error) {
+        console.error("Error updating therapy plan:", error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      // Refresh any plan lists so the edited plan reflects its new values.
+      queryClient.invalidateQueries({ queryKey: ["therapy-plans"] });
     },
   });
 }
@@ -1604,5 +1718,40 @@ export function useDeleteTherapyPlan() {
       queryClient.removeQueries({ queryKey: ["therapy-plan-items", planId] });
       queryClient.invalidateQueries({ queryKey: ["therapy-plans"] });
     },
+  });
+}
+
+/**
+ * Searches the product catalog. The query only fires once the (trimmed) search
+ * term reaches {@link PRODUCT_SEARCH_MIN_CHARS} characters — callers are
+ * expected to pass an already-debounced term. Previous results are kept while
+ * paginating so the list doesn't flash between pages.
+ */
+export function useProductSearch(params: ProductSearchQueryParams = {}) {
+  const search = params.search?.trim() ?? "";
+  const canSearch = search.length >= PRODUCT_SEARCH_MIN_CHARS;
+
+  return useQuery({
+    queryKey: ["product-search", params],
+    queryFn: async (): Promise<ProductSearchResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildProductSearchQueryString(params);
+        const response = await apiClient.get<ProductSearchResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error searching products:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount) => failureCount < 2 && !!clientTokens.get(),
+    staleTime: 60 * 1000, // 1 minute
+    placeholderData: keepPreviousData,
+    // Only hit the API once we have tokens and enough characters to search.
+    enabled: !!clientTokens.get() && canSearch,
   });
 }

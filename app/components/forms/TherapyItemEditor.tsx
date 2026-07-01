@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Button, DatePicker, Input, Select, Textarea } from "~/components/ui";
 import { FormField } from "./FormField";
+import SupplementProductPicker from "./SupplementProductPicker";
 import {
   itemSchema,
   EMPTY_ITEM,
@@ -38,6 +39,8 @@ interface TherapyItemEditorProps {
   initialValue?: TherapyItemFormValue;
   onSave: (item: TherapyItemFormValue) => void;
   onCancel: () => void;
+  /** When the save is persisted asynchronously, disables the actions. */
+  isSaving?: boolean;
 }
 
 const star = (required: boolean) => (required ? " *" : "");
@@ -46,12 +49,14 @@ const TherapyItemEditor: React.FC<TherapyItemEditorProps> = ({
   initialValue,
   onSave,
   onCancel,
+  isSaving = false,
 }) => {
   const {
     register,
     handleSubmit,
     control,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<TherapyItemFormValue>({
     resolver: yupResolver(itemSchema) as never,
@@ -61,6 +66,7 @@ const TherapyItemEditor: React.FC<TherapyItemEditorProps> = ({
   const type = watch("type");
   const frequency = watch("frequency");
   const timing = watch("timing");
+  const supplementProductName = watch("supplementProductName");
 
   // Until a type is picked, only type + title + description are meaningful, so
   // hide every type-specific field. Each appears as the type is chosen.
@@ -267,19 +273,34 @@ const TherapyItemEditor: React.FC<TherapyItemEditorProps> = ({
           </FormField>
         )}
 
-        {/* Supplement product */}
+        {/* Supplement product — search the catalog and link a product */}
         {isVisible(rules.supplementProduct) && (
           <FormField
             label="Supplement product"
             icon={<Package size={14} />}
             htmlFor="item-supplementProduct"
-            hint="Linked product or free-text name"
+            hint="Search and link a product from the catalog"
             error={errors.supplementProduct?.message}
+            className="md:col-span-2"
           >
-            <Input
-              id="item-supplementProduct"
-              {...register("supplementProduct")}
-              placeholder="e.g. Vitamin D3 2000IU"
+            <Controller
+              control={control}
+              name="supplementProduct"
+              render={({ field }) => (
+                <SupplementProductPicker
+                  id="item-supplementProduct"
+                  value={field.value}
+                  valueName={supplementProductName}
+                  invalid={!!errors.supplementProduct}
+                  onChange={(productId, productName) => {
+                    field.onChange(productId);
+                    setValue("supplementProductName", productName, {
+                      shouldValidate: false,
+                      shouldDirty: true,
+                    });
+                  }}
+                />
+              )}
             />
           </FormField>
         )}
@@ -313,6 +334,7 @@ const TherapyItemEditor: React.FC<TherapyItemEditorProps> = ({
           variant="outline"
           size="sm"
           onClick={onCancel}
+          disabled={isSaving}
           className="flex items-center gap-1.5"
         >
           <X size={14} />
@@ -323,10 +345,15 @@ const TherapyItemEditor: React.FC<TherapyItemEditorProps> = ({
           type="button"
           size="sm"
           onClick={handleSubmit(onSave)}
+          disabled={isSaving}
           className="flex items-center gap-1.5"
         >
           <Check size={14} />
-          {initialValue ? "Update item" : "Add item"}
+          {isSaving
+            ? "Saving..."
+            : initialValue
+              ? "Update item"
+              : "Add item"}
         </Button>
       </div>
     </div>

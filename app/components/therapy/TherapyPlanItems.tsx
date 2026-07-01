@@ -12,9 +12,18 @@ import {
   Hourglass,
   Info,
   ShieldAlert,
+  Trash2,
+  Plus,
+  AlertCircle,
 } from "lucide-react";
 import { Button, Select } from "~/components/ui";
-import { useTherapyPlanItems } from "~/hooks/useAuthApi";
+import { ConfirmDeleteModal } from "~/components/modals/ConfirmDeleteModal";
+import TherapyItemEditor from "~/components/forms/TherapyItemEditor";
+import {
+  useTherapyPlanItems,
+  useAddTherapyPlanItem,
+  useDeleteTherapyPlanItem,
+} from "~/hooks/useAuthApi";
 import {
   TYPE_LABELS,
   STATUS_LABELS,
@@ -22,9 +31,11 @@ import {
   TIMING_LABELS,
   TYPE_OPTIONS,
   STATUS_OPTIONS,
+  toApiItem,
   TherapyItemType,
   TherapyItemStatus,
   type TherapyPlanItem,
+  type TherapyItemFormValue,
 } from "~/lib/therapy/therapy-item";
 
 const PAGE_SIZE = 10;
@@ -66,7 +77,11 @@ const Detail: React.FC<{
   </div>
 );
 
-const ItemRow: React.FC<{ item: TherapyPlanItem }> = ({ item }) => {
+const ItemRow: React.FC<{
+  item: TherapyPlanItem;
+  onDelete: () => void;
+  isDeleting: boolean;
+}> = ({ item, onDelete, isDeleting }) => {
   const frequency = item.frequency
     ? item.customFrequencyNote && item.frequency === "custom"
       ? item.customFrequencyNote
@@ -97,13 +112,28 @@ const ItemRow: React.FC<{ item: TherapyPlanItem }> = ({ item }) => {
             </p>
           )}
         </div>
-        <span
-          className={`shrink-0 text-[11px] font-bold uppercase px-2 py-1 rounded-full ${
-            STATUS_STYLE[item.status] ?? "bg-[#F0F0F3] text-[#60646C]"
-          }`}
-        >
-          {STATUS_LABELS[item.status] ?? item.status}
-        </span>
+        <div className="flex items-center gap-2 shrink-0">
+          <span
+            className={`text-[11px] font-bold uppercase px-2 py-1 rounded-full ${
+              STATUS_STYLE[item.status] ?? "bg-[#F0F0F3] text-[#60646C]"
+            }`}
+          >
+            {STATUS_LABELS[item.status] ?? item.status}
+          </span>
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={isDeleting}
+            aria-label="Delete item"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-[#60646C] hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isDeleting ? (
+              <Loader2 size={15} className="animate-spin" />
+            ) : (
+              <Trash2 size={15} />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Detail grid — only fields that are present */}
@@ -177,6 +207,14 @@ const TherapyPlanItems: React.FC<TherapyPlanItemsProps> = ({ planId }) => {
     { page, limit: PAGE_SIZE, type: typeFilter, status: statusFilter },
   );
 
+  const addItem = useAddTherapyPlanItem();
+  // Whether the inline "new item" editor is open.
+  const [isAdding, setIsAdding] = useState(false);
+
+  const deleteItem = useDeleteTherapyPlanItem();
+  // Item targeted by the delete confirmation modal.
+  const [itemToDelete, setItemToDelete] = useState<TherapyPlanItem | null>(null);
+
   // Reset to the first page whenever a filter changes.
   const onTypeChange = (value: string) => {
     setTypeFilter(value === ALL ? undefined : (value as TherapyItemType));
@@ -189,6 +227,37 @@ const TherapyPlanItems: React.FC<TherapyPlanItemsProps> = ({ planId }) => {
 
   const items = data?.results ?? [];
   const totalPages = data?.pages ?? 1;
+
+  const handleAddItem = (value: TherapyItemFormValue) => {
+    addItem.mutate(
+      { planId, item: toApiItem(value) },
+      {
+        onSuccess: () => {
+          setIsAdding(false);
+          // Jump back to the first page so the new item is visible.
+          if (page !== 1) setPage(1);
+        },
+      },
+    );
+  };
+
+  const handleConfirmDelete = () => {
+    if (!itemToDelete) return;
+    deleteItem.mutate(
+      { planId, itemId: itemToDelete.id },
+      {
+        onSuccess: () => {
+          // If we just removed the last row on a page, step back a page.
+          if (items.length === 1 && page > 1) {
+            setPage((p) => Math.max(1, p - 1));
+          } else {
+            refetch();
+          }
+          setItemToDelete(null);
+        },
+      },
+    );
+  };
 
   return (
     <div>
@@ -221,8 +290,36 @@ const TherapyPlanItems: React.FC<TherapyPlanItemsProps> = ({ planId }) => {
               ]}
             />
           </div>
+          <Button
+            size="sm"
+            onClick={() => setIsAdding(true)}
+            disabled={isAdding}
+            className="flex items-center gap-1.5"
+          >
+            <Plus size={15} />
+            Add Item
+          </Button>
         </div>
       </div>
+
+      {/* Inline editor for a new item */}
+      {isAdding && (
+        <div className="mb-5">
+          <TherapyItemEditor
+            onSave={handleAddItem}
+            onCancel={() => setIsAdding(false)}
+            isSaving={addItem.isPending}
+          />
+          {addItem.isError && (
+            <p className="mt-2 text-sm text-red-500 font-medium flex items-center gap-1.5">
+              <AlertCircle size={14} />
+              {addItem.error instanceof Error
+                ? addItem.error.message
+                : "Couldn't add the item. Please try again."}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* States */}
       {isLoading ? (
@@ -248,7 +345,14 @@ const TherapyPlanItems: React.FC<TherapyPlanItemsProps> = ({ planId }) => {
       ) : (
         <div className="space-y-3">
           {items.map((item) => (
-            <ItemRow key={item.id} item={item} />
+            <ItemRow
+              key={item.id}
+              item={item}
+              onDelete={() => setItemToDelete(item)}
+              isDeleting={
+                deleteItem.isPending && itemToDelete?.id === item.id
+              }
+            />
           ))}
         </div>
       )}
@@ -281,6 +385,24 @@ const TherapyPlanItems: React.FC<TherapyPlanItemsProps> = ({ planId }) => {
           </Button>
         </div>
       )}
+
+      <ConfirmDeleteModal
+        isOpen={itemToDelete !== null}
+        onClose={() => setItemToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={deleteItem.isPending}
+        title="Delete Plan Item"
+        confirmLabel="Delete Item"
+        description={
+          <>
+            Are you sure you want to delete{" "}
+            <span className="font-semibold text-[#1B173A]">
+              {itemToDelete?.title ?? "this item"}
+            </span>
+            ? This action cannot be undone.
+          </>
+        }
+      />
     </div>
   );
 };

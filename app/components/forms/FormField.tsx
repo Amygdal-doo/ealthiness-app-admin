@@ -6,6 +6,7 @@ interface FormFieldProps {
   htmlFor?: string;
   error?: string;
   hint?: string;
+  className?: string;
   children: React.ReactNode;
 }
 
@@ -16,9 +17,10 @@ export const FormField: React.FC<FormFieldProps> = ({
   htmlFor,
   error,
   hint,
+  className,
   children,
 }) => (
-  <div className="space-y-2">
+  <div className={`space-y-2${className ? ` ${className}` : ""}`}>
     <label
       htmlFor={htmlFor}
       className="text-xs font-bold text-[#8E8E93] uppercase flex items-center gap-2"

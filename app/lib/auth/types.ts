@@ -568,12 +568,23 @@ export type TherapyPlanStatus =
   | "completed"
   | "cancelled";
 
+export interface UpdateTherapyPlanPayload {
+  title: string;
+  reason: string;
+  generalInstructions: string;
+  startDate: string;
+  endDate: string;
+  status: TherapyPlanStatus;
+}
+
 export interface TherapyPlan {
   id: string;
   /** Patient (client) id. */
   patient: string;
   /** Creator (psychologist) id. */
   creator: string;
+  /** Session this plan was created from. */
+  session: string;
   title: string;
   reason: string;
   generalInstructions: string;
@@ -588,7 +599,7 @@ export interface TherapyPlan {
   updatedAt: string;
 }
 
-export interface PatientTherapyPlansQueryParams {
+export interface SessionTherapyPlansQueryParams {
   page?: number;
   limit?: number;
   status?: TherapyPlanStatus;
