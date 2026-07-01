@@ -37,6 +37,7 @@ import {
   buildTherapyPlanItemCreateEndpoint,
   buildTherapyPlanItemDeleteEndpoint,
   buildProductSearchQueryString,
+  buildExercisesQueryString,
 } from "~/lib/services/user.service";
 import type {
   TherapyPlanItemsResponse,
@@ -48,6 +49,10 @@ import {
   type ProductSearchResponse,
   type ProductSearchQueryParams,
 } from "~/lib/products/product";
+import type {
+  ExercisesResponse,
+  ExercisesQueryParams,
+} from "~/lib/exercises/exercise";
 import type {
   User,
   LoginCredentials,
@@ -1753,5 +1758,30 @@ export function useProductSearch(params: ProductSearchQueryParams = {}) {
     placeholderData: keepPreviousData,
     // Only hit the API once we have tokens and enough characters to search.
     enabled: !!clientTokens.get() && canSearch,
+  });
+}
+
+export function useExercises(params: ExercisesQueryParams = {}) {
+  return useQuery({
+    queryKey: ["exercises", params],
+    queryFn: async (): Promise<ExercisesResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildExercisesQueryString(params);
+        const response = await apiClient.get<ExercisesResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching exercises:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount) => failureCount < 2 && !!clientTokens.get(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    placeholderData: keepPreviousData,
+    enabled: !!clientTokens.get(),
   });
 }

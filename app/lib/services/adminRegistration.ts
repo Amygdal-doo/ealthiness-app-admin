@@ -55,6 +55,12 @@ export const acceptAdminInvite = async (
     case "region":
       endpoint = `/v1/admin/region/invite/accept?token=${inviteToken}`;
       break;
+    case "psychologist":
+      endpoint = `/v1/admin/psychologist/invite/accept?token=${inviteToken}`;
+      break;
+    case "doctor":
+      endpoint = `/v1/admin/doctor/invite/accept?token=${inviteToken}`;
+      break;
     default:
       throw new Error("Invalid admin type");
   }

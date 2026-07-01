@@ -15,6 +15,7 @@ import type {
 } from "../auth/types";
 import type { TherapyPlanItemsQueryParams } from "../therapy/therapy-item";
 import type { ProductSearchQueryParams } from "../products/product";
+import type { ExercisesQueryParams } from "../exercises/exercise";
 
 const API_BASE_URL =
   "https://elathiness-backend-app-company-idea-production.up.railway.app";
@@ -795,6 +796,39 @@ export function buildTherapyPlanItemDeleteEndpoint(
   itemId: string,
 ): string {
   return `/v1/therapy-plan/${planId}/items/${itemId}`;
+}
+
+/**
+ * Builds the query string for the exercise pagination endpoint.
+ * Empty filters are omitted so "no filter" means all exercises.
+ */
+export function buildExercisesQueryString(
+  params: ExercisesQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  if (params.name && params.name.trim()) {
+    searchParams.append("name", params.name.trim());
+  }
+
+  if (params.level) {
+    searchParams.append("level", params.level);
+  }
+
+  if (params.body_part) {
+    searchParams.append("body_part", params.body_part);
+  }
+
+  const queryString = searchParams.toString();
+  return `/v2/exercise/pagination${queryString ? `?${queryString}` : ""}`;
 }
 
 /**
