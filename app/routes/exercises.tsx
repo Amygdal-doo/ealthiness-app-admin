@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { createPortal } from "react-dom";
 import type { Route } from "./+types/exercises";
 import {
   Dumbbell,
@@ -8,11 +7,9 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
-  X,
   Layers,
   Wrench,
-  Zap,
-  Target,
+  Plus,
 } from "lucide-react";
 import { Input, Button, Select } from "~/components/ui";
 import AppSidebar from "~/components/shared/AppSidebar";
@@ -20,6 +17,7 @@ import Navbar from "~/components/shared/Navbar";
 import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
 import { useExercises } from "~/hooks/useAuthApi";
+import { CreateExerciseModal } from "~/components/modals/CreateExerciseModal";
 import {
   EXERCISE_LEVELS,
   EXERCISE_BODY_PARTS,
@@ -133,159 +131,6 @@ const ExerciseCard: React.FC<{
 };
 
 /* -------------------------------------------------------------------------- */
-/*  Details modal                                                             */
-/* -------------------------------------------------------------------------- */
-
-const DetailRow: React.FC<{
-  icon: React.ReactNode;
-  label: string;
-  value: React.ReactNode;
-}> = ({ icon, label, value }) => (
-  <div className="flex items-start gap-2">
-    <span className="text-[#8E8E93] mt-0.5">{icon}</span>
-    <div className="min-w-0">
-      <p className="text-[11px] font-bold text-[#8E8E93] uppercase">{label}</p>
-      <p className="text-sm text-[#1B173A] capitalize break-words">{value}</p>
-    </div>
-  </div>
-);
-
-const ExerciseDetailsModal: React.FC<{
-  exercise: Exercise;
-  onClose: () => void;
-}> = ({ exercise, onClose }) => {
-  if (typeof document === "undefined") return null;
-
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[10000] bg-black/50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-200"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="p-6 border-b border-[#E0E1E6] flex items-start justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-lg bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center shrink-0">
-              <Dumbbell size={20} />
-            </div>
-            <div className="min-w-0">
-              <h3 className="text-lg font-bold text-[#1B173A] break-words">
-                {exercise.name}
-              </h3>
-              <span
-                className={`inline-block mt-1 text-[11px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                  LEVEL_STYLE[exercise.level] ?? "bg-[#F0F0F3] text-[#60646C]"
-                }`}
-              >
-                {exercise.level}
-              </span>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="p-1 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
-          >
-            <X size={20} className="text-gray-500" />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Images */}
-          {exercise.images.length > 0 && (
-            <div className="flex gap-3 overflow-x-auto pb-1">
-              {exercise.images.map((image) => (
-                <img
-                  key={image.url}
-                  src={image.url}
-                  alt={image.name}
-                  className="h-40 rounded-xl border border-[#E0E1E6] object-cover shrink-0"
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Metadata */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {exercise.category && (
-              <DetailRow
-                icon={<Layers size={14} />}
-                label="Category"
-                value={exercise.category}
-              />
-            )}
-            {exercise.equipment && (
-              <DetailRow
-                icon={<Wrench size={14} />}
-                label="Equipment"
-                value={exercise.equipment}
-              />
-            )}
-            {exercise.force && (
-              <DetailRow
-                icon={<Zap size={14} />}
-                label="Force"
-                value={exercise.force}
-              />
-            )}
-            {exercise.mechanic && (
-              <DetailRow
-                icon={<Target size={14} />}
-                label="Mechanic"
-                value={exercise.mechanic}
-              />
-            )}
-          </div>
-
-          {/* Muscles */}
-          {exercise.primaryMuscles.length > 0 && (
-            <div className="space-y-1.5">
-              <p className="text-[11px] font-bold text-[#8E8E93] uppercase">
-                Primary muscles
-              </p>
-              <MuscleChips muscles={exercise.primaryMuscles} />
-            </div>
-          )}
-          {exercise.secondaryMuscles.length > 0 && (
-            <div className="space-y-1.5">
-              <p className="text-[11px] font-bold text-[#8E8E93] uppercase">
-                Secondary muscles
-              </p>
-              <MuscleChips muscles={exercise.secondaryMuscles} />
-            </div>
-          )}
-
-          {/* Instructions */}
-          {exercise.instructions.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-[11px] font-bold text-[#8E8E93] uppercase">
-                Instructions
-              </p>
-              <ol className="space-y-2">
-                {exercise.instructions.map((step, index) => (
-                  <li key={index} className="flex gap-3 text-sm text-[#1B173A]">
-                    <span className="w-5 h-5 rounded-full bg-[#E8E6FC] text-[#5850DE] text-xs font-bold flex items-center justify-center shrink-0">
-                      {index + 1}
-                    </span>
-                    <span className="leading-relaxed">{step}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>,
-    document.body,
-  );
-};
-
-/* -------------------------------------------------------------------------- */
 /*  Page                                                                      */
 /* -------------------------------------------------------------------------- */
 
@@ -298,7 +143,7 @@ export default function ExercisesPage() {
   const [level, setLevel] = useState<ExerciseLevel | undefined>();
   const [bodyPart, setBodyPart] = useState<ExerciseBodyPart | undefined>();
   const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState<Exercise | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   // Debounce the search box; reset to the first page when the query settles.
   useEffect(() => {
@@ -370,6 +215,10 @@ export default function ExercisesPage() {
                       : "Browse the exercise catalog"}
                   </p>
                 </div>
+                <Button onClick={() => setIsCreateOpen(true)}>
+                  <Plus size={18} className="mr-2" />
+                  Create Exercise
+                </Button>
               </div>
 
               {/* Search and Filters */}
@@ -444,7 +293,7 @@ export default function ExercisesPage() {
                     <ExerciseCard
                       key={exercise.id}
                       exercise={exercise}
-                      onClick={() => setSelected(exercise)}
+                      onClick={() => navigate(`/exercises/${exercise.id}`)}
                     />
                   ))}
                 </div>
@@ -490,12 +339,10 @@ export default function ExercisesPage() {
         </div>
       </div>
 
-      {selected && (
-        <ExerciseDetailsModal
-          exercise={selected}
-          onClose={() => setSelected(null)}
-        />
-      )}
+      <CreateExerciseModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+      />
     </RoleGuard>
   );
 }

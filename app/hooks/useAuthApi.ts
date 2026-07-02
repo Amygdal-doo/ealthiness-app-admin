@@ -52,6 +52,8 @@ import {
 import type {
   ExercisesResponse,
   ExercisesQueryParams,
+  Exercise,
+  CreateExercisePayload,
 } from "~/lib/exercises/exercise";
 import type {
   User,
@@ -1821,5 +1823,108 @@ export function useExercises(params: ExercisesQueryParams = {}) {
     staleTime: 5 * 60 * 1000, // 5 minutes
     placeholderData: keepPreviousData,
     enabled: !!clientTokens.get(),
+  });
+}
+
+export function useExercise(exerciseId: string) {
+  return useQuery({
+    queryKey: ["exercise", exerciseId],
+    queryFn: async (): Promise<Exercise> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const response = await apiClient.get<Exercise>(
+          `/v1/exercise/${exerciseId}`,
+        );
+        return response;
+      } catch (error) {
+        console.error("Error fetching exercise:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount) => failureCount < 2 && !!clientTokens.get(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get() && !!exerciseId,
+  });
+}
+
+export function useCreateExercise() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: CreateExercisePayload): Promise<Exercise> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        // The endpoint accepts image/video files, so send multipart/form-data.
+        const formData = new FormData();
+        formData.append("name", payload.name);
+        formData.append("force", payload.force);
+        formData.append("category", payload.category);
+        formData.append("mechanic", payload.mechanic);
+        formData.append("equipment", payload.equipment);
+        formData.append("level", payload.level);
+
+        payload.instructions.forEach((instruction) =>
+          formData.append("instructions", instruction),
+        );
+        payload.primaryMuscles.forEach((muscle) =>
+          formData.append("primaryMuscles", muscle),
+        );
+        payload.secondaryMuscles.forEach((muscle) =>
+          formData.append("secondaryMuscles", muscle),
+        );
+        payload.images.forEach((image) => formData.append("images", image));
+        payload.videos.forEach((video) => formData.append("videos", video));
+
+        const response = await apiClient.post<Exercise>(
+          "/v1/exercise",
+          formData,
+        );
+        return response;
+      } catch (error) {
+        console.error("Error creating exercise:", error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      // Refresh the exercise catalog so the new exercise shows up.
+      queryClient.invalidateQueries({ queryKey: ["exercises"] });
+    },
+  });
+}
+
+export function useDeleteExercise() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (exerciseId: string): Promise<{ message: string }> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const response = await apiClient.delete<{ message: string }>(
+          `/v1/exercise/${exerciseId}`,
+        );
+        return response;
+      } catch (error) {
+        console.error("Error deleting exercise:", error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      // Refresh the catalog. The detail query is disabled by the caller before
+      // navigating away, so we avoid removing it here (removing an active query
+      // would trigger an immediate refetch of the now-deleted exercise).
+      queryClient.invalidateQueries({ queryKey: ["exercises"] });
+    },
   });
 }
