@@ -29,6 +29,7 @@ import {
   buildPatientDetailsEndpoint,
   buildPatientSessionsQueryString,
   buildPsychologistsQueryString,
+  buildDoctorsQueryString,
   buildPatientsQueryString,
   buildTherapyPlanEndpoint,
   buildTherapyPlanDetailsEndpoint,
@@ -79,6 +80,8 @@ import type {
   TherapySessionsQueryParams,
   PsychologistsResponse,
   PsychologistsQueryParams,
+  DoctorsResponse,
+  DoctorsQueryParams,
   ApiPatient,
   PatientsResponse,
   PatientsQueryParams,
@@ -282,6 +285,33 @@ export function usePsychologists(params: PsychologistsQueryParams = {}) {
         return response;
       } catch (error) {
         console.error("Error fetching psychologists:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get(), // Only run if we have tokens
+  });
+}
+
+export function useDoctors(params: DoctorsQueryParams = {}) {
+  return useQuery({
+    queryKey: ["doctors", params],
+    queryFn: async (): Promise<DoctorsResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildDoctorsQueryString(params);
+        const response = await apiClient.get<DoctorsResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching doctors:", error);
         throw error;
       }
     },
@@ -607,6 +637,37 @@ export function useInvitePsychologist() {
     onSuccess: () => {
       // Invalidate psychologists list once it is backed by a real API.
       queryClient.invalidateQueries({ queryKey: ["psychologists"] });
+    },
+  });
+}
+
+export function useInviteDoctor() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      email,
+    }: {
+      email: string;
+    }): Promise<{ message: string }> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = `/v1/admin/doctor/invite`;
+        const response = await apiClient.post<{ message: string }>(endpoint, {
+          email,
+        });
+        return response;
+      } catch (error) {
+        console.error("Error inviting doctor:", error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["doctors"] });
     },
   });
 }

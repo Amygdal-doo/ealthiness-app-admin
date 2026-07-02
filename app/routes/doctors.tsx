@@ -4,8 +4,9 @@ import { Link } from "react-router";
 import type { Route } from "./+types/doctors";
 import {
   Stethoscope,
-  User,
-  UserCheck,
+  Users,
+  Building2,
+  UserPlus,
   Search,
   ChevronDown,
   ChevronLeft,
@@ -17,7 +18,9 @@ import AppSidebar from "~/components/shared/AppSidebar";
 import Navbar from "~/components/shared/Navbar";
 import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
-import type { ApiUser } from "~/lib/auth/types";
+import { useDoctors } from "~/hooks/useAuthApi";
+import type { ApiDoctor } from "~/lib/auth/types";
+import { InviteDoctorModal } from "~/components/modals/InviteDoctorModal";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -28,88 +31,6 @@ export function meta({}: Route.MetaArgs) {
     },
   ];
 }
-
-// TODO: Replace with real doctors API once available.
-const DUMMY_DOCTORS: ApiUser[] = [
-  {
-    id: "doc-1",
-    firstName: "Sarah",
-    lastName: "Johnson",
-    username: "sjohnson",
-    email: ["sarah.johnson@ealthiness.com"],
-    roles: ["DOCTOR"],
-    height: 168,
-    weight: 62,
-    gender: "female",
-    createdAt: "2024-01-15T09:00:00.000Z",
-    updatedAt: "2024-01-15T09:00:00.000Z",
-  },
-  {
-    id: "doc-2",
-    firstName: "Michael",
-    lastName: "Chen",
-    username: "mchen",
-    email: ["michael.chen@ealthiness.com"],
-    roles: ["DOCTOR"],
-    height: 178,
-    weight: 75,
-    gender: "male",
-    createdAt: "2024-02-20T09:00:00.000Z",
-    updatedAt: "2024-02-20T09:00:00.000Z",
-  },
-  {
-    id: "doc-3",
-    firstName: "Emily",
-    lastName: "Rodriguez",
-    username: "erodriguez",
-    email: ["emily.rodriguez@ealthiness.com"],
-    roles: ["DOCTOR"],
-    height: 165,
-    weight: 58,
-    gender: "female",
-    createdAt: "2024-03-05T09:00:00.000Z",
-    updatedAt: "2024-03-05T09:00:00.000Z",
-  },
-  {
-    id: "doc-4",
-    firstName: "David",
-    lastName: "Williams",
-    username: "dwilliams",
-    email: ["david.williams@ealthiness.com"],
-    roles: ["DOCTOR"],
-    height: 182,
-    weight: 84,
-    gender: "male",
-    createdAt: "2024-03-28T09:00:00.000Z",
-    updatedAt: "2024-03-28T09:00:00.000Z",
-  },
-  {
-    id: "doc-5",
-    firstName: "Aisha",
-    lastName: "Khan",
-    username: "akhan",
-    email: ["aisha.khan@ealthiness.com"],
-    roles: ["DOCTOR"],
-    height: 170,
-    weight: 64,
-    gender: "female",
-    createdAt: "2024-04-12T09:00:00.000Z",
-    updatedAt: "2024-04-12T09:00:00.000Z",
-  },
-  {
-    id: "doc-6",
-    firstName: "James",
-    lastName: "Anderson",
-    username: "janderson",
-    email: ["james.anderson@ealthiness.com"],
-    roles: ["DOCTOR"],
-    height: 175,
-    weight: 78,
-    gender: "male",
-    createdAt: "2024-05-01T09:00:00.000Z",
-    updatedAt: "2024-05-01T09:00:00.000Z",
-  },
-];
 
 const PAGE_SIZE = 10;
 
@@ -127,6 +48,7 @@ export default function DoctorsPage() {
     "ascending",
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const sortOptions = [
@@ -161,49 +83,31 @@ export default function DoctorsPage() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Dummy data source — filtered/sorted/paginated client-side to mirror the
-  // users API response shape used by the customers page.
-  const isLoading = false;
-
-  const filteredDoctors = DUMMY_DOCTORS.filter((doctor) => {
-    if (!debouncedSearchTerm) return true;
-    const term = debouncedSearchTerm.toLowerCase();
-    return (
-      `${doctor.firstName} ${doctor.lastName}`.toLowerCase().includes(term) ||
-      doctor.username.toLowerCase().includes(term) ||
-      doctor.email[0].toLowerCase().includes(term)
-    );
-  });
-
-  const sortedDoctors = [...filteredDoctors].sort((a, b) => {
-    const getValue = (doctor: ApiUser) =>
-      orderBy === "birthdate" ? doctor.createdAt : (doctor[orderBy] ?? "");
-    const aValue = getValue(a).toString().toLowerCase();
-    const bValue = getValue(b).toString().toLowerCase();
-    const comparison = aValue.localeCompare(bValue);
-    return sortType === "ascending" ? comparison : -comparison;
-  });
-
-  const total = sortedDoctors.length;
-  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const usersResponse = {
-    limit: PAGE_SIZE,
+  // Search, ordering and pagination are all handled server-side.
+  const {
+    data: doctorsResponse,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useDoctors({
     page: currentPage,
-    pages,
-    total,
-    results: sortedDoctors.slice(
-      (currentPage - 1) * PAGE_SIZE,
-      currentPage * PAGE_SIZE,
-    ),
-  };
+    limit: PAGE_SIZE,
+    search: debouncedSearchTerm,
+    orderBy,
+    type: sortType,
+  });
 
   const handleRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 500);
+    refetch().finally(() => setRefreshing(false));
   };
 
   const handleLogout = () => {
     navigate("/");
+  };
+
+  const handleInviteDoctor = () => {
+    setIsInviteModalOpen(true);
   };
 
   if (!user) {
@@ -217,21 +121,22 @@ export default function DoctorsPage() {
     );
   }
 
-  // Transform API users to display format
-  const transformUser = (apiUser: ApiUser) => ({
-    id: apiUser.id,
-    name: `${apiUser.firstName} ${apiUser.lastName}`,
-    roles: apiUser.roles, // Show all roles
-    joined: new Date(apiUser.createdAt).toLocaleDateString(),
-    status: "Active", // API doesn't provide status, defaulting to Active
-    weight: apiUser.weight ? `${apiUser.weight}kg` : "N/A",
-    height: apiUser.height ? `${apiUser.height}cm` : "N/A",
-    username: apiUser.username,
-    email: apiUser.email[0],
-    gender: apiUser.gender, // Include gender for icon display
+  // Transform API doctors to display format
+  const transformDoctor = (apiDoctor: ApiDoctor) => ({
+    id: apiDoctor.id,
+    name: `${apiDoctor.firstName} ${apiDoctor.lastName}`,
+    roles: apiDoctor.roles, // Show all roles
+    joined: new Date(apiDoctor.createdAt).toLocaleDateString(),
+    country: apiDoctor.country ?? "—",
+    patientsCount: apiDoctor.patientsCount ?? 0,
+    companiesCount: apiDoctor.companiesCount ?? 0,
+    username: apiDoctor.username,
+    email: apiDoctor.email[0] ?? "—",
+    profileImage: apiDoctor.profileImage,
   });
 
-  const visibleDoctors = usersResponse?.results?.map(transformUser) || [];
+  const visibleDoctors =
+    doctorsResponse?.results?.map(transformDoctor) ?? [];
   const pageTitle = "Doctors";
 
   return (
@@ -244,7 +149,7 @@ export default function DoctorsPage() {
             user={user}
             onLogout={handleLogout}
             onRefresh={handleRefresh}
-            refreshing={refreshing}
+            refreshing={refreshing || isFetching}
           />
 
           <div className="flex-1 p-6">
@@ -258,10 +163,13 @@ export default function DoctorsPage() {
                     {pageTitle}
                   </h2>
                   <p className="text-[#60646C] text-sm font-medium mt-1">
-                    Total {usersResponse?.total || 0} users found (
-                    {visibleDoctors.length} doctors on this page)
+                    Total {doctorsResponse?.total || 0} doctors found (
+                    {visibleDoctors.length} on this page)
                   </p>
                 </div>
+                <Button onClick={handleInviteDoctor}>
+                  <UserPlus size={18} className="mr-2" /> Invite Doctor
+                </Button>
               </div>
 
               {/* Search and Filters */}
@@ -370,10 +278,13 @@ export default function DoctorsPage() {
                         Roles
                       </th>
                       <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Height
+                        Country
                       </th>
                       <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Weight
+                        Patients
+                      </th>
+                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                        Companies
                       </th>
                       <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
                         Joined
@@ -391,24 +302,21 @@ export default function DoctorsPage() {
                       >
                         <td className="p-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold">
-                              {doctor.name.charAt(0)}
+                            <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold overflow-hidden shrink-0">
+                              {doctor.profileImage ? (
+                                <img
+                                  src={doctor.profileImage}
+                                  alt={doctor.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                doctor.name.charAt(0)
+                              )}
                             </div>
                             <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-[#1B173A] leading-tight">
-                                  {doctor.name}
-                                </span>
-                                {/* Gender icon */}
-                                {doctor.gender === "male" ? (
-                                  <User size={14} className="text-blue-500" />
-                                ) : doctor.gender === "female" ? (
-                                  <UserCheck
-                                    size={14}
-                                    className="text-pink-500"
-                                  />
-                                ) : null}
-                              </div>
+                              <span className="font-bold text-[#1B173A] leading-tight block">
+                                {doctor.name}
+                              </span>
                               <span className="text-xs text-[#8E8E93] font-medium">
                                 {doctor.email}
                               </span>
@@ -436,10 +344,19 @@ export default function DoctorsPage() {
                           </div>
                         </td>
                         <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
-                          {doctor.height}
+                          {doctor.country}
                         </td>
-                        <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
-                          {doctor.weight}
+                        <td className="p-4 hidden md:table-cell">
+                          <div className="flex items-center gap-2 font-medium text-[#60646C]">
+                            <Users size={14} className="text-[#5850DE]" />
+                            {doctor.patientsCount}
+                          </div>
+                        </td>
+                        <td className="p-4 hidden md:table-cell">
+                          <div className="flex items-center gap-2 font-medium text-[#60646C]">
+                            <Building2 size={14} className="text-[#248FEC]" />
+                            {doctor.companiesCount}
+                          </div>
                         </td>
                         <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
                           {doctor.joined}
@@ -457,7 +374,7 @@ export default function DoctorsPage() {
                   </tbody>
                 </table>
 
-                {visibleDoctors.length === 0 && (
+                {visibleDoctors.length === 0 && !isLoading && (
                   <div className="p-8 text-center">
                     <div className="w-16 h-16 rounded-full bg-[#F0F0F3] flex items-center justify-center mx-auto mb-4">
                       <Stethoscope size={24} className="text-[#8E8E93]" />
@@ -473,14 +390,14 @@ export default function DoctorsPage() {
               </div>
 
               {/* Pagination */}
-              {usersResponse && usersResponse.pages > 1 && (
+              {doctorsResponse && doctorsResponse.pages > 1 && (
                 <div className="bg-white rounded-xl border border-[#E0E1E6] mt-6 p-4 shadow-sm">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-[#60646C]">
                         Showing {(currentPage - 1) * 10 + 1} to{" "}
-                        {Math.min(currentPage * 10, usersResponse.total)} of{" "}
-                        {usersResponse.total} results
+                        {Math.min(currentPage * 10, doctorsResponse.total)} of{" "}
+                        {doctorsResponse.total} results
                       </span>
                     </div>
 
@@ -502,7 +419,7 @@ export default function DoctorsPage() {
                       {/* Page Numbers */}
                       <div className="flex items-center gap-1">
                         {(() => {
-                          const totalPages = usersResponse.pages;
+                          const totalPages = doctorsResponse.pages;
                           const current = currentPage;
                           let pages = [];
 
@@ -575,11 +492,11 @@ export default function DoctorsPage() {
                         size="sm"
                         onClick={() =>
                           setCurrentPage(
-                            Math.min(usersResponse.pages, currentPage + 1),
+                            Math.min(doctorsResponse.pages, currentPage + 1),
                           )
                         }
                         disabled={
-                          currentPage === usersResponse.pages || isLoading
+                          currentPage === doctorsResponse.pages || isLoading
                         }
                         className="flex items-center gap-1"
                       >
@@ -594,6 +511,12 @@ export default function DoctorsPage() {
           </div>
         </div>
       </div>
+
+      {/* Invite Doctor Modal */}
+      <InviteDoctorModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+      />
     </RoleGuard>
   );
 }

@@ -29,6 +29,8 @@ export default function Index() {
       ];
       if (user.role === "PSYCHOLOGIST") {
         navigate("/psychologist", { replace: true });
+      } else if (user.role === "DOCTOR") {
+        navigate("/doctor", { replace: true });
       } else if (adminRoles.includes(user.role)) {
         navigate("/home", { replace: true });
       } else {

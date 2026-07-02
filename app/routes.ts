@@ -18,6 +18,8 @@ export default [
   route("/customers", "routes/customers.tsx"),
   route("/customers/:id", "routes/customer.$id.tsx"),
   route("/doctors", "routes/doctors.tsx"),
+  route("/doctor", "routes/doctor.tsx"),
+  route("/doctor/patients", "routes/doctor.patients.tsx"),
   route("/psychologists", "routes/psychologists.tsx"),
   route("/psychologist", "routes/psychologist.tsx"),
   route("/psychologist/sessions", "routes/psychologist.sessions.tsx"),

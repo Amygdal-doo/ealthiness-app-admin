@@ -61,6 +61,7 @@ export type UserRole =
   | "COUNTRY_ADMIN"
   | "SUPER_ADMIN"
   | "PSYCHOLOGIST"
+  | "DOCTOR"
   | "USER";
 
 export interface Session {
@@ -162,6 +163,14 @@ export const USER_ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
     canViewAnalytics: false,
     canManageSystem: false,
   },
+  DOCTOR: {
+    canManageUsers: false,
+    canManageCompanies: false,
+    canManageRegions: false,
+    canManageCountries: false,
+    canViewAnalytics: false,
+    canManageSystem: false,
+  },
   USER: {
     canManageUsers: false,
     canManageCompanies: false,
@@ -229,6 +238,37 @@ export interface PsychologistsResponse {
 }
 
 export interface PsychologistsQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  orderBy?: "firstName" | "lastName" | "email" | "username" | "birthdate";
+  type?: "ascending" | "descending";
+}
+
+// Doctors API types
+export interface ApiDoctor {
+  id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string[];
+  roles: string[];
+  profileImage?: string | null;
+  country?: string;
+  patientsCount?: number;
+  companiesCount?: number;
+  createdAt: string;
+}
+
+export interface DoctorsResponse {
+  limit: number;
+  page: number;
+  pages: number;
+  total: number;
+  results: ApiDoctor[];
+}
+
+export interface DoctorsQueryParams {
   page?: number;
   limit?: number;
   search?: string;
@@ -562,11 +602,7 @@ export interface CreateTherapyPlanPayload {
   items: unknown[];
 }
 
-export type TherapyPlanStatus =
-  | "draft"
-  | "active"
-  | "completed"
-  | "cancelled";
+export type TherapyPlanStatus = "draft" | "active" | "completed" | "cancelled";
 
 export interface UpdateTherapyPlanPayload {
   title: string;

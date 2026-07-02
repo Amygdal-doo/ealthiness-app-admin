@@ -10,6 +10,7 @@ import type {
   CountriesQueryParams,
   TherapySessionsQueryParams,
   PsychologistsQueryParams,
+  DoctorsQueryParams,
   PatientsQueryParams,
   SessionTherapyPlansQueryParams,
 } from "../auth/types";
@@ -331,6 +332,38 @@ export function buildPsychologistsQueryString(
 
   const queryString = searchParams.toString();
   return `/v1/admin/psychologist${queryString ? `?${queryString}` : ""}`;
+}
+
+/**
+ * Builds the query string for the doctors endpoint
+ */
+export function buildDoctorsQueryString(
+  params: DoctorsQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  if (params.search && params.search.trim()) {
+    searchParams.append("search", params.search.trim());
+  }
+
+  if (params.orderBy) {
+    searchParams.append("orderBy", params.orderBy);
+  }
+
+  if (params.type) {
+    searchParams.append("type", params.type);
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/admin/doctor${queryString ? `?${queryString}` : ""}`;
 }
 
 /**

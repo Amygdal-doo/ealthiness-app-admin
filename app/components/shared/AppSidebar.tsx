@@ -64,6 +64,8 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
         return "Regional Admin";
       case "PSYCHOLOGIST":
         return "Psychologist";
+      case "DOCTOR":
+        return "Doctor";
       default:
         return "Admin";
     }
@@ -102,6 +104,20 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
       icon: Users,
       roles: ["PSYCHOLOGIST"],
       path: "/psychologist/patients",
+    },
+    {
+      id: "doctor-overview",
+      label: "Overview",
+      icon: LayoutGrid,
+      roles: ["DOCTOR"],
+      path: "/doctor",
+    },
+    {
+      id: "doctor-patients",
+      label: "Patients",
+      icon: Users,
+      roles: ["DOCTOR"],
+      path: "/doctor/patients",
     },
     {
       id: "regions",
@@ -199,6 +215,9 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
     }
     if (itemId === "psych-overview") {
       return location.pathname === "/psychologist";
+    }
+    if (itemId === "doctor-overview") {
+      return location.pathname === "/doctor";
     }
     return location.pathname.startsWith(itemPath);
   };
