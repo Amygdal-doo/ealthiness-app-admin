@@ -719,6 +719,44 @@ export function useInviteCompanyEmployee() {
   });
 }
 
+export function useInvitePsychologistToCompany() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      companyId,
+      psychologistId,
+    }: {
+      companyId: string;
+      psychologistId: string;
+    }): Promise<{ message: string }> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = `/v1/admin/psychologist/company/${companyId}/invite`;
+        const response = await apiClient.post<{ message: string }>(endpoint, {
+          psychologistId,
+        });
+        return response;
+      } catch (error) {
+        console.error("Error inviting psychologist to company:", error);
+        throw error;
+      }
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch company details to update psychologist list
+      queryClient.invalidateQueries({
+        queryKey: ["company", variables.companyId],
+      });
+      // Invalidate companies list as well
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
+    },
+  });
+}
+
 export function useCompanyDetails(companyId: string) {
   return useQuery({
     queryKey: ["company", companyId],

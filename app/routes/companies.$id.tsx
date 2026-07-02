@@ -21,6 +21,7 @@ import {
   Globe,
   Building2,
   UserPlus,
+  Brain,
 } from "lucide-react";
 import {
   Button,
@@ -57,6 +58,7 @@ import type { ApiCompany } from "~/lib/auth/types";
 import { useParams } from "react-router";
 import { InviteCompanyAdminModal } from "~/components/modals/InviteCompanyAdminModal";
 import { InviteCompanyEmployeeModal } from "~/components/modals/InviteCompanyEmployeeModal";
+import { InviteCompanyPsychologistModal } from "~/components/modals/InviteCompanyPsychologistModal";
 
 // Mock data for company statistics
 const COMPANY_STATS = {
@@ -116,6 +118,8 @@ export default function CompanyDetailPage({
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isInviteEmployeeModalOpen, setIsInviteEmployeeModalOpen] =
     useState(false);
+  const [isInvitePsychologistModalOpen, setIsInvitePsychologistModalOpen] =
+    useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Check if user can edit (only SUPER_ADMIN, COUNTRY_ADMIN, REGIONAL_ADMIN, COMPANY_ADMIN)
@@ -125,6 +129,9 @@ export default function CompanyDetailPage({
     "REGIONAL_ADMIN",
     "COMPANY_ADMIN",
   ].includes(user?.role || "");
+
+  // Only SUPER_ADMIN can invite psychologists to a company
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
 
   // Form state
   const [editForm, setEditForm] = useState({
@@ -270,6 +277,14 @@ export default function CompanyDetailPage({
 
   const handleCloseInviteEmployeeModal = () => {
     setIsInviteEmployeeModalOpen(false);
+  };
+
+  const handleOpenInvitePsychologistModal = () => {
+    setIsInvitePsychologistModalOpen(true);
+  };
+
+  const handleCloseInvitePsychologistModal = () => {
+    setIsInvitePsychologistModalOpen(false);
   };
 
   if (!user || isLoadingCompany) {
@@ -847,6 +862,16 @@ export default function CompanyDetailPage({
                         <UserPlus size={16} className="mr-2" />
                         Invite Employee
                       </Button>
+                      {isSuperAdmin && (
+                        <Button
+                          className="w-full mb-3"
+                          variant="outline"
+                          onClick={handleOpenInvitePsychologistModal}
+                        >
+                          <Brain size={16} className="mr-2" />
+                          Invite Psychologist
+                        </Button>
+                      )}
                       <Link to={`/companies/${company.id}/users`}>
                         <Button className="w-full mb-3" variant="outline">
                           <Users size={16} className="mr-2" />
@@ -873,6 +898,14 @@ export default function CompanyDetailPage({
         <InviteCompanyEmployeeModal
           isOpen={isInviteEmployeeModalOpen}
           onClose={handleCloseInviteEmployeeModal}
+          companyId={actualCompanyId}
+          companyName={company.name}
+        />
+
+        {/* Psychologist Invitation Modal */}
+        <InviteCompanyPsychologistModal
+          isOpen={isInvitePsychologistModalOpen}
+          onClose={handleCloseInvitePsychologistModal}
           companyId={actualCompanyId}
           companyName={company.name}
         />
