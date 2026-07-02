@@ -11,6 +11,9 @@ import {
   Target,
   Loader2,
   Trash2,
+  Pencil,
+  ImageIcon,
+  Video,
   X,
   AlertTriangle,
 } from "lucide-react";
@@ -20,6 +23,9 @@ import Navbar from "~/components/shared/Navbar";
 import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
 import { useExercise, useDeleteExercise } from "~/hooks/useAuthApi";
+import { EditExerciseModal } from "~/components/modals/EditExerciseModal";
+import { EditExerciseImagesModal } from "~/components/modals/EditExerciseImagesModal";
+import { EditExerciseVideosModal } from "~/components/modals/EditExerciseVideosModal";
 import { LEVEL_STYLE, type ExerciseLevel } from "~/lib/exercises/exercise";
 
 export function meta({}: Route.MetaArgs) {
@@ -72,6 +78,9 @@ export default function ExerciseDetailPage({
   const user = useUser();
   const navigate = useNavigate();
 
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isEditImagesOpen, setIsEditImagesOpen] = useState(false);
+  const [isEditVideosOpen, setIsEditVideosOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [isDeleted, setIsDeleted] = useState(false);
@@ -185,17 +194,27 @@ export default function ExerciseDetailPage({
                         </span>
                       </div>
                     </div>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setDeleteError("");
-                        setIsDeleteOpen(true);
-                      }}
-                      className="shrink-0 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-                    >
-                      <Trash2 size={16} className="mr-2" />
-                      Delete
-                    </Button>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsEditOpen(true)}
+                        className="border-[#E0E1E6] text-[#5850DE] hover:bg-[#F0F0F3] hover:text-[#5850DE]"
+                      >
+                        <Pencil size={16} className="mr-2" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setDeleteError("");
+                          setIsDeleteOpen(true);
+                        }}
+                        className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                      >
+                        <Trash2 size={16} className="mr-2" />
+                        Delete
+                      </Button>
+                    </div>
                   </div>
                   {deleteError && !isDeleteOpen && (
                     <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -204,11 +223,22 @@ export default function ExerciseDetailPage({
                   )}
 
                   {/* Media */}
-                  {exercise.images.length > 0 && (
-                    <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
-                      <h3 className="text-[11px] font-bold text-[#8E8E93] uppercase mb-3">
+                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-[11px] font-bold text-[#8E8E93] uppercase">
                         Images
                       </h3>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditImagesOpen(true)}
+                        className="border-[#E0E1E6] text-[#5850DE] hover:bg-[#F0F0F3] hover:text-[#5850DE]"
+                      >
+                        <ImageIcon size={14} className="mr-2" />
+                        Edit Images
+                      </Button>
+                    </div>
+                    {exercise.images.length > 0 ? (
                       <div className="flex gap-3 overflow-x-auto pb-1">
                         {exercise.images.map((image) => (
                           <img
@@ -219,14 +249,29 @@ export default function ExerciseDetailPage({
                           />
                         ))}
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <p className="text-sm text-[#8E8E93]">
+                        No images yet.
+                      </p>
+                    )}
+                  </div>
 
-                  {exercise.videos.length > 0 && (
-                    <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
-                      <h3 className="text-[11px] font-bold text-[#8E8E93] uppercase mb-3">
+                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-[11px] font-bold text-[#8E8E93] uppercase">
                         Videos
                       </h3>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditVideosOpen(true)}
+                        className="border-[#E0E1E6] text-[#5850DE] hover:bg-[#F0F0F3] hover:text-[#5850DE]"
+                      >
+                        <Video size={14} className="mr-2" />
+                        Edit Videos
+                      </Button>
+                    </div>
+                    {exercise.videos.length > 0 ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {exercise.videos.map((video) => (
                           <video
@@ -237,8 +282,10 @@ export default function ExerciseDetailPage({
                           />
                         ))}
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <p className="text-sm text-[#8E8E93]">No videos yet.</p>
+                    )}
+                  </div>
 
                   {/* Metadata */}
                   <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
@@ -321,6 +368,30 @@ export default function ExerciseDetailPage({
           </div>
         </div>
       </div>
+
+      {exercise && (
+        <EditExerciseModal
+          isOpen={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+          exercise={exercise}
+        />
+      )}
+
+      {exercise && (
+        <EditExerciseImagesModal
+          isOpen={isEditImagesOpen}
+          onClose={() => setIsEditImagesOpen(false)}
+          exercise={exercise}
+        />
+      )}
+
+      {exercise && (
+        <EditExerciseVideosModal
+          isOpen={isEditVideosOpen}
+          onClose={() => setIsEditVideosOpen(false)}
+          exercise={exercise}
+        />
+      )}
 
       {isDeleteOpen &&
         exercise &&

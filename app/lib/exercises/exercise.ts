@@ -168,3 +168,12 @@ export interface CreateExercisePayload {
   images: File[];
   videos: File[];
 }
+
+/**
+ * Payload accepted by PUT /v1/exercise/:id. Images and videos are not editable
+ * through this route, so they are omitted.
+ */
+export type UpdateExercisePayload = Omit<
+  CreateExercisePayload,
+  "images" | "videos"
+>;

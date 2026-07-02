@@ -54,6 +54,7 @@ import type {
   ExercisesQueryParams,
   Exercise,
   CreateExercisePayload,
+  UpdateExercisePayload,
 } from "~/lib/exercises/exercise";
 import type {
   User,
@@ -1895,6 +1896,123 @@ export function useCreateExercise() {
     },
     onSuccess: () => {
       // Refresh the exercise catalog so the new exercise shows up.
+      queryClient.invalidateQueries({ queryKey: ["exercises"] });
+    },
+  });
+}
+
+export function useUpdateExercise() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      exerciseId,
+      data,
+    }: {
+      exerciseId: string;
+      data: UpdateExercisePayload;
+    }): Promise<Exercise> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        // Images/videos are not editable here, so a plain JSON body is enough.
+        const response = await apiClient.put<Exercise>(
+          `/v1/exercise/${exerciseId}`,
+          data,
+        );
+        return response;
+      } catch (error) {
+        console.error("Error updating exercise:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["exercise", variables.exerciseId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["exercises"] });
+    },
+  });
+}
+
+export function useUpdateExerciseImages() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      exerciseId,
+      images,
+    }: {
+      exerciseId: string;
+      images: File[];
+    }): Promise<Exercise> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        // Image files are uploaded as multipart/form-data under `images`.
+        const formData = new FormData();
+        images.forEach((image) => formData.append("images", image));
+
+        const response = await apiClient.put<Exercise>(
+          `/v1/exercise/${exerciseId}/images`,
+          formData,
+        );
+        return response;
+      } catch (error) {
+        console.error("Error updating exercise images:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["exercise", variables.exerciseId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["exercises"] });
+    },
+  });
+}
+
+export function useUpdateExerciseVideos() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      exerciseId,
+      videos,
+    }: {
+      exerciseId: string;
+      videos: File[];
+    }): Promise<Exercise> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        // Video files are uploaded as multipart/form-data under `videos`.
+        const formData = new FormData();
+        videos.forEach((video) => formData.append("videos", video));
+
+        const response = await apiClient.put<Exercise>(
+          `/v1/exercise/${exerciseId}/videos`,
+          formData,
+        );
+        return response;
+      } catch (error) {
+        console.error("Error updating exercise videos:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["exercise", variables.exerciseId],
+      });
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
     },
   });
