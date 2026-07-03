@@ -13,6 +13,7 @@ import {
   Stethoscope,
   CalendarClock,
   Activity,
+  UtensilsCrossed,
 } from "lucide-react";
 
 import type { User } from "~/lib/auth/types";
@@ -184,6 +185,13 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
       icon: Activity,
       roles: ["SUPER_ADMIN"],
       path: "/exercises",
+    },
+    {
+      id: "diet-plans",
+      label: "Diet Plans",
+      icon: UtensilsCrossed,
+      roles: ["SUPER_ADMIN"],
+      path: "/diet-plans",
     },
   ];
 

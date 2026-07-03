@@ -58,6 +58,15 @@ import type {
   UpdateExercisePayload,
 } from "~/lib/exercises/exercise";
 import type {
+  DietPlan,
+  DietPlanDetailResponse,
+  CreateDietPlanPayload,
+  UpdateDietPlanPayload,
+  CreateMealPayload,
+  UpdateMealPayload,
+  DietPlanMeal,
+} from "~/lib/diet-plans/diet-plan";
+import type {
   User,
   LoginCredentials,
   ApiAuthResponse,
@@ -205,12 +214,12 @@ export function useForgotPassword() {
     mutationFn: async (email: string): Promise<{ message: string }> => {
       const response = await apiClient.post<{ message: string }>(
         "/v1/user/forgot-password",
-        { email }
+        { email },
       );
-      
+
       // If response is empty, return a default success message
-      return response && Object.keys(response).length > 0 
-        ? response 
+      return response && Object.keys(response).length > 0
+        ? response
         : { message: "Password reset instructions sent successfully" };
     },
   });
@@ -1242,7 +1251,7 @@ export function useDashboardOverview(period?: DashboardPeriod) {
       }
 
       try {
-        const queryParams = period ? `?period=${period}` : '';
+        const queryParams = period ? `?period=${period}` : "";
         const endpoint = `/v1/admin/dashboard/overview${queryParams}`;
         const response = await apiClient.get<DashboardOverview>(endpoint);
         return response;
@@ -1273,8 +1282,7 @@ export function usePsychologistSessions(
 
       try {
         const endpoint = buildPsychologistSessionsQueryString(params);
-        const response =
-          await apiClient.get<TherapySessionsResponse>(endpoint);
+        const response = await apiClient.get<TherapySessionsResponse>(endpoint);
         return response;
       } catch (error) {
         console.error("Error fetching psychologist sessions:", error);
@@ -1378,7 +1386,10 @@ export function useGenerateSummaryAudio() {
     onSuccess: (data, variables) => {
       // Update the cached session immediately so polling picks up the new status
       if (data && data.id) {
-        queryClient.setQueryData(["therapy-session", variables.sessionId], data);
+        queryClient.setQueryData(
+          ["therapy-session", variables.sessionId],
+          data,
+        );
       }
       queryClient.invalidateQueries({
         queryKey: ["therapy-session", variables.sessionId],
@@ -1443,10 +1454,7 @@ export function useUpdateSessionNotes() {
     },
     onSuccess: (data, variables) => {
       // Update the cached session immediately and refetch lists
-      queryClient.setQueryData(
-        ["therapy-session", variables.sessionId],
-        data,
-      );
+      queryClient.setQueryData(["therapy-session", variables.sessionId], data);
       queryClient.invalidateQueries({
         queryKey: ["therapy-session", variables.sessionId],
       });
@@ -1569,8 +1577,7 @@ export function usePatientSessions(
 
       try {
         const endpoint = buildPatientSessionsQueryString(patientId, params);
-        const response =
-          await apiClient.get<TherapySessionsResponse>(endpoint);
+        const response = await apiClient.get<TherapySessionsResponse>(endpoint);
         return response;
       } catch (error) {
         console.error("Error fetching patient sessions:", error);
@@ -1596,7 +1603,7 @@ export function useScopedDashboardOverview(period?: DashboardPeriod) {
       }
 
       try {
-        const queryParams = period ? `?period=${period}` : '';
+        const queryParams = period ? `?period=${period}` : "";
         const endpoint = `/v1/admin/dashboard/scoped/overview${queryParams}`;
         const response = await apiClient.get<DashboardOverview>(endpoint);
         return response;
@@ -1655,7 +1662,8 @@ export function useTherapyPlanItems(
 
       try {
         const endpoint = buildTherapyPlanItemsQueryString(planId, params);
-        const response = await apiClient.get<TherapyPlanItemsResponse>(endpoint);
+        const response =
+          await apiClient.get<TherapyPlanItemsResponse>(endpoint);
         return response;
       } catch (error) {
         console.error("Error fetching therapy plan items:", error);
@@ -1885,6 +1893,441 @@ export function useExercises(params: ExercisesQueryParams = {}) {
     staleTime: 5 * 60 * 1000, // 5 minutes
     placeholderData: keepPreviousData,
     enabled: !!clientTokens.get(),
+  });
+}
+
+/**
+ * Fetches the diet plans created by the current super admin.
+ * GET /v1/diet-plan/me/created returns a plain array of plans.
+ */
+export function useCreatedDietPlans() {
+  return useQuery({
+    queryKey: ["diet-plans", "me", "created"],
+    queryFn: async (): Promise<DietPlan[]> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const response = await apiClient.get<DietPlan[]>(
+          "/v1/diet-plan/me/created",
+        );
+        return Array.isArray(response) ? response : [];
+      } catch (error) {
+        console.error("Error fetching created diet plans:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount) => failureCount < 2 && !!clientTokens.get(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get(),
+  });
+}
+
+export function useCreateDietPlan() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: CreateDietPlanPayload): Promise<DietPlan> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        // Always create the plan with a JSON body so nested values (e.g.
+        // `macros`) reach the backend as real objects. A multipart request
+        // would flatten `macros` into a string, which the backend drops.
+        const { image, ...rest } = payload;
+        const body = Object.fromEntries(
+          Object.entries(rest).filter(([, value]) => value !== undefined),
+        );
+
+        const created = await apiClient.post<DietPlan>("/v1/diet-plan", body);
+
+        // If a cover image was supplied, upload it in a follow-up multipart
+        // update — that call carries no nested fields, so nothing is lost.
+        if (image && created?.id) {
+          const formData = new FormData();
+          formData.append("image", image);
+
+          const withImage = await apiClient.put<DietPlan>(
+            `/v1/diet-plan/${created.id}`,
+            formData,
+          );
+          return withImage;
+        }
+
+        return created;
+      } catch (error) {
+        console.error("Error creating diet plan:", error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      // Refresh the created-plans list so the new plan shows up.
+      queryClient.invalidateQueries({ queryKey: ["diet-plans"] });
+    },
+  });
+}
+
+/**
+ * Updates a diet plan.
+ * PUT /v1/diet-plan/:id (multipart/form-data so the cover image can be
+ * replaced). Only the fields present in `data` are sent.
+ */
+export function useUpdateDietPlan() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      dietPlanId,
+      data,
+    }: {
+      dietPlanId: string;
+      data: UpdateDietPlanPayload;
+    }): Promise<DietPlan> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        // When an image is attached we must send multipart/form-data. In that
+        // case nested values like `macros` have to be JSON-encoded strings.
+        if (data.image) {
+          const formData = new FormData();
+          if (data.title !== undefined) {
+            formData.append("title", data.title);
+          }
+          if (data.description !== undefined) {
+            formData.append("description", data.description);
+          }
+          if (data.goal !== undefined) {
+            formData.append("goal", data.goal);
+          }
+          if (data.dailyCalorieTarget !== undefined) {
+            formData.append(
+              "dailyCalorieTarget",
+              data.dailyCalorieTarget.toString(),
+            );
+          }
+          if (data.macros !== undefined) {
+            formData.append("macros", JSON.stringify(data.macros));
+          }
+          if (data.durationDays !== undefined) {
+            formData.append("durationDays", data.durationDays.toString());
+          }
+          if (data.restrictions !== undefined) {
+            data.restrictions.forEach((restriction) =>
+              formData.append("restrictions", restriction),
+            );
+          }
+          if (data.visibility !== undefined) {
+            formData.append("visibility", data.visibility);
+          }
+          if (data.isFree !== undefined) {
+            formData.append("isFree", data.isFree ? "true" : "false");
+          }
+          if (data.price !== undefined) {
+            formData.append("price", data.price.toString());
+          }
+          if (data.currency !== undefined) {
+            formData.append("currency", data.currency);
+          }
+          if (data.coachGroup !== undefined) {
+            formData.append("coachGroup", data.coachGroup);
+          }
+          formData.append("image", data.image);
+
+          const response = await apiClient.put<DietPlan>(
+            `/v1/diet-plan/${dietPlanId}`,
+            formData,
+          );
+          return response;
+        }
+
+        // No image: send a plain JSON body so nested values (e.g. `macros`)
+        // reach the backend as real objects rather than strings.
+        const { image: _image, ...rest } = data;
+        const body = Object.fromEntries(
+          Object.entries(rest).filter(([, value]) => value !== undefined),
+        );
+
+        const response = await apiClient.put<DietPlan>(
+          `/v1/diet-plan/${dietPlanId}`,
+          body,
+        );
+        return response;
+      } catch (error) {
+        console.error("Error updating diet plan:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, variables) => {
+      // Refresh the plan detail and the created-plans list.
+      queryClient.invalidateQueries({
+        queryKey: ["diet-plan", variables.dietPlanId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["diet-plans"] });
+    },
+  });
+}
+
+/**
+ * Adds a meal to a diet plan.
+ * POST /v1/diet-plan/:id/meals (multipart/form-data for the optional image).
+ */
+export function useAddDietPlanMeal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      dietPlanId,
+      data,
+    }: {
+      dietPlanId: string;
+      data: CreateMealPayload;
+    }): Promise<DietPlanMeal> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        // Always create the meal with a JSON body so nested values (e.g.
+        // `foodItems`) reach the backend as real objects. A multipart request
+        // would flatten `foodItems` into a string, which the backend drops.
+        const { image, ...rest } = data;
+        const body = Object.fromEntries(
+          Object.entries(rest).filter(([, value]) => value !== undefined),
+        );
+
+        const created = await apiClient.post<DietPlanMeal>(
+          `/v1/diet-plan/${dietPlanId}/meals`,
+          body,
+        );
+
+        // If an image was supplied, upload it in a follow-up multipart update —
+        // that call carries no nested fields, so nothing is lost.
+        if (image && created?.id) {
+          const formData = new FormData();
+          formData.append("image", image);
+
+          const withImage = await apiClient.put<DietPlanMeal>(
+            `/v1/diet-plan/${dietPlanId}/meals/${created.id}`,
+            formData,
+          );
+          return withImage;
+        }
+
+        return created;
+      } catch (error) {
+        console.error("Error adding meal to diet plan:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, variables) => {
+      // Refresh the plan detail so the new meal shows up.
+      queryClient.invalidateQueries({
+        queryKey: ["diet-plan", variables.dietPlanId],
+      });
+    },
+  });
+}
+
+/**
+ * Updates a meal on a diet plan.
+ * PUT /v1/diet-plan/:id/meals/:mealId (multipart/form-data so the meal image
+ * can be replaced). Only the fields present in `data` are sent.
+ */
+export function useUpdateDietPlanMeal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      dietPlanId,
+      mealId,
+      data,
+    }: {
+      dietPlanId: string;
+      mealId: string;
+      data: UpdateMealPayload;
+    }): Promise<DietPlanMeal> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        // When an image is attached we must send multipart/form-data. In that
+        // case nested values like `foodItems` have to be JSON-encoded strings.
+        if (data.image) {
+          const formData = new FormData();
+          if (data.dayNumber !== undefined) {
+            formData.append("dayNumber", data.dayNumber.toString());
+          }
+          if (data.mealType !== undefined) {
+            formData.append("mealType", data.mealType);
+          }
+          if (data.title !== undefined) {
+            formData.append("title", data.title);
+          }
+          if (data.description !== undefined) {
+            formData.append("description", data.description);
+          }
+          if (data.ingredients !== undefined) {
+            data.ingredients.forEach((ingredient) =>
+              formData.append("ingredients", ingredient),
+            );
+          }
+          if (data.foodItems !== undefined) {
+            formData.append("foodItems", JSON.stringify(data.foodItems));
+          }
+          if (data.calories !== undefined) {
+            formData.append("calories", data.calories.toString());
+          }
+          if (data.protein !== undefined) {
+            formData.append("protein", data.protein.toString());
+          }
+          if (data.carbs !== undefined) {
+            formData.append("carbs", data.carbs.toString());
+          }
+          if (data.fat !== undefined) {
+            formData.append("fat", data.fat.toString());
+          }
+          if (data.order !== undefined) {
+            formData.append("order", data.order.toString());
+          }
+          formData.append("image", data.image);
+
+          const response = await apiClient.put<DietPlanMeal>(
+            `/v1/diet-plan/${dietPlanId}/meals/${mealId}`,
+            formData,
+          );
+          return response;
+        }
+
+        // No image: send a plain JSON body so nested values (e.g. `foodItems`)
+        // reach the backend as real objects rather than strings.
+        const { image: _image, ...rest } = data;
+        const body = Object.fromEntries(
+          Object.entries(rest).filter(([, value]) => value !== undefined),
+        );
+
+        const response = await apiClient.put<DietPlanMeal>(
+          `/v1/diet-plan/${dietPlanId}/meals/${mealId}`,
+          body,
+        );
+        return response;
+      } catch (error) {
+        console.error("Error updating meal on diet plan:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, variables) => {
+      // Refresh the plan detail so the edited meal shows up.
+      queryClient.invalidateQueries({
+        queryKey: ["diet-plan", variables.dietPlanId],
+      });
+    },
+  });
+}
+
+/**
+ * Deletes a meal from a diet plan.
+ * DELETE /v1/diet-plan/:id/meals/:mealId
+ */
+export function useDeleteDietPlanMeal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      dietPlanId,
+      mealId,
+    }: {
+      dietPlanId: string;
+      mealId: string;
+    }): Promise<{ message: string }> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const response = await apiClient.delete<{ message: string }>(
+          `/v1/diet-plan/${dietPlanId}/meals/${mealId}`,
+        );
+        return response;
+      } catch (error) {
+        console.error("Error deleting meal from diet plan:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, variables) => {
+      // Refresh the plan detail so the deleted meal disappears.
+      queryClient.invalidateQueries({
+        queryKey: ["diet-plan", variables.dietPlanId],
+      });
+    },
+  });
+}
+
+/**
+ * Fetches a single diet plan with its meals.
+ * GET /v1/diet-plan/:id returns `{ plan, meals }`.
+ */
+export function useDietPlan(dietPlanId: string) {
+  return useQuery({
+    queryKey: ["diet-plan", dietPlanId],
+    queryFn: async (): Promise<DietPlanDetailResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const response = await apiClient.get<DietPlanDetailResponse>(
+          `/v1/diet-plan/${dietPlanId}`,
+        );
+        return response;
+      } catch (error) {
+        console.error("Error fetching diet plan:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount) => failureCount < 2 && !!clientTokens.get(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get() && !!dietPlanId,
+  });
+}
+
+export function useDeleteDietPlan() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (dietPlanId: string): Promise<{ message: string }> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const response = await apiClient.delete<{ message: string }>(
+          `/v1/diet-plan/${dietPlanId}`,
+        );
+        return response;
+      } catch (error) {
+        console.error("Error deleting diet plan:", error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      // Refresh the created-plans list. The detail query is disabled by the
+      // caller before navigating away, so we don't remove it here.
+      queryClient.invalidateQueries({ queryKey: ["diet-plans"] });
+    },
   });
 }
 
