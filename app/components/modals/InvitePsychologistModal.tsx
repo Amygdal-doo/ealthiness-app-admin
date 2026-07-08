@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Mail, X } from "lucide-react";
 import { Button, Input } from "~/components/ui";
 import { useInvitePsychologist } from "~/hooks/useAuthApi";
+import { getApiErrorMessage } from "~/lib/services/api";
 
 interface InvitePsychologistModalProps {
   isOpen: boolean;
@@ -35,9 +36,10 @@ export const InvitePsychologistModal: React.FC<
     } catch (error) {
       console.error("Failed to invite psychologist:", error);
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Failed to send invitation. Please try again.",
+        getApiErrorMessage(
+          error,
+          "Failed to send invitation. Please try again.",
+        ),
       );
     }
   };

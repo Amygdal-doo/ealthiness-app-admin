@@ -29,6 +29,7 @@ import {
   buildPatientDetailsEndpoint,
   buildPatientSessionsQueryString,
   buildPsychologistsQueryString,
+  buildCompanyPsychologistsQueryString,
   buildDoctorsQueryString,
   buildPatientsQueryString,
   buildTherapyPlanEndpoint,
@@ -89,6 +90,8 @@ import type {
   TherapySessionsQueryParams,
   PsychologistsResponse,
   PsychologistsQueryParams,
+  CompanyPsychologistsResponse,
+  CompanyPsychologistsQueryParams,
   DoctorsResponse,
   DoctorsQueryParams,
   ApiPatient,
@@ -279,7 +282,10 @@ export function useUserDetails(userId: string) {
   });
 }
 
-export function usePsychologists(params: PsychologistsQueryParams = {}) {
+export function usePsychologists(
+  params: PsychologistsQueryParams = {},
+  options: { enabled?: boolean } = {},
+) {
   return useQuery({
     queryKey: ["psychologists", params],
     queryFn: async (): Promise<PsychologistsResponse> => {
@@ -302,7 +308,52 @@ export function usePsychologists(params: PsychologistsQueryParams = {}) {
       return failureCount < 2 && !!clientTokens.get();
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: !!clientTokens.get(), // Only run if we have tokens
+    enabled: (options.enabled ?? true) && !!clientTokens.get(), // Only run if we have tokens
+  });
+}
+
+// Company-scoped psychologists list (usable by COMPANY_ADMIN). Results are
+// normalized to the ApiPsychologist shape (_id -> id) so consumers can treat
+// both psychologist endpoints interchangeably.
+export function useCompanyPsychologists(
+  companyId: string,
+  params: CompanyPsychologistsQueryParams = {},
+  options: { enabled?: boolean } = {},
+) {
+  return useQuery({
+    queryKey: ["company-psychologists", companyId, params],
+    queryFn: async (): Promise<PsychologistsResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildCompanyPsychologistsQueryString(
+          companyId,
+          params,
+        );
+        const response =
+          await apiClient.get<CompanyPsychologistsResponse>(endpoint);
+        return {
+          ...response,
+          results: response.results.map(({ _id, ...psychologist }) => ({
+            ...psychologist,
+            id: _id,
+            profileImage: psychologist.profileImage ?? null,
+          })),
+        };
+      } catch (error) {
+        console.error("Error fetching company psychologists:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: (options.enabled ?? true) && !!companyId && !!clientTokens.get(),
   });
 }
 
@@ -799,9 +850,11 @@ export function useInvitePsychologistToCompany() {
     mutationFn: async ({
       companyId,
       psychologistId,
+      asCompanyAdmin,
     }: {
       companyId: string;
       psychologistId: string;
+      asCompanyAdmin?: boolean;
     }): Promise<{ message: string }> => {
       const tokens = clientTokens.get();
       if (!tokens) {
@@ -809,10 +862,16 @@ export function useInvitePsychologistToCompany() {
       }
 
       try {
-        const endpoint = `/v1/admin/psychologist/company/${companyId}/invite`;
-        const response = await apiClient.post<{ message: string }>(endpoint, {
-          psychologistId,
-        });
+        // Company admins invite via the invite route (psychologistId in body);
+        // super admins keep the direct assignment route.
+        const response = asCompanyAdmin
+          ? await apiClient.post<{ message: string }>(
+              `/v1/admin/psychologist/company/${companyId}/invite`,
+              { psychologistId },
+            )
+          : await apiClient.post<{ message: string }>(
+              `/v1/admin/psychologist/company/${companyId}/psychologist/${psychologistId}`,
+            );
         return response;
       } catch (error) {
         console.error("Error inviting psychologist to company:", error);
@@ -826,6 +885,9 @@ export function useInvitePsychologistToCompany() {
       });
       // Invalidate companies list as well
       queryClient.invalidateQueries({ queryKey: ["companies"] });
+      queryClient.invalidateQueries({
+        queryKey: ["company-psychologists", variables.companyId],
+      });
     },
   });
 }

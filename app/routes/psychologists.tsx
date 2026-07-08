@@ -89,13 +89,17 @@ export default function PsychologistsPage() {
     isLoading,
     isFetching,
     refetch,
-  } = usePsychologists({
-    page: currentPage,
-    limit: PAGE_SIZE,
-    search: debouncedSearchTerm,
-    orderBy,
-    type: sortType,
-  });
+  } = usePsychologists(
+    {
+      page: currentPage,
+      limit: PAGE_SIZE,
+      search: debouncedSearchTerm,
+      orderBy,
+      type: sortType,
+    },
+    // Endpoint is super-admin-only
+    { enabled: user?.role === "SUPER_ADMIN" },
+  );
 
   const handleRefresh = () => {
     setRefreshing(true);

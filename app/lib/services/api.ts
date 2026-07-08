@@ -12,6 +12,24 @@ export interface ApiError {
   code?: string;
 }
 
+// apiClient throws plain ApiError objects (not Error instances), so
+// `error instanceof Error` misses them. Use this to get a display message.
+export function getApiErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (error && typeof error === "object") {
+    const { message, errors } = error as Partial<ApiError>;
+    if (typeof errors === "string" && errors.trim()) {
+      return errors;
+    }
+    if (typeof message === "string" && message.trim()) {
+      return message;
+    }
+  }
+  return fallback;
+}
+
 class ApiClient {
   private baseURL: string;
 

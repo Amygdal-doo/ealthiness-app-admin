@@ -10,10 +10,13 @@ import {
   Check,
 } from "lucide-react";
 import { Button, Input } from "~/components/ui";
+import { useUser } from "~/hooks/useAuth";
 import {
   usePsychologists,
+  useCompanyPsychologists,
   useInvitePsychologistToCompany,
 } from "~/hooks/useAuthApi";
+import { getApiErrorMessage } from "~/lib/services/api";
 import type { ApiPsychologist } from "~/lib/auth/types";
 
 interface InviteCompanyPsychologistModalProps {
@@ -39,18 +42,38 @@ export const InviteCompanyPsychologistModal: React.FC<
 
   const inviteMutation = useInvitePsychologistToCompany();
 
+  // Company admins use the company-scoped endpoint; super admins use the
+  // admin endpoint (super-admin-only). Only fetch while the modal is open.
+  const user = useUser();
+  const isCompanyAdmin = user?.role === "COMPANY_ADMIN";
+
+  const adminPsychologistsQuery = usePsychologists(
+    {
+      page: currentPage,
+      limit: PAGE_SIZE,
+      search: debouncedSearchTerm,
+      orderBy: "lastName",
+      type: "ascending",
+    },
+    { enabled: isOpen && !isCompanyAdmin },
+  );
+
+  const companyPsychologistsQuery = useCompanyPsychologists(
+    companyId,
+    {
+      page: currentPage,
+      limit: PAGE_SIZE,
+      search: debouncedSearchTerm,
+    },
+    { enabled: isOpen && isCompanyAdmin },
+  );
+
   // Search and pagination are handled server-side.
   const {
     data: psychologistsResponse,
     isLoading,
     isFetching,
-  } = usePsychologists({
-    page: currentPage,
-    limit: PAGE_SIZE,
-    search: debouncedSearchTerm,
-    orderBy: "lastName",
-    type: "ascending",
-  });
+  } = isCompanyAdmin ? companyPsychologistsQuery : adminPsychologistsQuery;
 
   // Debounce search term
   useEffect(() => {
@@ -102,14 +125,16 @@ export const InviteCompanyPsychologistModal: React.FC<
       await inviteMutation.mutateAsync({
         companyId,
         psychologistId: selectedPsychologist.id,
+        asCompanyAdmin: isCompanyAdmin,
       });
       handleClose();
     } catch (error) {
       console.error("Failed to invite psychologist to company:", error);
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Failed to send invitation. Please try again.",
+        getApiErrorMessage(
+          error,
+          "Failed to send invitation. Please try again.",
+        ),
       );
     }
   };

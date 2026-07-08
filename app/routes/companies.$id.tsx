@@ -53,7 +53,12 @@ import AppSidebar from "~/components/shared/AppSidebar";
 import Navbar from "~/components/shared/Navbar";
 import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
-import { useCompanyDetails, useUpdateCompany } from "~/hooks/useAuthApi";
+import {
+  useCompanyDetails,
+  useUpdateCompany,
+  usePsychologists,
+  useCompanyPsychologists,
+} from "~/hooks/useAuthApi";
 import type { ApiCompany } from "~/lib/auth/types";
 import { useParams } from "react-router";
 import { InviteCompanyAdminModal } from "~/components/modals/InviteCompanyAdminModal";
@@ -130,8 +135,26 @@ export default function CompanyDetailPage({
     "COMPANY_ADMIN",
   ].includes(user?.role || "");
 
-  // Only SUPER_ADMIN can invite psychologists to a company
+  // SUPER_ADMIN and COMPANY_ADMIN can invite psychologists to a company
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
+  const isCompanyAdmin = user?.role === "COMPANY_ADMIN";
+  const canInvitePsychologist = isSuperAdmin || isCompanyAdmin;
+
+  // Check whether any psychologists exist before allowing invitations.
+  // Super admins use the admin endpoint; company admins use the company-scoped one.
+  const { data: adminPsychologistsCheck } = usePsychologists(
+    { page: 1, limit: 1 },
+    { enabled: isSuperAdmin },
+  );
+  const { data: companyPsychologistsCheck } = useCompanyPsychologists(
+    actualCompanyId,
+    { page: 1, limit: 1 },
+    { enabled: isCompanyAdmin },
+  );
+  const psychologistsCheck = isCompanyAdmin
+    ? companyPsychologistsCheck
+    : adminPsychologistsCheck;
+  const hasPsychologists = (psychologistsCheck?.total ?? 0) > 0;
 
   // Form state
   const [editForm, setEditForm] = useState({
@@ -862,11 +885,17 @@ export default function CompanyDetailPage({
                         <UserPlus size={16} className="mr-2" />
                         Invite Employee
                       </Button>
-                      {isSuperAdmin && (
+                      {canInvitePsychologist && (
                         <Button
                           className="w-full mb-3"
                           variant="outline"
                           onClick={handleOpenInvitePsychologistModal}
+                          disabled={!hasPsychologists}
+                          title={
+                            !hasPsychologists
+                              ? "There are no psychologists to invite"
+                              : undefined
+                          }
                         >
                           <Brain size={16} className="mr-2" />
                           Invite Psychologist

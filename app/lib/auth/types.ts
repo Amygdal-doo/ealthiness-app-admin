@@ -245,6 +245,35 @@ export interface PsychologistsQueryParams {
   type?: "ascending" | "descending";
 }
 
+// Company psychologists API types (company-scoped endpoint returns _id)
+export interface ApiCompanyPsychologist {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string[];
+  profileImage?: string | null;
+  roles: string[];
+  country?: string;
+  patientsCount: number;
+  companiesCount: number;
+  createdAt: string;
+}
+
+export interface CompanyPsychologistsResponse {
+  limit: number;
+  page: number;
+  pages: number;
+  total: number;
+  results: ApiCompanyPsychologist[];
+}
+
+export interface CompanyPsychologistsQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
 // Doctors API types
 export interface ApiDoctor {
   id: string;

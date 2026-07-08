@@ -10,6 +10,7 @@ import type {
   CountriesQueryParams,
   TherapySessionsQueryParams,
   PsychologistsQueryParams,
+  CompanyPsychologistsQueryParams,
   DoctorsQueryParams,
   PatientsQueryParams,
   SessionTherapyPlansQueryParams,
@@ -332,6 +333,31 @@ export function buildPsychologistsQueryString(
 
   const queryString = searchParams.toString();
   return `/v1/admin/psychologist${queryString ? `?${queryString}` : ""}`;
+}
+
+/**
+ * Builds the query string for the company psychologists endpoint
+ */
+export function buildCompanyPsychologistsQueryString(
+  companyId: string,
+  params: CompanyPsychologistsQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  if (params.search && params.search.trim()) {
+    searchParams.append("search", params.search.trim());
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/company/${companyId}/psychologists${queryString ? `?${queryString}` : ""}`;
 }
 
 /**
