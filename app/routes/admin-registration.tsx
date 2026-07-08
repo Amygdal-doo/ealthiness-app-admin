@@ -41,6 +41,7 @@ export default function AdminRegistrationPage() {
     weight: 70,
     password: "",
     confirmPassword: "",
+    country: "",
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
 
@@ -191,7 +192,7 @@ export default function AdminRegistrationPage() {
         </Card>
 
         {/* Registration Form or Invitation Acceptance */}
-        <Card className="p-8">
+        <Card className="p-8 overflow-visible">
           {existingUser ? (
             <AdminInvitationAcceptance
               adminType={adminType || ""}

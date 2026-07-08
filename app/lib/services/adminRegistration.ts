@@ -10,7 +10,51 @@ export interface AdminRegistrationData {
   height: number;
   weight: number;
   password: string;
+  country: string;
 }
+
+export interface Country {
+  id: string;
+  name: string;
+  alpha2: string;
+  alpha3: string;
+  flag?: {
+    name: string;
+    extension: string;
+    url: string;
+  } | null;
+}
+
+export interface CountrySearchResponse {
+  limit: number;
+  page: number;
+  pages: number;
+  total: number;
+  results: Country[];
+}
+
+// API function to search countries for the registration form (public endpoint)
+export const searchCountries = async (
+  search: string,
+): Promise<CountrySearchResponse> => {
+  const params = new URLSearchParams({ page: "1", limit: "10" });
+  if (search.trim()) {
+    params.set("search", search.trim());
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}/v1/country/paginated?${params.toString()}`,
+  );
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(
+      error.errors || error.message || "Failed to load countries",
+    );
+  }
+
+  return response.json();
+};
 
 // API function for admin signup (new users)
 export const signupAdmin = async (

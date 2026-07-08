@@ -8,6 +8,7 @@ export interface AdminRegistrationFormData {
   weight: number;
   password: string;
   confirmPassword: string;
+  country: string;
 }
 
 export interface ValidationErrors {
@@ -65,6 +66,11 @@ export const validateAdminRegistrationForm = (
   // Weight validation
   if (userInfo.weight < 30 || userInfo.weight > 300) {
     errors.weight = "Weight must be between 30-300 kg";
+  }
+
+  // Country validation
+  if (!userInfo.country) {
+    errors.country = "Country is required";
   }
 
   return {

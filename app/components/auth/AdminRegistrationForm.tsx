@@ -9,8 +9,12 @@ import {
   User,
   Eye,
   EyeOff,
+  Globe,
+  Search,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Button, Input } from "~/components/ui";
+import { searchCountries, type Country } from "~/lib/services/adminRegistration";
 import type { AdminRegistrationFormData, ValidationErrors } from "~/lib/validation/adminRegistration";
 import type { AdminTypeColors } from "~/lib/utils/adminTypes";
 
@@ -36,11 +40,16 @@ export function AdminRegistrationForm({
   isSuccess,
 }: AdminRegistrationFormProps) {
   const [isGenderDropdownOpen, setIsGenderDropdownOpen] = useState(false);
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [countrySearch, setCountrySearch] = useState("");
+  const [debouncedCountrySearch, setDebouncedCountrySearch] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const genderDropdownRef = useRef<HTMLDivElement>(null);
+  const countryDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close gender dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -49,10 +58,40 @@ export function AdminRegistrationForm({
       ) {
         setIsGenderDropdownOpen(false);
       }
+      if (
+        countryDropdownRef.current &&
+        !countryDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsCountryDropdownOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Debounce country search input
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedCountrySearch(countrySearch);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [countrySearch]);
+
+  const { data: countriesData, isFetching: isLoadingCountries } = useQuery({
+    queryKey: ["countries", debouncedCountrySearch],
+    queryFn: () => searchCountries(debouncedCountrySearch),
+    enabled: isCountryDropdownOpen,
+    placeholderData: (previousData) => previousData,
+  });
+
+  const countries = countriesData?.results ?? [];
+
+  const handleSelectCountry = (country: Country) => {
+    setSelectedCountry(country);
+    onInputChange("country", country.id);
+    setIsCountryDropdownOpen(false);
+    setCountrySearch("");
+  };
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
@@ -97,6 +136,109 @@ export function AdminRegistrationForm({
             </p>
           )}
         </div>
+      </div>
+
+      {/* Country */}
+      <div>
+        <label className="block text-xs font-bold text-[#8E8E93] uppercase tracking-wider mb-2 flex items-center gap-2">
+          <Globe size={14} />
+          Country
+        </label>
+        <div className="relative" ref={countryDropdownRef}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+            className={`justify-between w-full bg-white border rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 text-[#1B173A] hover:border-[#5850DE] focus:border-[#5850DE] focus:ring-2 focus:ring-[#5850DE]/10 ${
+              errors.country ? "border-red-500" : "border-[#E0E1E6]"
+            }`}
+            disabled={isLoading}
+          >
+            {selectedCountry ? (
+              <span className="flex items-center gap-2">
+                {selectedCountry.flag?.url && (
+                  <img
+                    src={selectedCountry.flag.url}
+                    alt=""
+                    className="w-5 h-4 object-cover rounded-sm"
+                  />
+                )}
+                {selectedCountry.name}
+              </span>
+            ) : (
+              <span className="text-[#8E8E93]">Select your country</span>
+            )}
+            <ChevronDown
+              size={16}
+              className={`text-[#8E8E93] transition-transform duration-200 ${
+                isCountryDropdownOpen ? "rotate-180" : ""
+              }`}
+            />
+          </Button>
+
+          {isCountryDropdownOpen && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E0E1E6] rounded-lg shadow-lg z-50 py-1">
+              <div className="px-2 pb-1 pt-1 border-b border-[#E0E1E6]">
+                <div className="relative">
+                  <Search
+                    size={14}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8E8E93]"
+                  />
+                  <Input
+                    type="text"
+                    value={countrySearch}
+                    onChange={(e) => setCountrySearch(e.target.value)}
+                    placeholder="Search countries..."
+                    className="pl-9"
+                    autoFocus
+                  />
+                </div>
+              </div>
+              <div className="max-h-60 overflow-y-auto overscroll-contain">
+                {isLoadingCountries && countries.length === 0 ? (
+                  <div className="flex items-center justify-center py-4 text-[#8E8E93] text-sm">
+                    <Loader2 size={16} className="mr-2 animate-spin" />
+                    Loading countries...
+                  </div>
+                ) : countries.length === 0 ? (
+                  <p className="px-3 py-4 text-center text-sm text-[#8E8E93]">
+                    No countries found
+                  </p>
+                ) : (
+                  countries.map((country) => (
+                    <button
+                      key={country.id}
+                      type="button"
+                      onClick={() => handleSelectCountry(country)}
+                      className={`w-full px-3 py-2 text-left text-sm font-medium hover:bg-[#F0F0F3] transition-colors flex items-center justify-between ${
+                        selectedCountry?.id === country.id
+                          ? "text-[#5850DE] bg-[#F0F0F3]"
+                          : "text-[#1B173A]"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        {country.flag?.url && (
+                          <img
+                            src={country.flag.url}
+                            alt=""
+                            className="w-5 h-4 object-cover rounded-sm"
+                          />
+                        )}
+                        {country.name}
+                      </span>
+                      {selectedCountry?.id === country.id && (
+                        <Check size={16} className="text-[#5850DE]" />
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+        {errors.country && (
+          <p className="text-red-500 text-sm mt-1">{errors.country}</p>
+        )}
       </div>
 
       {/* Second Row - Email and Username */}
