@@ -22,6 +22,7 @@ import {
   Building2,
   UserPlus,
   Brain,
+  Stethoscope,
 } from "lucide-react";
 import {
   Button,
@@ -58,12 +59,15 @@ import {
   useUpdateCompany,
   usePsychologists,
   useCompanyPsychologists,
+  useDoctors,
+  useCompanyDoctors,
 } from "~/hooks/useAuthApi";
 import type { ApiCompany } from "~/lib/auth/types";
 import { useParams } from "react-router";
 import { InviteCompanyAdminModal } from "~/components/modals/InviteCompanyAdminModal";
 import { InviteCompanyEmployeeModal } from "~/components/modals/InviteCompanyEmployeeModal";
 import { InviteCompanyPsychologistModal } from "~/components/modals/InviteCompanyPsychologistModal";
+import { InviteCompanyDoctorModal } from "~/components/modals/InviteCompanyDoctorModal";
 
 // Mock data for company statistics
 const COMPANY_STATS = {
@@ -125,6 +129,7 @@ export default function CompanyDetailPage({
     useState(false);
   const [isInvitePsychologistModalOpen, setIsInvitePsychologistModalOpen] =
     useState(false);
+  const [isInviteDoctorModalOpen, setIsInviteDoctorModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Check if user can edit (only SUPER_ADMIN, COUNTRY_ADMIN, REGIONAL_ADMIN, COMPANY_ADMIN)
@@ -155,6 +160,22 @@ export default function CompanyDetailPage({
     ? companyPsychologistsCheck
     : adminPsychologistsCheck;
   const hasPsychologists = (psychologistsCheck?.total ?? 0) > 0;
+
+  // SUPER_ADMIN and COMPANY_ADMIN can invite doctors to a company.
+  // Super admins use the admin endpoint; company admins use the
+  // company-scoped one.
+  const canInviteDoctor = isSuperAdmin || isCompanyAdmin;
+  const { data: adminDoctorsCheck } = useDoctors(
+    { page: 1, limit: 1 },
+    { enabled: isSuperAdmin },
+  );
+  const { data: companyDoctorsCheck } = useCompanyDoctors(
+    actualCompanyId,
+    { page: 1, limit: 1 },
+    { enabled: isCompanyAdmin },
+  );
+  const doctorsCheck = isCompanyAdmin ? companyDoctorsCheck : adminDoctorsCheck;
+  const hasDoctors = (doctorsCheck?.total ?? 0) > 0;
 
   // Form state
   const [editForm, setEditForm] = useState({
@@ -308,6 +329,14 @@ export default function CompanyDetailPage({
 
   const handleCloseInvitePsychologistModal = () => {
     setIsInvitePsychologistModalOpen(false);
+  };
+
+  const handleOpenInviteDoctorModal = () => {
+    setIsInviteDoctorModalOpen(true);
+  };
+
+  const handleCloseInviteDoctorModal = () => {
+    setIsInviteDoctorModalOpen(false);
   };
 
   if (!user || isLoadingCompany) {
@@ -901,6 +930,22 @@ export default function CompanyDetailPage({
                           Invite Psychologist
                         </Button>
                       )}
+                      {canInviteDoctor && (
+                        <Button
+                          className="w-full mb-3"
+                          variant="outline"
+                          onClick={handleOpenInviteDoctorModal}
+                          disabled={!hasDoctors}
+                          title={
+                            !hasDoctors
+                              ? "There are no doctors to invite"
+                              : undefined
+                          }
+                        >
+                          <Stethoscope size={16} className="mr-2" />
+                          Invite Doctor
+                        </Button>
+                      )}
                       <Link to={`/companies/${company.id}/users`}>
                         <Button className="w-full mb-3" variant="outline">
                           <Users size={16} className="mr-2" />
@@ -935,6 +980,14 @@ export default function CompanyDetailPage({
         <InviteCompanyPsychologistModal
           isOpen={isInvitePsychologistModalOpen}
           onClose={handleCloseInvitePsychologistModal}
+          companyId={actualCompanyId}
+          companyName={company.name}
+        />
+
+        {/* Doctor Invitation Modal */}
+        <InviteCompanyDoctorModal
+          isOpen={isInviteDoctorModalOpen}
+          onClose={handleCloseInviteDoctorModal}
           companyId={actualCompanyId}
           companyName={company.name}
         />

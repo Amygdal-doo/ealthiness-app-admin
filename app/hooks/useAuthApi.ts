@@ -31,6 +31,7 @@ import {
   buildPsychologistsQueryString,
   buildCompanyPsychologistsQueryString,
   buildDoctorsQueryString,
+  buildCompanyDoctorsQueryString,
   buildPatientsQueryString,
   buildTherapyPlanEndpoint,
   buildTherapyPlanDetailsEndpoint,
@@ -94,6 +95,8 @@ import type {
   CompanyPsychologistsQueryParams,
   DoctorsResponse,
   DoctorsQueryParams,
+  CompanyDoctorsResponse,
+  CompanyDoctorsQueryParams,
   ApiPatient,
   PatientsResponse,
   PatientsQueryParams,
@@ -357,7 +360,10 @@ export function useCompanyPsychologists(
   });
 }
 
-export function useDoctors(params: DoctorsQueryParams = {}) {
+export function useDoctors(
+  params: DoctorsQueryParams = {},
+  options: { enabled?: boolean } = {},
+) {
   return useQuery({
     queryKey: ["doctors", params],
     queryFn: async (): Promise<DoctorsResponse> => {
@@ -380,7 +386,48 @@ export function useDoctors(params: DoctorsQueryParams = {}) {
       return failureCount < 2 && !!clientTokens.get();
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: !!clientTokens.get(), // Only run if we have tokens
+    enabled: (options.enabled ?? true) && !!clientTokens.get(), // Only run if we have tokens
+  });
+}
+
+// Company-scoped doctors list (usable by COMPANY_ADMIN). Results are
+// normalized to the ApiDoctor shape (_id -> id) so consumers can treat
+// both doctor endpoints interchangeably.
+export function useCompanyDoctors(
+  companyId: string,
+  params: CompanyDoctorsQueryParams = {},
+  options: { enabled?: boolean } = {},
+) {
+  return useQuery({
+    queryKey: ["company-doctors", companyId, params],
+    queryFn: async (): Promise<DoctorsResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildCompanyDoctorsQueryString(companyId, params);
+        const response = await apiClient.get<CompanyDoctorsResponse>(endpoint);
+        return {
+          ...response,
+          results: response.results.map(({ _id, ...doctor }) => ({
+            ...doctor,
+            id: _id,
+            profileImage: doctor.profileImage ?? null,
+          })),
+        };
+      } catch (error) {
+        console.error("Error fetching company doctors:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: (options.enabled ?? true) && !!companyId && !!clientTokens.get(),
   });
 }
 
@@ -887,6 +934,56 @@ export function useInvitePsychologistToCompany() {
       queryClient.invalidateQueries({ queryKey: ["companies"] });
       queryClient.invalidateQueries({
         queryKey: ["company-psychologists", variables.companyId],
+      });
+    },
+  });
+}
+
+export function useInviteDoctorToCompany() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      companyId,
+      doctorId,
+      asCompanyAdmin,
+    }: {
+      companyId: string;
+      doctorId: string;
+      asCompanyAdmin?: boolean;
+    }): Promise<{ message: string }> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        // Company admins invite via the invite route (doctorId in body);
+        // super admins keep the direct assignment route.
+        const response = asCompanyAdmin
+          ? await apiClient.post<{ message: string }>(
+              `/v1/admin/doctor/company/${companyId}/invite`,
+              { doctorId },
+            )
+          : await apiClient.post<{ message: string }>(
+              `/v1/admin/doctor/company/${companyId}/doctor/${doctorId}`,
+            );
+        return response;
+      } catch (error) {
+        console.error("Error inviting doctor to company:", error);
+        throw error;
+      }
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch company details to update doctor list
+      queryClient.invalidateQueries({
+        queryKey: ["company", variables.companyId],
+      });
+      // Invalidate companies list as well
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
+      queryClient.invalidateQueries({ queryKey: ["doctors"] });
+      queryClient.invalidateQueries({
+        queryKey: ["company-doctors", variables.companyId],
       });
     },
   });

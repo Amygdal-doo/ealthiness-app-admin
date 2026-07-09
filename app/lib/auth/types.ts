@@ -305,6 +305,35 @@ export interface DoctorsQueryParams {
   type?: "ascending" | "descending";
 }
 
+// Company doctors API types (company-scoped endpoint returns _id)
+export interface ApiCompanyDoctor {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string[];
+  profileImage?: string | null;
+  roles: string[];
+  country?: string;
+  patientsCount?: number;
+  companiesCount?: number;
+  createdAt: string;
+}
+
+export interface CompanyDoctorsResponse {
+  limit: number;
+  page: number;
+  pages: number;
+  total: number;
+  results: ApiCompanyDoctor[];
+}
+
+export interface CompanyDoctorsQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
 // Regions API types
 export interface ApiRegion {
   id: string;

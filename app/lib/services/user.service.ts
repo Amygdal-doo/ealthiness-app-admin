@@ -12,6 +12,7 @@ import type {
   PsychologistsQueryParams,
   CompanyPsychologistsQueryParams,
   DoctorsQueryParams,
+  CompanyDoctorsQueryParams,
   PatientsQueryParams,
   SessionTherapyPlansQueryParams,
 } from "../auth/types";
@@ -390,6 +391,31 @@ export function buildDoctorsQueryString(
 
   const queryString = searchParams.toString();
   return `/v1/admin/doctor${queryString ? `?${queryString}` : ""}`;
+}
+
+/**
+ * Builds the query string for the company doctors endpoint
+ */
+export function buildCompanyDoctorsQueryString(
+  companyId: string,
+  params: CompanyDoctorsQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  if (params.search && params.search.trim()) {
+    searchParams.append("search", params.search.trim());
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/company/${companyId}/doctors${queryString ? `?${queryString}` : ""}`;
 }
 
 /**
