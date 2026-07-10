@@ -114,6 +114,13 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
       path: "/doctor",
     },
     {
+      id: "doctor-sessions",
+      label: "Sessions",
+      icon: CalendarClock,
+      roles: ["DOCTOR"],
+      path: "/doctor/sessions",
+    },
+    {
       id: "doctor-patients",
       label: "Patients",
       icon: Users,

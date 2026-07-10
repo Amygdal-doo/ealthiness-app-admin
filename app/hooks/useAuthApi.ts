@@ -101,6 +101,7 @@ import type {
   PatientsResponse,
   PatientsQueryParams,
   PsychologistDashboardOverview,
+  DoctorDashboardOverview,
   PatientMoodEntry,
   TtsGrokVoice,
   CreateTherapyPlanPayload,
@@ -1467,12 +1468,39 @@ export function usePsychologistDashboardOverview() {
       }
 
       try {
-        const endpoint = "/v1/psychologist-dashboard/overview";
+        const endpoint = "/v1/dashboard/psychologist/overview";
         const response =
           await apiClient.get<PsychologistDashboardOverview>(endpoint);
         return response;
       } catch (error) {
         console.error("Error fetching psychologist dashboard overview:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get(), // Only run if we have tokens
+  });
+}
+
+export function useDoctorDashboardOverview() {
+  return useQuery({
+    queryKey: ["doctor-dashboard-overview"],
+    queryFn: async (): Promise<DoctorDashboardOverview> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = "/v1/dashboard/doctor/overview";
+        const response = await apiClient.get<DoctorDashboardOverview>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching doctor dashboard overview:", error);
         throw error;
       }
     },

@@ -13,6 +13,7 @@ import AppSidebar from "~/components/shared/AppSidebar";
 import Navbar from "~/components/shared/Navbar";
 import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
+import { useDoctorDashboardOverview } from "~/hooks/useAuthApi";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -24,46 +25,48 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-// TODO: Replace with real doctor dashboard API once available.
-const DUMMY_OVERVIEW = {
-  activePatients: 18,
-  therapyPlanCompletionRate: 0.72, // 0–1 ratio
-  appointmentsToday: 4,
-  appointmentsThisWeek: 17,
-  appointmentsThisMonth: 63,
-};
+const Skeleton = ({ className = "" }: { className?: string }) => (
+  <span
+    className={`inline-block rounded-md bg-black/10 animate-pulse ${className}`}
+  />
+);
 
 export default function DoctorOverviewPage() {
   const user = useUser();
   const navigate = useNavigate();
 
-  const overview = DUMMY_OVERVIEW;
+  const {
+    data: overview,
+    isLoading: isOverviewLoading,
+    isError: isOverviewError,
+  } = useDoctorDashboardOverview();
 
-  const completionPercent = Math.round(
-    overview.therapyPlanCompletionRate * 100,
-  );
+  const completionRate = overview?.therapyPlanCompletionRate ?? null;
+  // BE returns a 0–1 ratio; render as a whole percentage.
+  const completionPercent =
+    completionRate === null ? null : Math.round(completionRate * 100);
 
-  const appointmentStats = [
+  const sessionStats = [
     {
-      id: "appointments-today",
+      id: "sessions-today",
       label: "Today",
-      value: overview.appointmentsToday,
+      value: overview?.sessionsToday ?? 0,
       icon: Clock,
       accent: "text-[#16A34A]",
       bg: "bg-[#E3F6EA]",
     },
     {
-      id: "appointments-week",
+      id: "sessions-week",
       label: "This Week",
-      value: overview.appointmentsThisWeek,
+      value: overview?.sessionsThisWeek ?? 0,
       icon: CalendarClock,
       accent: "text-[#248FEC]",
       bg: "bg-[#E1F0FD]",
     },
     {
-      id: "appointments-month",
+      id: "sessions-month",
       label: "This Month",
-      value: overview.appointmentsThisMonth,
+      value: overview?.sessionsThisMonth ?? 0,
       icon: CalendarDays,
       accent: "text-[#7C3AED]",
       bg: "bg-[#F0E9FE]",
@@ -103,6 +106,12 @@ export default function DoctorOverviewPage() {
                 </p>
               </div>
 
+              {isOverviewError && (
+                <div className="bg-red-50 border border-red-100 rounded-2xl p-4 mb-6 text-sm font-medium text-red-500">
+                  Couldn't load your practice overview. Please try refreshing.
+                </div>
+              )}
+
               {/* Featured cards */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
                 {/* Active patients */}
@@ -114,7 +123,11 @@ export default function DoctorOverviewPage() {
                       <Users size={24} />
                     </div>
                     <div className="text-4xl font-extrabold leading-none">
-                      {overview.activePatients}
+                      {isOverviewLoading ? (
+                        <Skeleton className="h-9 w-16 bg-white/30" />
+                      ) : (
+                        (overview?.activePatients ?? 0)
+                      )}
                     </div>
                     <div className="text-sm font-medium text-white/80 mt-2">
                       Active Patients
@@ -135,33 +148,43 @@ export default function DoctorOverviewPage() {
 
                   <div className="mt-auto pt-8">
                     <div className="text-4xl font-extrabold text-[#1B173A] leading-none">
-                      {`${completionPercent}%`}
+                      {isOverviewLoading ? (
+                        <Skeleton className="h-9 w-20" />
+                      ) : completionPercent === null ? (
+                        <span className="text-[#8E8E93]">—</span>
+                      ) : (
+                        `${completionPercent}%`
+                      )}
                     </div>
 
                     <div className="mt-4 h-2.5 w-full rounded-full bg-[#F0F0F3] overflow-hidden">
                       <div
                         className="h-full rounded-full bg-gradient-to-r from-[#F97316] to-[#EA580C] transition-all duration-500"
-                        style={{ width: `${completionPercent}%` }}
+                        style={{
+                          width: `${completionPercent ?? 0}%`,
+                        }}
                       />
                     </div>
                     <p className="text-xs font-medium text-[#8E8E93] mt-2">
-                      Average completion across active therapy plans.
+                      {completionPercent === null
+                        ? "No completion data available yet."
+                        : "Average completion across active therapy plans."}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Appointments breakdown */}
+              {/* Sessions breakdown */}
               <div className="rounded-[24px] bg-white border border-[#E0E1E6] shadow-sm overflow-hidden">
                 <div className="p-5 border-b border-[#E0E1E6]">
                   <h3 className="text-lg font-bold text-[#1B173A] flex items-center gap-2">
                     <CalendarClock size={18} className="text-[#5850DE]" />
-                    Appointments
+                    Sessions
                   </h3>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[#E0E1E6]">
-                  {appointmentStats.map((stat) => {
+                  {sessionStats.map((stat) => {
                     const Icon = stat.icon;
                     return (
                       <div key={stat.id} className="p-6">
@@ -171,7 +194,11 @@ export default function DoctorOverviewPage() {
                           <Icon size={20} />
                         </div>
                         <div className="text-3xl font-extrabold text-[#1B173A] leading-none">
-                          {stat.value}
+                          {isOverviewLoading ? (
+                            <Skeleton className="h-8 w-12" />
+                          ) : (
+                            stat.value
+                          )}
                         </div>
                         <div className="text-sm font-medium text-[#60646C] mt-1.5">
                           {stat.label}

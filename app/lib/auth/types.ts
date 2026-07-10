@@ -504,6 +504,9 @@ export interface PsychologistDashboardOverview {
   therapyPlanCompletionRate: number | null;
 }
 
+// The doctor dashboard overview shares the psychologist overview shape.
+export type DoctorDashboardOverview = PsychologistDashboardOverview;
+
 // Therapy sessions API types
 export type TranscriptionStatus =
   | "pending"
