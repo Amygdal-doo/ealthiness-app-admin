@@ -32,6 +32,8 @@ import {
   buildCompanyPsychologistsQueryString,
   buildDoctorsQueryString,
   buildCompanyDoctorsQueryString,
+  buildHospitalsQueryString,
+  buildHospitalDetailsEndpoint,
   buildPatientsQueryString,
   buildTherapyPlanEndpoint,
   buildTherapyPlanDetailsEndpoint,
@@ -97,6 +99,13 @@ import type {
   DoctorsQueryParams,
   CompanyDoctorsResponse,
   CompanyDoctorsQueryParams,
+  ApiHospital,
+  ApiHospitalDoctor,
+  ApiHospitalPsychologist,
+  HospitalsResponse,
+  HospitalsQueryParams,
+  CreateHospitalPayload,
+  UpdateHospitalPayload,
   ApiPatient,
   PatientsResponse,
   PatientsQueryParams,
@@ -389,6 +398,363 @@ export function useDoctors(
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: (options.enabled ?? true) && !!clientTokens.get(), // Only run if we have tokens
+  });
+}
+
+export function useHospitals(params: HospitalsQueryParams = {}) {
+  return useQuery({
+    queryKey: ["hospitals", params],
+    queryFn: async (): Promise<HospitalsResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildHospitalsQueryString(params);
+        const response = await apiClient.get<HospitalsResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching hospitals:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clientTokens.get(), // Only run if we have tokens
+  });
+}
+
+export function useHospitalDetails(
+  hospitalId: string,
+  options: { enabled?: boolean } = {},
+) {
+  return useQuery({
+    queryKey: ["hospital", hospitalId],
+    queryFn: async (): Promise<ApiHospital> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildHospitalDetailsEndpoint(hospitalId);
+        const response = await apiClient.get<ApiHospital>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching hospital details:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: (options.enabled ?? true) && !!clientTokens.get() && !!hospitalId, // Only run if we have tokens and hospitalId
+  });
+}
+
+export function useCreateHospital() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: CreateHospitalPayload): Promise<ApiHospital> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const response = await apiClient.post<ApiHospital>(
+          "/v1/hospital",
+          payload,
+        );
+        return response;
+      } catch (error) {
+        console.error("Error creating hospital:", error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["hospitals"] });
+    },
+  });
+}
+
+export function useUpdateHospital() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      hospitalId,
+      data,
+    }: {
+      hospitalId: string;
+      data: UpdateHospitalPayload;
+    }): Promise<ApiHospital> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildHospitalDetailsEndpoint(hospitalId);
+        const response = await apiClient.put<ApiHospital>(endpoint, data);
+        return response;
+      } catch (error) {
+        console.error("Error updating hospital:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["hospital", variables.hospitalId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["hospitals"] });
+    },
+  });
+}
+
+export function useHospitalDoctors(
+  hospitalId: string,
+  options: { enabled?: boolean } = {},
+) {
+  return useQuery({
+    queryKey: ["hospital-doctors", hospitalId],
+    queryFn: async (): Promise<ApiHospitalDoctor[]> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const response = await apiClient.get<ApiHospitalDoctor[]>(
+          `/v1/hospital/${hospitalId}/doctors`,
+        );
+        return response;
+      } catch (error) {
+        console.error("Error fetching hospital doctors:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: (options.enabled ?? true) && !!clientTokens.get() && !!hospitalId, // Only run if we have tokens and hospitalId
+  });
+}
+
+export function useHospitalPsychologists(
+  hospitalId: string,
+  options: { enabled?: boolean } = {},
+) {
+  return useQuery({
+    queryKey: ["hospital-psychologists", hospitalId],
+    queryFn: async (): Promise<ApiHospitalPsychologist[]> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const response = await apiClient.get<ApiHospitalPsychologist[]>(
+          `/v1/hospital/${hospitalId}/psychologists`,
+        );
+        return response;
+      } catch (error) {
+        console.error("Error fetching hospital psychologists:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: (options.enabled ?? true) && !!clientTokens.get() && !!hospitalId, // Only run if we have tokens and hospitalId
+  });
+}
+
+export function useAddDoctorToHospital() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      hospitalId,
+      doctorId,
+    }: {
+      hospitalId: string;
+      doctorId: string;
+    }): Promise<void> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        await apiClient.post<void>(
+          `/v1/hospital/${hospitalId}/doctors/${doctorId}`,
+        );
+      } catch (error) {
+        console.error("Error adding doctor to hospital:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["hospital", variables.hospitalId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["hospital-doctors", variables.hospitalId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["hospitals"] });
+    },
+  });
+}
+
+export function useAddPsychologistToHospital() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      hospitalId,
+      psychologistId,
+    }: {
+      hospitalId: string;
+      psychologistId: string;
+    }): Promise<void> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        await apiClient.post<void>(
+          `/v1/hospital/${hospitalId}/psychologists/${psychologistId}`,
+        );
+      } catch (error) {
+        console.error("Error adding psychologist to hospital:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["hospital", variables.hospitalId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["hospital-psychologists", variables.hospitalId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["hospitals"] });
+    },
+  });
+}
+
+export function useRemovePsychologistFromHospital() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      hospitalId,
+      psychologistId,
+    }: {
+      hospitalId: string;
+      psychologistId: string;
+    }): Promise<void> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        await apiClient.delete<void>(
+          `/v1/hospital/${hospitalId}/psychologists/${psychologistId}`,
+        );
+      } catch (error) {
+        console.error("Error removing psychologist from hospital:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["hospital", variables.hospitalId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["hospital-psychologists", variables.hospitalId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["hospitals"] });
+    },
+  });
+}
+
+export function useRemoveDoctorFromHospital() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      hospitalId,
+      doctorId,
+    }: {
+      hospitalId: string;
+      doctorId: string;
+    }): Promise<void> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        await apiClient.delete<void>(
+          `/v1/hospital/${hospitalId}/doctors/${doctorId}`,
+        );
+      } catch (error) {
+        console.error("Error removing doctor from hospital:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["hospital", variables.hospitalId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["hospital-doctors", variables.hospitalId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["hospitals"] });
+    },
+  });
+}
+
+export function useDeleteHospital() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (hospitalId: string): Promise<void> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildHospitalDetailsEndpoint(hospitalId);
+        await apiClient.delete<void>(endpoint);
+      } catch (error) {
+        console.error("Error deleting hospital:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, hospitalId) => {
+      queryClient.removeQueries({ queryKey: ["hospital", hospitalId] });
+      queryClient.removeQueries({ queryKey: ["hospital-doctors", hospitalId] });
+      queryClient.removeQueries({
+        queryKey: ["hospital-psychologists", hospitalId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["hospitals"] });
+    },
   });
 }
 

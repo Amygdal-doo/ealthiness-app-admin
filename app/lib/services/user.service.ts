@@ -13,6 +13,7 @@ import type {
   CompanyPsychologistsQueryParams,
   DoctorsQueryParams,
   CompanyDoctorsQueryParams,
+  HospitalsQueryParams,
   PatientsQueryParams,
   SessionTherapyPlansQueryParams,
 } from "../auth/types";
@@ -392,6 +393,33 @@ export function buildDoctorsQueryString(
 
   const queryString = searchParams.toString();
   return `/v1/admin/doctor${queryString ? `?${queryString}` : ""}`;
+}
+
+/**
+ * Builds the query string for the hospitals pagination endpoint
+ */
+export function buildHospitalsQueryString(
+  params: HospitalsQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/hospital/pagination${queryString ? `?${queryString}` : ""}`;
+}
+
+/**
+ * Builds the endpoint for getting a single hospital by ID
+ */
+export function buildHospitalDetailsEndpoint(hospitalId: string): string {
+  return `/v1/hospital/${hospitalId}`;
 }
 
 /**

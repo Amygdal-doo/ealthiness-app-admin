@@ -334,6 +334,65 @@ export interface CompanyDoctorsQueryParams {
   search?: string;
 }
 
+// Hospitals API types
+export interface ApiHospital {
+  id: string;
+  name: string;
+  email: string;
+  address: string;
+  countryId: string;
+  creator: string;
+  doctors: string[];
+  psychologists: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HospitalsResponse {
+  limit: number;
+  page: number;
+  pages: number;
+  total: number;
+  results: ApiHospital[];
+}
+
+export interface HospitalsQueryParams {
+  page?: number;
+  limit?: number;
+}
+
+export interface CreateHospitalPayload {
+  name: string;
+  countryId: string;
+  email: string;
+  address: string;
+}
+
+export interface UpdateHospitalPayload {
+  name?: string;
+  countryId?: string;
+  email?: string;
+  address?: string;
+}
+
+// Hospital doctors endpoint returns a plain array with _id
+export interface ApiHospitalDoctor {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string[];
+  rating: number;
+}
+
+// Hospital psychologists endpoint returns the same shape
+export interface ApiHospitalPsychologist {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string[];
+  rating: number;
+}
+
 // Regions API types
 export interface ApiRegion {
   id: string;

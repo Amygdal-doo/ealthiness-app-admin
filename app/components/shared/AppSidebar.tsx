@@ -14,6 +14,7 @@ import {
   CalendarClock,
   Activity,
   UtensilsCrossed,
+  Hospital,
 } from "lucide-react";
 
 import type { User } from "~/lib/auth/types";
@@ -199,6 +200,13 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
       icon: UtensilsCrossed,
       roles: ["SUPER_ADMIN"],
       path: "/diet-plans",
+    },
+    {
+      id: "hospitals",
+      label: "Hospitals",
+      icon: Hospital,
+      roles: ["SUPER_ADMIN"],
+      path: "/hospitals",
     },
   ];
 

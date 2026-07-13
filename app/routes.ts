@@ -34,6 +34,8 @@ export default [
   route("/exercises/:id", "routes/exercise.$id.tsx"),
   route("/diet-plans", "routes/diet-plans.tsx"),
   route("/diet-plans/:id", "routes/diet-plan.$id.tsx"),
+  route("/hospitals", "routes/hospitals.tsx"),
+  route("/hospitals/:id", "routes/hospital.$id.tsx"),
   route("/settings", "routes/settings.tsx"),
   route("/unauthorized", "routes/unauthorized.tsx"),
   route("/admin-registration", "routes/admin-registration.tsx"),
