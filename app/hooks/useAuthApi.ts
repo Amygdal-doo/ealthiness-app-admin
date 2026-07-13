@@ -22,7 +22,7 @@ import {
   buildRegionCountriesQueryString,
   buildRegionCompaniesQueryString,
   buildCountryCompaniesQueryString,
-  buildPsychologistSessionsQueryString,
+  buildPractitionerSessionsQueryString,
   buildSessionDetailsEndpoint,
   buildSessionNotesEndpoint,
   buildSessionSummaryAudioEndpoint,
@@ -110,6 +110,7 @@ import type {
   TherapyPlansResponse,
   SessionTherapyPlansQueryParams,
 } from "~/lib/auth/types";
+import type { PractitionerApiRole } from "~/lib/portal";
 
 interface LoginResponse extends ApiAuthResponse {
   user?: User;
@@ -1429,11 +1430,12 @@ export function useDashboardOverview(period?: DashboardPeriod) {
   });
 }
 
-export function usePsychologistSessions(
+export function usePractitionerSessions(
+  role: PractitionerApiRole,
   params: TherapySessionsQueryParams = {},
 ) {
   return useQuery({
-    queryKey: ["psychologist-sessions", params],
+    queryKey: ["practitioner-sessions", role, params],
     queryFn: async (): Promise<TherapySessionsResponse> => {
       const tokens = clientTokens.get();
       if (!tokens) {
@@ -1441,11 +1443,11 @@ export function usePsychologistSessions(
       }
 
       try {
-        const endpoint = buildPsychologistSessionsQueryString(params);
+        const endpoint = buildPractitionerSessionsQueryString(role, params);
         const response = await apiClient.get<TherapySessionsResponse>(endpoint);
         return response;
       } catch (error) {
-        console.error("Error fetching psychologist sessions:", error);
+        console.error("Error fetching practitioner sessions:", error);
         throw error;
       }
     },
@@ -1670,7 +1672,7 @@ export function useDeleteSession() {
     onSuccess: (_data, sessionId) => {
       // Drop the deleted session's cache and refresh any session lists
       queryClient.removeQueries({ queryKey: ["therapy-session", sessionId] });
-      queryClient.invalidateQueries({ queryKey: ["psychologist-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["practitioner-sessions"] });
       queryClient.invalidateQueries({ queryKey: ["patient-sessions"] });
     },
   });
@@ -1709,10 +1711,13 @@ const isNotFoundError = (error: unknown): boolean =>
   error !== null &&
   (error as { status?: number }).status === 404;
 
-export function usePatientRecentMood(patientId: string) {
+export function usePatientRecentMood(
+  role: PractitionerApiRole,
+  patientId: string,
+) {
   return useQuery({
     // `null` is a valid result here: the patient simply has no recorded mood.
-    queryKey: ["patient-recent-mood", patientId],
+    queryKey: ["patient-recent-mood", role, patientId],
     queryFn: async (): Promise<PatientMoodEntry | null> => {
       const tokens = clientTokens.get();
       if (!tokens) {
@@ -1720,7 +1725,7 @@ export function usePatientRecentMood(patientId: string) {
       }
 
       try {
-        const endpoint = `/v1/mental/psychologist/patient/${patientId}/recent`;
+        const endpoint = `/v1/mental/${role}/patient/${patientId}/recent`;
         const response = await apiClient.get<PatientMoodEntry | null>(endpoint);
         // No mood entry is an expected state — the API may answer with an empty
         // body or an object without an `id`. Normalize all of these to `null`
@@ -1751,11 +1756,12 @@ export function usePatientRecentMood(patientId: string) {
 }
 
 export function usePatientSessions(
+  role: PractitionerApiRole,
   patientId: string,
   params: TherapySessionsQueryParams = {},
 ) {
   return useQuery({
-    queryKey: ["patient-sessions", patientId, params],
+    queryKey: ["patient-sessions", role, patientId, params],
     queryFn: async (): Promise<TherapySessionsResponse> => {
       const tokens = clientTokens.get();
       if (!tokens) {
@@ -1763,7 +1769,11 @@ export function usePatientSessions(
       }
 
       try {
-        const endpoint = buildPatientSessionsQueryString(patientId, params);
+        const endpoint = buildPatientSessionsQueryString(
+          role,
+          patientId,
+          params,
+        );
         const response = await apiClient.get<TherapySessionsResponse>(endpoint);
         return response;
       } catch (error) {

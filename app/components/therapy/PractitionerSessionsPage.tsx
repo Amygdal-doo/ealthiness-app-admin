@@ -19,7 +19,7 @@ import { RoleGuard } from "~/components/auth/RoleGuard";
 import { ConfirmDeleteModal } from "~/components/modals/ConfirmDeleteModal";
 import { useUser } from "~/hooks/useAuth";
 import {
-  usePsychologistSessions,
+  usePractitionerSessions,
   useDeleteSession,
 } from "~/hooks/useAuthApi";
 import type { TherapySession, TranscriptionStatus } from "~/lib/auth/types";
@@ -79,7 +79,7 @@ export default function PractitionerSessionsPage({
     isError,
     refetch,
     isFetching,
-  } = usePsychologistSessions({
+  } = usePractitionerSessions(portal.apiRole, {
     page,
     limit: PAGE_SIZE,
     order,

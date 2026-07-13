@@ -140,13 +140,17 @@ export default function PractitionerPatientDetailPage({
     isError: sessionsError,
     isFetching: sessionsFetching,
     refetch: refetchSessions,
-  } = usePatientSessions(patientId, { page, limit: PAGE_SIZE, order });
+  } = usePatientSessions(portal.apiRole, patientId, {
+    page,
+    limit: PAGE_SIZE,
+    order,
+  });
 
   const {
     data: recentMood,
     isLoading: moodLoading,
     isError: moodError,
-  } = usePatientRecentMood(patientId);
+  } = usePatientRecentMood(portal.apiRole, patientId);
 
   if (!user) {
     return (

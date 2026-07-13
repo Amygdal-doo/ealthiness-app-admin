@@ -17,6 +17,7 @@ import type {
   SessionTherapyPlansQueryParams,
 } from "../auth/types";
 import type { TherapyPlanItemsQueryParams } from "../therapy/therapy-item";
+import type { PractitionerApiRole } from "../portal";
 import type { ProductSearchQueryParams } from "../products/product";
 import type { ExercisesQueryParams } from "../exercises/exercise";
 
@@ -747,9 +748,12 @@ export function buildCountryCompaniesQueryString(
 }
 
 /**
- * Builds the query string for the authenticated psychologist's therapy sessions
+ * Builds the query string for the authenticated practitioner's therapy
+ * sessions. Psychologists and doctors share the same endpoint — only the role
+ * segment in the path differs.
  */
-export function buildPsychologistSessionsQueryString(
+export function buildPractitionerSessionsQueryString(
+  role: PractitionerApiRole,
   params: TherapySessionsQueryParams = {},
 ): string {
   const searchParams = new URLSearchParams();
@@ -771,7 +775,7 @@ export function buildPsychologistSessionsQueryString(
   }
 
   const queryString = searchParams.toString();
-  return `/v1/therapy-sessions/psychologist/all${queryString ? `?${queryString}` : ""}`;
+  return `/v1/therapy-sessions/${role}/all${queryString ? `?${queryString}` : ""}`;
 }
 
 /**
@@ -948,9 +952,11 @@ export function buildPatientDetailsEndpoint(patientId: string): string {
 }
 
 /**
- * Builds the query string for a single patient's therapy sessions
+ * Builds the query string for a single patient's therapy sessions, scoped to
+ * the authenticated practitioner's role.
  */
 export function buildPatientSessionsQueryString(
+  role: PractitionerApiRole,
   patientId: string,
   params: TherapySessionsQueryParams = {},
 ): string {
@@ -969,7 +975,7 @@ export function buildPatientSessionsQueryString(
   }
 
   const queryString = searchParams.toString();
-  return `/v1/therapy-sessions/psychologist/patient/${patientId}${queryString ? `?${queryString}` : ""}`;
+  return `/v1/therapy-sessions/${role}/patient/${patientId}${queryString ? `?${queryString}` : ""}`;
 }
 
 /**
