@@ -13,6 +13,7 @@ import type {
   CompanyPsychologistsQueryParams,
   DoctorsQueryParams,
   CompanyDoctorsQueryParams,
+  CoachesQueryParams,
   HospitalsQueryParams,
   PatientsQueryParams,
   SessionTherapyPlansQueryParams,
@@ -294,6 +295,16 @@ export function buildUsersQueryString(params: UsersQueryParams = {}): string {
     searchParams.append("type", params.type);
   }
 
+  if (params.roles && params.roles.length > 0) {
+    params.roles.forEach((role) => {
+      searchParams.append("roles", role);
+    });
+  }
+
+  if (params.onlyRole) {
+    searchParams.append("onlyRole", params.onlyRole);
+  }
+
   const queryString = searchParams.toString();
 
   return `/v1/admin/users${queryString ? `?${queryString}` : ""}`;
@@ -420,6 +431,45 @@ export function buildHospitalsQueryString(
  */
 export function buildHospitalDetailsEndpoint(hospitalId: string): string {
   return `/v1/hospital/${hospitalId}`;
+}
+
+/**
+ * Builds the query string for the coaches endpoint
+ */
+export function buildCoachesQueryString(
+  params: CoachesQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  if (params.search && params.search.trim()) {
+    searchParams.append("search", params.search.trim());
+  }
+
+  if (params.orderBy) {
+    searchParams.append("orderBy", params.orderBy);
+  }
+
+  if (params.type) {
+    searchParams.append("type", params.type);
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/admin/coach${queryString ? `?${queryString}` : ""}`;
+}
+
+/**
+ * Builds the endpoint for getting a single coach by ID
+ */
+export function buildCoachDetailsEndpoint(coachId: string): string {
+  return `/v1/admin/coach/${coachId}`;
 }
 
 /**

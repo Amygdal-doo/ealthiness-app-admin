@@ -18,7 +18,7 @@ import Navbar from "~/components/shared/Navbar";
 import { RoleGuard } from "~/components/auth/RoleGuard";
 import { useUser } from "~/hooks/useAuth";
 import { useUsers } from "~/hooks/useAuthApi";
-import type { ApiUser } from "~/lib/auth/types";
+import type { ApiUser, FilterableUserRole } from "~/lib/auth/types";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -45,6 +45,9 @@ export default function CustomersPage() {
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [selectedRoles, setSelectedRoles] = useState<FilterableUserRole[]>([]);
+  const [isRolesDropdownOpen, setIsRolesDropdownOpen] = useState(false);
+  const rolesDropdownRef = useRef<HTMLDivElement>(null);
 
   const sortOptions = [
     { value: "firstName", label: "First Name" },
@@ -54,6 +57,24 @@ export default function CustomersPage() {
     { value: "birthdate", label: "Date Created" },
   ];
 
+  const roleOptions: { value: FilterableUserRole; label: string }[] = [
+    { value: "USER", label: "User" },
+    { value: "COACH", label: "Coach" },
+    { value: "COMPANY_ADMIN", label: "Company Admin" },
+    { value: "REGIONAL_ADMIN", label: "Regional Admin" },
+    { value: "COUNTRY_ADMIN", label: "Country Admin" },
+    { value: "SUPER_ADMIN", label: "Super Admin" },
+    { value: "PSYCHOLOGIST", label: "Psychologist" },
+    { value: "DOCTOR", label: "Doctor" },
+  ];
+
+  const toggleRole = (role: FilterableUserRole) => {
+    setSelectedRoles((prev) =>
+      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role],
+    );
+    setCurrentPage(1);
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -62,6 +83,12 @@ export default function CustomersPage() {
         !dropdownRef.current.contains(event.target as Node)
       ) {
         setIsDropdownOpen(false);
+      }
+      if (
+        rolesDropdownRef.current &&
+        !rolesDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsRolesDropdownOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -90,6 +117,7 @@ export default function CustomersPage() {
     search: debouncedSearchTerm || undefined,
     orderBy: orderBy,
     type: sortType,
+    roles: selectedRoles.length > 0 ? selectedRoles : undefined,
     userRole: user?.role, // Pass user role to filter appropriately
   });
 
@@ -188,6 +216,71 @@ export default function CustomersPage() {
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10 pr-4 py-2 w-full"
                     />
+                  </div>
+
+                  {/* Roles Filter */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-[#60646C] whitespace-nowrap">
+                      Roles:
+                    </span>
+                    <div className="relative" ref={rolesDropdownRef}>
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          setIsRolesDropdownOpen(!isRolesDropdownOpen)
+                        }
+                        className="justify-between min-w-[140px] bg-white border border-[#E0E1E6] rounded-xl px-4 py-2.5 text-sm font-semibold text-[#1B173A] hover:border-[#5850DE] hover:bg-white focus:border-[#5850DE] focus:ring-2 focus:ring-[#5850DE]/10 transition-all duration-200 shadow-sm hover:shadow-md"
+                      >
+                        {selectedRoles.length === 0
+                          ? "All Roles"
+                          : selectedRoles.length === 1
+                            ? roleOptions.find(
+                                (option) => option.value === selectedRoles[0],
+                              )?.label
+                            : `${selectedRoles.length} roles`}
+                        <ChevronDown
+                          size={16}
+                          className={`text-[#8E8E93] transition-transform duration-200 ${isRolesDropdownOpen ? "rotate-180" : ""}`}
+                        />
+                      </Button>
+
+                      {isRolesDropdownOpen && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E0E1E6] rounded-xl shadow-lg z-50 py-1">
+                          <button
+                            onClick={() => {
+                              setSelectedRoles([]);
+                              setCurrentPage(1);
+                            }}
+                            className={`w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-[#F0F0F3] transition-colors flex items-center justify-between ${
+                              selectedRoles.length === 0
+                                ? "text-[#5850DE] bg-[#F0F0F3]"
+                                : "text-[#1B173A]"
+                            }`}
+                          >
+                            All Roles
+                            {selectedRoles.length === 0 && (
+                              <Check size={16} className="text-[#5850DE]" />
+                            )}
+                          </button>
+                          {roleOptions.map((option) => (
+                            <button
+                              key={option.value}
+                              onClick={() => toggleRole(option.value)}
+                              className={`w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-[#F0F0F3] transition-colors flex items-center justify-between ${
+                                selectedRoles.includes(option.value)
+                                  ? "text-[#5850DE] bg-[#F0F0F3]"
+                                  : "text-[#1B173A]"
+                              }`}
+                            >
+                              {option.label}
+                              {selectedRoles.includes(option.value) && (
+                                <Check size={16} className="text-[#5850DE]" />
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Order By Filter */}

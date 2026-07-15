@@ -4,20 +4,23 @@ import { Link } from "react-router";
 import type { Route } from "./+types/coaches";
 import {
   Dumbbell,
-  User,
-  UserCheck,
+  Star,
+  MessageSquare,
   Search,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Check,
+  UserPlus,
 } from "lucide-react";
-import { Badge, Input, Button } from "~/components/ui";
+import { Input, Button } from "~/components/ui";
 import AppSidebar from "~/components/shared/AppSidebar";
 import Navbar from "~/components/shared/Navbar";
 import { RoleGuard } from "~/components/auth/RoleGuard";
+import { InviteCoachModal } from "~/components/modals/InviteCoachModal";
 import { useUser } from "~/hooks/useAuth";
-import type { ApiUser } from "~/lib/auth/types";
+import { useCoaches } from "~/hooks/useAuthApi";
+import type { ApiCoach } from "~/lib/auth/types";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -29,89 +32,10 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-// TODO: Replace with real coaches API once available.
-const DUMMY_COACHES: ApiUser[] = [
-  {
-    id: "coach-1",
-    firstName: "Marcus",
-    lastName: "Bennett",
-    username: "mbennett",
-    email: ["marcus.bennett@ealthiness.com"],
-    roles: ["COACH"],
-    height: 185,
-    weight: 88,
-    gender: "male",
-    createdAt: "2024-01-22T09:00:00.000Z",
-    updatedAt: "2024-01-22T09:00:00.000Z",
-  },
-  {
-    id: "coach-2",
-    firstName: "Lena",
-    lastName: "Petrova",
-    username: "lpetrova",
-    email: ["lena.petrova@ealthiness.com"],
-    roles: ["COACH"],
-    height: 172,
-    weight: 63,
-    gender: "female",
-    createdAt: "2024-02-14T09:00:00.000Z",
-    updatedAt: "2024-02-14T09:00:00.000Z",
-  },
-  {
-    id: "coach-3",
-    firstName: "Diego",
-    lastName: "Morales",
-    username: "dmorales",
-    email: ["diego.morales@ealthiness.com"],
-    roles: ["COACH"],
-    height: 179,
-    weight: 80,
-    gender: "male",
-    createdAt: "2024-03-10T09:00:00.000Z",
-    updatedAt: "2024-03-10T09:00:00.000Z",
-  },
-  {
-    id: "coach-4",
-    firstName: "Hannah",
-    lastName: "Schmidt",
-    username: "hschmidt",
-    email: ["hannah.schmidt@ealthiness.com"],
-    roles: ["COACH"],
-    height: 167,
-    weight: 59,
-    gender: "female",
-    createdAt: "2024-04-02T09:00:00.000Z",
-    updatedAt: "2024-04-02T09:00:00.000Z",
-  },
-  {
-    id: "coach-5",
-    firstName: "Tyler",
-    lastName: "Brooks",
-    username: "tbrooks",
-    email: ["tyler.brooks@ealthiness.com"],
-    roles: ["COACH"],
-    height: 181,
-    weight: 85,
-    gender: "male",
-    createdAt: "2024-04-25T09:00:00.000Z",
-    updatedAt: "2024-04-25T09:00:00.000Z",
-  },
-  {
-    id: "coach-6",
-    firstName: "Nadia",
-    lastName: "Hassan",
-    username: "nhassan",
-    email: ["nadia.hassan@ealthiness.com"],
-    roles: ["COACH"],
-    height: 169,
-    weight: 61,
-    gender: "female",
-    createdAt: "2024-05-18T09:00:00.000Z",
-    updatedAt: "2024-05-18T09:00:00.000Z",
-  },
-];
-
 const PAGE_SIZE = 10;
+
+const formatPrice = (coach: ApiCoach) =>
+  `${coach.price.toFixed(2)} ${coach.currency.toUpperCase()}`;
 
 export default function CoachesPage() {
   const user = useUser();
@@ -127,6 +51,7 @@ export default function CoachesPage() {
     "ascending",
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const sortOptions = [
@@ -161,45 +86,23 @@ export default function CoachesPage() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Dummy data source — filtered/sorted/paginated client-side to mirror the
-  // users API response shape used by the customers page.
-  const isLoading = false;
-
-  const filteredCoaches = DUMMY_COACHES.filter((coach) => {
-    if (!debouncedSearchTerm) return true;
-    const term = debouncedSearchTerm.toLowerCase();
-    return (
-      `${coach.firstName} ${coach.lastName}`.toLowerCase().includes(term) ||
-      coach.username.toLowerCase().includes(term) ||
-      coach.email[0].toLowerCase().includes(term)
-    );
-  });
-
-  const sortedCoaches = [...filteredCoaches].sort((a, b) => {
-    const getValue = (coach: ApiUser) =>
-      orderBy === "birthdate" ? coach.createdAt : (coach[orderBy] ?? "");
-    const aValue = getValue(a).toString().toLowerCase();
-    const bValue = getValue(b).toString().toLowerCase();
-    const comparison = aValue.localeCompare(bValue);
-    return sortType === "ascending" ? comparison : -comparison;
-  });
-
-  const total = sortedCoaches.length;
-  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const usersResponse = {
-    limit: PAGE_SIZE,
+  // Search, ordering and pagination are all handled server-side.
+  const {
+    data: coachesResponse,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useCoaches({
     page: currentPage,
-    pages,
-    total,
-    results: sortedCoaches.slice(
-      (currentPage - 1) * PAGE_SIZE,
-      currentPage * PAGE_SIZE,
-    ),
-  };
+    limit: PAGE_SIZE,
+    search: debouncedSearchTerm,
+    orderBy,
+    type: sortType,
+  });
 
   const handleRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 500);
+    refetch().finally(() => setRefreshing(false));
   };
 
   const handleLogout = () => {
@@ -217,21 +120,7 @@ export default function CoachesPage() {
     );
   }
 
-  // Transform API users to display format
-  const transformUser = (apiUser: ApiUser) => ({
-    id: apiUser.id,
-    name: `${apiUser.firstName} ${apiUser.lastName}`,
-    roles: apiUser.roles, // Show all roles
-    joined: new Date(apiUser.createdAt).toLocaleDateString(),
-    status: "Active", // API doesn't provide status, defaulting to Active
-    weight: apiUser.weight ? `${apiUser.weight}kg` : "N/A",
-    height: apiUser.height ? `${apiUser.height}cm` : "N/A",
-    username: apiUser.username,
-    email: apiUser.email[0],
-    gender: apiUser.gender, // Include gender for icon display
-  });
-
-  const visibleCoaches = usersResponse?.results?.map(transformUser) || [];
+  const visibleCoaches = coachesResponse?.results ?? [];
   const pageTitle = "Coaches";
 
   return (
@@ -244,7 +133,7 @@ export default function CoachesPage() {
             user={user}
             onLogout={handleLogout}
             onRefresh={handleRefresh}
-            refreshing={refreshing}
+            refreshing={refreshing || isFetching}
           />
 
           <div className="flex-1 p-6">
@@ -258,10 +147,17 @@ export default function CoachesPage() {
                     {pageTitle}
                   </h2>
                   <p className="text-[#60646C] text-sm font-medium mt-1">
-                    Total {usersResponse?.total || 0} users found (
-                    {visibleCoaches.length} coaches on this page)
+                    Total {coachesResponse?.total || 0} coaches found (
+                    {visibleCoaches.length} on this page)
                   </p>
                 </div>
+                <Button
+                  onClick={() => setIsInviteModalOpen(true)}
+                  className="bg-[#5850DE] hover:bg-[#4A42C7] text-white font-bold rounded-xl px-4 py-2.5 flex items-center gap-2"
+                >
+                  <UserPlus size={16} />
+                  Invite Coach
+                </Button>
               </div>
 
               {/* Search and Filters */}
@@ -367,16 +263,16 @@ export default function CoachesPage() {
                         Coach
                       </th>
                       <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
-                        Roles
+                        Username
                       </th>
                       <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Height
+                        Rating
                       </th>
                       <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Weight
+                        Reviews
                       </th>
                       <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Joined
+                        Price
                       </th>
                       <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest text-right">
                         Action
@@ -387,66 +283,46 @@ export default function CoachesPage() {
                     {visibleCoaches.map((coach) => (
                       <tr
                         key={coach.id}
-                        className="hover:bg-gray-50 transition"
+                        onClick={() => navigate(`/coaches/${coach.id}`)}
+                        className="hover:bg-gray-50 transition cursor-pointer"
                       >
                         <td className="p-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold">
-                              {coach.name.charAt(0)}
+                            <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold shrink-0">
+                              {coach.firstName.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-[#1B173A] leading-tight">
-                                  {coach.name}
-                                </span>
-                                {/* Gender icon */}
-                                {coach.gender === "male" ? (
-                                  <User size={14} className="text-blue-500" />
-                                ) : coach.gender === "female" ? (
-                                  <UserCheck
-                                    size={14}
-                                    className="text-pink-500"
-                                  />
-                                ) : null}
-                              </div>
+                              <span className="font-bold text-[#1B173A] leading-tight block">
+                                {coach.firstName} {coach.lastName}
+                              </span>
                               <span className="text-xs text-[#8E8E93] font-medium">
-                                {coach.email}
+                                {coach.email[0] ?? "—"}
                               </span>
                             </div>
                           </div>
                         </td>
-                        <td className="p-4 hidden lg:table-cell">
-                          <div className="space-y-1">
-                            {coach.roles.map((role, index) => (
-                              <div key={index}>
-                                <Badge
-                                  variant={
-                                    role === "SUPER_ADMIN"
-                                      ? "destructive"
-                                      : role.includes("ADMIN")
-                                        ? "secondary"
-                                        : "default"
-                                  }
-                                  className="text-xs"
-                                >
-                                  {role.replace("_", " ")}
-                                </Badge>
-                              </div>
-                            ))}
+                        <td className="p-4 font-medium text-[#60646C] hidden lg:table-cell">
+                          {coach.username}
+                        </td>
+                        <td className="p-4 hidden md:table-cell">
+                          <div className="flex items-center gap-2 font-medium text-[#60646C]">
+                            <Star size={14} className="text-[#FFB900]" />
+                            {coach.rating}
+                          </div>
+                        </td>
+                        <td className="p-4 hidden md:table-cell">
+                          <div className="flex items-center gap-2 font-medium text-[#60646C]">
+                            <MessageSquare size={14} className="text-[#248FEC]" />
+                            {coach.reviews}
                           </div>
                         </td>
                         <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
-                          {coach.height}
-                        </td>
-                        <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
-                          {coach.weight}
-                        </td>
-                        <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
-                          {coach.joined}
+                          {formatPrice(coach)}
                         </td>
                         <td className="p-4 text-right">
                           <Link
-                            to={`/customers/${coach.id}`}
+                            to={`/coaches/${coach.id}`}
+                            onClick={(e) => e.stopPropagation()}
                             className="bg-white border border-[#E0E1E6] text-[#1B173A] text-xs font-bold px-4 py-2 rounded-lg hover:border-[#5850DE] hover:text-[#5850DE] transition inline-block"
                           >
                             View Profile
@@ -457,7 +333,7 @@ export default function CoachesPage() {
                   </tbody>
                 </table>
 
-                {visibleCoaches.length === 0 && (
+                {visibleCoaches.length === 0 && !isLoading && (
                   <div className="p-8 text-center">
                     <div className="w-16 h-16 rounded-full bg-[#F0F0F3] flex items-center justify-center mx-auto mb-4">
                       <Dumbbell size={24} className="text-[#8E8E93]" />
@@ -466,21 +342,23 @@ export default function CoachesPage() {
                       No Coaches Found
                     </h3>
                     <p className="text-[#60646C] text-sm">
-                      There are no coaches in your management scope yet.
+                      {searchTerm
+                        ? "No coaches match your search criteria."
+                        : "There are no coaches in your management scope yet."}
                     </p>
                   </div>
                 )}
               </div>
 
               {/* Pagination */}
-              {usersResponse && usersResponse.pages > 1 && (
+              {coachesResponse && coachesResponse.pages > 1 && (
                 <div className="bg-white rounded-xl border border-[#E0E1E6] mt-6 p-4 shadow-sm">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-[#60646C]">
-                        Showing {(currentPage - 1) * 10 + 1} to{" "}
-                        {Math.min(currentPage * 10, usersResponse.total)} of{" "}
-                        {usersResponse.total} results
+                        Showing {(currentPage - 1) * PAGE_SIZE + 1} to{" "}
+                        {Math.min(currentPage * PAGE_SIZE, coachesResponse.total)}{" "}
+                        of {coachesResponse.total} results
                       </span>
                     </div>
 
@@ -502,7 +380,7 @@ export default function CoachesPage() {
                       {/* Page Numbers */}
                       <div className="flex items-center gap-1">
                         {(() => {
-                          const totalPages = usersResponse.pages;
+                          const totalPages = coachesResponse.pages;
                           const current = currentPage;
                           let pages = [];
 
@@ -575,11 +453,11 @@ export default function CoachesPage() {
                         size="sm"
                         onClick={() =>
                           setCurrentPage(
-                            Math.min(usersResponse.pages, currentPage + 1),
+                            Math.min(coachesResponse.pages, currentPage + 1),
                           )
                         }
                         disabled={
-                          currentPage === usersResponse.pages || isLoading
+                          currentPage === coachesResponse.pages || isLoading
                         }
                         className="flex items-center gap-1"
                       >
@@ -594,6 +472,11 @@ export default function CoachesPage() {
           </div>
         </div>
       </div>
+
+      <InviteCoachModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+      />
     </RoleGuard>
   );
 }

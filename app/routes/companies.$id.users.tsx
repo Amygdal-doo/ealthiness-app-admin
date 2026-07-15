@@ -25,7 +25,11 @@ import {
   useCompanyDetails,
   useRemoveCompanyAdmin,
 } from "~/hooks/useAuthApi";
-import type { ApiUser, UsersQueryParams } from "~/lib/auth/types";
+import type {
+  ApiUser,
+  UsersQueryParams,
+  CompanyUserType,
+} from "~/lib/auth/types";
 
 // Local type for company users with restricted orderBy options
 interface CompanyUsersQueryParams extends Omit<UsersQueryParams, "orderBy"> {
@@ -67,9 +71,7 @@ export default function CompanyUsersPage({
   const [sortType, setSortType] = useState<"ascending" | "descending">(
     "ascending",
   );
-  const [userType, setUserType] = useState<"all" | "admins" | "employees">(
-    "all",
-  );
+  const [userType, setUserType] = useState<CompanyUserType>("all");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isUserTypeDropdownOpen, setIsUserTypeDropdownOpen] = useState(false);
   const [removeAdminConfirmation, setRemoveAdminConfirmation] = useState<{
@@ -87,10 +89,13 @@ export default function CompanyUsersPage({
     { value: "email", label: "Email" },
   ];
 
-  const userTypeOptions = [
+  const userTypeOptions: { value: CompanyUserType; label: string }[] = [
     { value: "all", label: "All Users" },
     { value: "admins", label: "Admins Only" },
     { value: "employees", label: "Employees Only" },
+    { value: "coaches", label: "Coaches Only" },
+    { value: "psychologists", label: "Psychologists Only" },
+    { value: "doctors", label: "Doctors Only" },
   ];
 
   // Fetch company details for the company name
@@ -310,7 +315,7 @@ export default function CompanyUsersPage({
                             <button
                               key={option.value}
                               onClick={() => {
-                                setUserType(option.value as typeof userType);
+                                setUserType(option.value);
                                 setCurrentPage(1);
                                 setIsUserTypeDropdownOpen(false);
                               }}

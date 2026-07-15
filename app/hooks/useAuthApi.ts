@@ -32,6 +32,8 @@ import {
   buildCompanyPsychologistsQueryString,
   buildDoctorsQueryString,
   buildCompanyDoctorsQueryString,
+  buildCoachesQueryString,
+  buildCoachDetailsEndpoint,
   buildHospitalsQueryString,
   buildHospitalDetailsEndpoint,
   buildPatientsQueryString,
@@ -99,6 +101,9 @@ import type {
   DoctorsQueryParams,
   CompanyDoctorsResponse,
   CompanyDoctorsQueryParams,
+  CoachesResponse,
+  CoachesQueryParams,
+  ApiCoachDetail,
   ApiHospital,
   ApiHospitalDoctor,
   ApiHospitalPsychologist,
@@ -242,7 +247,10 @@ export function useForgotPassword() {
   });
 }
 
-export function useUsers(params: UsersQueryParams = {}) {
+export function useUsers(
+  params: UsersQueryParams = {},
+  options: { enabled?: boolean } = {},
+) {
   return useQuery({
     queryKey: ["users", params],
     queryFn: async (): Promise<UsersResponse> => {
@@ -265,7 +273,7 @@ export function useUsers(params: UsersQueryParams = {}) {
       return failureCount < 2 && !!clientTokens.get();
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: !!clientTokens.get(), // Only run if we have tokens
+    enabled: (options.enabled ?? true) && !!clientTokens.get(), // Only run if we have tokens
   });
 }
 
@@ -398,6 +406,169 @@ export function useDoctors(
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: (options.enabled ?? true) && !!clientTokens.get(), // Only run if we have tokens
+  });
+}
+
+export function useCoaches(
+  params: CoachesQueryParams = {},
+  options: { enabled?: boolean } = {},
+) {
+  return useQuery({
+    queryKey: ["coaches", params],
+    queryFn: async (): Promise<CoachesResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildCoachesQueryString(params);
+        const response = await apiClient.get<CoachesResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching coaches:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: (options.enabled ?? true) && !!clientTokens.get(), // Only run if we have tokens
+  });
+}
+
+export function useCoachDetails(
+  coachId: string,
+  options: { enabled?: boolean } = {},
+) {
+  return useQuery({
+    queryKey: ["coach", coachId],
+    queryFn: async (): Promise<ApiCoachDetail> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildCoachDetailsEndpoint(coachId);
+        const response = await apiClient.get<ApiCoachDetail>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching coach details:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: (options.enabled ?? true) && !!clientTokens.get() && !!coachId, // Only run if we have tokens and coachId
+  });
+}
+
+export function useConnectCoachToCompany() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      coachId,
+      companyId,
+      price,
+    }: {
+      coachId: string;
+      companyId: string;
+      price: number;
+    }): Promise<void> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        await apiClient.post<void>(
+          `/v1/admin/coach/${coachId}/company/${companyId}`,
+          {
+            price,
+            currency: "usd",
+            billingInterval: "one_time",
+          },
+        );
+      } catch (error) {
+        console.error("Error connecting coach to company:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["coach", variables.coachId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["coaches"] });
+    },
+  });
+}
+
+export function useAssignCoachRole() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      userId,
+      yearsOfexperience,
+      predictedNumberOfUsers,
+      shortBio,
+    }: {
+      userId: string;
+      yearsOfexperience: number;
+      predictedNumberOfUsers: number;
+      shortBio: string;
+    }): Promise<void> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        await apiClient.post<void>(`/v1/admin/coach/${userId}/role`, {
+          yearsOfexperience,
+          predictedNumberOfUsers,
+          shortBio,
+        });
+      } catch (error) {
+        console.error("Error assigning coach role:", error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["coaches"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+}
+
+export function useRemoveCoachRole() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (coachId: string): Promise<void> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        await apiClient.delete<void>(`/v1/admin/coach/${coachId}/role`);
+      } catch (error) {
+        console.error("Error removing coach role:", error);
+        throw error;
+      }
+    },
+    onSuccess: (_data, coachId) => {
+      queryClient.removeQueries({ queryKey: ["coach", coachId] });
+      queryClient.invalidateQueries({ queryKey: ["coaches"] });
+    },
   });
 }
 
@@ -826,7 +997,10 @@ export function useRegions(params: RegionsQueryParams = {}) {
   });
 }
 
-export function useCompanies(params: CompaniesQueryParams = {}) {
+export function useCompanies(
+  params: CompaniesQueryParams = {},
+  options: { enabled?: boolean } = {},
+) {
   return useQuery({
     queryKey: ["companies", params],
     queryFn: async (): Promise<CompaniesResponse> => {
@@ -849,7 +1023,7 @@ export function useCompanies(params: CompaniesQueryParams = {}) {
       return failureCount < 2 && !!clientTokens.get();
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: !!clientTokens.get(), // Only run if we have tokens
+    enabled: (options.enabled ?? true) && !!clientTokens.get(), // Only run if we have tokens
   });
 }
 

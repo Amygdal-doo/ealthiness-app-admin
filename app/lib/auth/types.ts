@@ -204,14 +204,26 @@ export interface UsersResponse {
   results: ApiUser[];
 }
 
+export type CompanyUserType =
+  | "all"
+  | "admins"
+  | "employees"
+  | "coaches"
+  | "psychologists"
+  | "doctors";
+
+export type FilterableUserRole = UserRole | "COACH";
+
 export interface UsersQueryParams {
   page?: number;
   limit?: number;
   search?: string;
   orderBy?: "firstName" | "lastName" | "email" | "username" | "birthdate";
   type?: "ascending" | "descending";
+  roles?: FilterableUserRole[];
+  onlyRole?: FilterableUserRole;
   userRole?: UserRole;
-  userType?: "all" | "admins" | "employees";
+  userType?: CompanyUserType;
 }
 
 // Psychologists API types
@@ -303,6 +315,95 @@ export interface DoctorsQueryParams {
   search?: string;
   orderBy?: "firstName" | "lastName" | "email" | "username" | "birthdate";
   type?: "ascending" | "descending";
+}
+
+// Coaches API types
+export interface ApiCoach {
+  id: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  email: string[];
+  country?: string;
+  rating: number;
+  reviews: number;
+  price: number;
+  currency: string;
+}
+
+export interface CoachesResponse {
+  limit: number;
+  page: number;
+  pages: number;
+  total: number;
+  results: ApiCoach[];
+}
+
+export interface CoachesQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  orderBy?: "firstName" | "lastName" | "email" | "username" | "birthdate";
+  type?: "ascending" | "descending";
+}
+
+export interface ApiCoachCountry {
+  id: string;
+  name: string;
+  alpha2: string;
+  alpha3: string;
+  numericId: number;
+  flag: {
+    name: string;
+    extension: string;
+    createdAt: string;
+    url: string;
+  } | null;
+  regionId: string;
+}
+
+export interface ApiCoachEngagementCompany {
+  id: string;
+  name: string;
+  email: string;
+  address: string;
+  countryId: string;
+  logo: {
+    name: string;
+    extension: string;
+    createdAt: string;
+    url: string;
+  } | null;
+  status: string;
+  employees: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiCoachCompanyEngagement {
+  id: string;
+  company: ApiCoachEngagementCompany;
+  price: number;
+  currency: string;
+  billingInterval: string;
+  status: string;
+  acceptedAt: string;
+  createdAt: string;
+}
+
+export interface ApiCoachInfo {
+  yearsOfexperience: number;
+  predictedNumberOfUsers: number;
+  shortBio: string;
+}
+
+export interface ApiCoachDetail extends Omit<ApiCoach, "country"> {
+  futureGoals?: string;
+  country?: ApiCoachCountry | null;
+  companyEngagements: ApiCoachCompanyEngagement[];
+  coachInfo?: ApiCoachInfo | null;
+  traineesCount: number;
+  groupsCount: number;
 }
 
 // Company doctors API types (company-scoped endpoint returns _id)
