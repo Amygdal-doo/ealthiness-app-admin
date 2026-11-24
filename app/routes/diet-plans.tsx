@@ -194,10 +194,10 @@ export default function DietPlansPage() {
 
   return (
     <RoleGuard allowedRoles={["SUPER_ADMIN"]}>
-      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={user} />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <Navbar
             user={user}
             onLogout={() => navigate("/")}
@@ -205,10 +205,10 @@ export default function DietPlansPage() {
             refreshing={isFetching}
           />
 
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 md:p-6 min-w-0">
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               {/* Header */}
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div>
                   <h2 className="text-2xl font-extrabold text-[#1B173A] flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center">
@@ -222,7 +222,7 @@ export default function DietPlansPage() {
                       : "Manage the diet plans you have created"}
                   </p>
                 </div>
-                <Button onClick={() => setIsCreateOpen(true)}>
+                <Button onClick={() => setIsCreateOpen(true)} className="w-full sm:w-auto">
                   <Plus size={18} className="mr-2" />
                   Create Diet Plan
                 </Button>
@@ -230,7 +230,7 @@ export default function DietPlansPage() {
 
               {/* Search and Filters */}
               <div className="bg-white rounded-xl border border-[#E0E1E6] p-4 mb-6 shadow-sm">
-                <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+                <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
                   <div className="relative flex-1">
                     <Search
                       size={18}
@@ -244,7 +244,7 @@ export default function DietPlansPage() {
                       className="pl-10 pr-4 w-full"
                     />
                   </div>
-                  <div className="w-44">
+                  <div className="w-full sm:w-44">
                     <Select
                       value={goal ?? ALL}
                       onChange={onGoalChange}
@@ -263,7 +263,7 @@ export default function DietPlansPage() {
                   </div>
                 </div>
               ) : isError ? (
-                <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-8 text-center">
+                <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-5 md:p-8 text-center">
                   <p className="text-[#60646C] text-sm mb-4">
                     Something went wrong while fetching diet plans.
                   </p>
@@ -272,7 +272,7 @@ export default function DietPlansPage() {
                   </Button>
                 </div>
               ) : plans.length === 0 ? (
-                <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-8 text-center">
+                <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-5 md:p-8 text-center">
                   <div className="w-16 h-16 rounded-full bg-[#F0F0F3] flex items-center justify-center mx-auto mb-4">
                     <UtensilsCrossed size={24} className="text-[#8E8E93]" />
                   </div>

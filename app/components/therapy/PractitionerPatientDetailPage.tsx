@@ -178,10 +178,10 @@ export default function PractitionerPatientDetailPage({
 
   return (
     <RoleGuard allowedRoles={portal.allowedRoles}>
-      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={user} />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <Navbar
             user={user}
             onLogout={() => navigate("/")}
@@ -189,7 +189,7 @@ export default function PractitionerPatientDetailPage({
             refreshing={isFetching}
           />
 
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 md:p-6 min-w-0">
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
               {/* Back button */}
               <button
@@ -214,7 +214,7 @@ export default function PractitionerPatientDetailPage({
 
               {/* Error */}
               {!isLoading && isError && (
-                <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-8 text-center">
+                <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-5 md:p-8 text-center">
                   <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
                     <Users size={24} className="text-red-400" />
                   </div>
@@ -234,7 +234,7 @@ export default function PractitionerPatientDetailPage({
               {!isLoading && !isError && patient && (
                 <div className="space-y-6">
                   {/* Header card */}
-                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6">
                     <div className="flex items-center gap-4">
                       <div className="w-16 h-16 rounded-2xl bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center text-2xl font-bold shrink-0">
                         {fullName.charAt(0).toUpperCase()}
@@ -259,7 +259,7 @@ export default function PractitionerPatientDetailPage({
                   />
 
                   {/* Details */}
-                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6">
                     <h3 className="text-lg font-bold text-[#1B173A] mb-4">
                       Contact Information
                     </h3>
@@ -298,7 +298,7 @@ export default function PractitionerPatientDetailPage({
                               <a
                                 key={email}
                                 href={`mailto:${email}`}
-                                className="flex items-center gap-2 text-sm font-medium text-[#5850DE] hover:underline"
+                                className="flex items-center gap-2 min-w-0 [overflow-wrap:anywhere] text-sm font-medium text-[#5850DE] hover:underline"
                               >
                                 <Mail size={14} className="text-[#8E8E93]" />
                                 {email}
@@ -346,111 +346,113 @@ export default function PractitionerPatientDetailPage({
                         </div>
                       )}
 
-                      <table className="w-full text-left">
-                        <thead className="bg-[#F8F9FB] border-b border-[#E0E1E6]">
-                          <tr>
-                            <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
-                              Session
-                            </th>
-                            <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                              Date &amp; Time
-                            </th>
-                            <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
-                              Language
-                            </th>
-                            <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
-                              Transcript
-                            </th>
-                            <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
-                              Summary
-                            </th>
-                            <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest text-right">
-                              Action
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#E0E1E6]">
-                          {sessions.map((session: TherapySession) => {
-                            const { date, time } = formatDateTime(
-                              session.sessionDate,
-                            );
-                            return (
-                              <tr
-                                key={session.id}
-                                className="hover:bg-gray-50 transition"
-                              >
-                                <td className="p-4">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold shrink-0">
-                                      {session.title.charAt(0).toUpperCase()}
+                      <div className="relative overflow-x-auto">
+                        <table className="w-full text-left">
+                          <thead className="bg-[#F8F9FB] border-b border-[#E0E1E6]">
+                            <tr>
+                              <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
+                                Session
+                              </th>
+                              <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                                Date &amp; Time
+                              </th>
+                              <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
+                                Language
+                              </th>
+                              <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
+                                Transcript
+                              </th>
+                              <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
+                                Summary
+                              </th>
+                              <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest text-right">
+                                Action
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#E0E1E6]">
+                            {sessions.map((session: TherapySession) => {
+                              const { date, time } = formatDateTime(
+                                session.sessionDate,
+                              );
+                              return (
+                                <tr
+                                  key={session.id}
+                                  className="hover:bg-gray-50 transition"
+                                >
+                                  <td className="p-3 md:p-4">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold shrink-0">
+                                        {session.title.charAt(0).toUpperCase()}
+                                      </div>
+                                      <span className="font-bold text-[#1B173A]">
+                                        {session.title}
+                                      </span>
                                     </div>
-                                    <span className="font-bold text-[#1B173A]">
-                                      {session.title}
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className="p-4 hidden md:table-cell">
-                                  <div className="flex items-center gap-2 text-[#60646C] font-medium">
-                                    <Clock
-                                      size={14}
-                                      className="text-[#8E8E93]"
-                                    />
-                                    {date} · {time}
-                                  </div>
-                                </td>
-                                <td className="p-4 hidden lg:table-cell">
-                                  <div className="flex items-center gap-2 text-[#60646C] font-medium uppercase">
-                                    <Globe
-                                      size={14}
-                                      className="text-[#248FEC]"
-                                    />
-                                    {session.language}
-                                  </div>
-                                </td>
-                                <td className="p-4 hidden lg:table-cell">
-                                  <Badge
-                                    variant={statusVariant(
-                                      session.transcriptionStatus,
-                                    )}
-                                    className="text-xs"
-                                  >
-                                    <FileText size={12} />
-                                    {formatStatus(session.transcriptionStatus)}
-                                  </Badge>
-                                </td>
-                                <td className="p-4 hidden lg:table-cell">
-                                  <Badge
-                                    variant={statusVariant(
-                                      session.summaryStatus,
-                                    )}
-                                    className="text-xs"
-                                  >
-                                    <Sparkles size={12} />
-                                    {formatStatus(session.summaryStatus)}
-                                  </Badge>
-                                </td>
-                                <td className="p-4 text-right">
-                                  <Button
-                                    variant="ghost"
-                                    className="px-2"
-                                    title="View Session"
-                                    onClick={() =>
-                                      navigate(
-                                        `${portal.basePath}/sessions/${session.id}`,
-                                      )
-                                    }
-                                  >
-                                    <Eye size={18} />
-                                  </Button>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
+                                  </td>
+                                  <td className="p-3 md:p-4 hidden md:table-cell">
+                                    <div className="flex items-center gap-2 text-[#60646C] font-medium">
+                                      <Clock
+                                        size={14}
+                                        className="text-[#8E8E93]"
+                                      />
+                                      {date} · {time}
+                                    </div>
+                                  </td>
+                                  <td className="p-3 md:p-4 hidden lg:table-cell">
+                                    <div className="flex items-center gap-2 text-[#60646C] font-medium uppercase">
+                                      <Globe
+                                        size={14}
+                                        className="text-[#248FEC]"
+                                      />
+                                      {session.language}
+                                    </div>
+                                  </td>
+                                  <td className="p-3 md:p-4 hidden lg:table-cell">
+                                    <Badge
+                                      variant={statusVariant(
+                                        session.transcriptionStatus,
+                                      )}
+                                      className="text-xs"
+                                    >
+                                      <FileText size={12} />
+                                      {formatStatus(session.transcriptionStatus)}
+                                    </Badge>
+                                  </td>
+                                  <td className="p-3 md:p-4 hidden lg:table-cell">
+                                    <Badge
+                                      variant={statusVariant(
+                                        session.summaryStatus,
+                                      )}
+                                      className="text-xs"
+                                    >
+                                      <Sparkles size={12} />
+                                      {formatStatus(session.summaryStatus)}
+                                    </Badge>
+                                  </td>
+                                  <td className="p-3 md:p-4 text-right">
+                                    <Button
+                                      variant="ghost"
+                                      className="px-2"
+                                      title="View Session"
+                                      onClick={() =>
+                                        navigate(
+                                          `${portal.basePath}/sessions/${session.id}`,
+                                        )
+                                      }
+                                    >
+                                      <Eye size={18} />
+                                    </Button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
 
                       {!sessionsLoading && sessionsError && (
-                        <div className="p-8 text-center">
+                        <div className="p-5 md:p-8 text-center">
                           <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
                             <CalendarClock
                               size={24}
@@ -475,7 +477,7 @@ export default function PractitionerPatientDetailPage({
                       {!sessionsLoading &&
                         !sessionsError &&
                         sessions.length === 0 && (
-                          <div className="p-8 text-center">
+                          <div className="p-5 md:p-8 text-center">
                             <div className="w-16 h-16 rounded-full bg-[#F0F0F3] flex items-center justify-center mx-auto mb-4">
                               <CalendarClock
                                 size={24}
@@ -496,7 +498,7 @@ export default function PractitionerPatientDetailPage({
                     {/* Pagination */}
                     {pages > 1 && (
                       <div className="bg-white rounded-xl border border-[#E0E1E6] p-4 shadow-sm">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-4">
                           <span className="text-sm text-[#60646C]">
                             Showing {(page - 1) * PAGE_SIZE + 1} to{" "}
                             {Math.min(page * PAGE_SIZE, total)} of {total}{" "}
@@ -514,7 +516,7 @@ export default function PractitionerPatientDetailPage({
                               className="flex items-center gap-1"
                             >
                               <ChevronLeft size={16} />
-                              Previous
+                              <span className="hidden sm:inline">Previous</span>
                             </Button>
                             <span className="text-sm font-semibold text-[#1B173A] px-2">
                               Page {page} of {pages}
@@ -528,7 +530,7 @@ export default function PractitionerPatientDetailPage({
                               disabled={page === pages || sessionsFetching}
                               className="flex items-center gap-1"
                             >
-                              Next
+                              <span className="hidden sm:inline">Next</span>
                               <ChevronRight size={16} />
                             </Button>
                           </div>
@@ -557,7 +559,7 @@ function RecentMoodCard({
 }) {
   if (isLoading) {
     return (
-      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6">
         <div className="flex items-center gap-2 text-gray-600">
           <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           <span className="font-medium text-sm">Loading recent mood...</span>
@@ -569,7 +571,7 @@ function RecentMoodCard({
   // A missing recent mood is an expected state (e.g. 404) — show a soft empty state.
   if (isError || !mood) {
     return (
-      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6">
         <h3 className="text-lg font-bold text-[#1B173A] flex items-center gap-2 mb-1">
           <HeartPulse size={18} className="text-[#5850DE]" />
           Recent Mood
@@ -590,7 +592,7 @@ function RecentMoodCard({
 
   return (
     <div
-      className="rounded-[24px] border shadow-sm p-6 overflow-hidden"
+      className="rounded-[24px] border shadow-sm p-4 md:p-6 overflow-hidden"
       style={{ backgroundColor: display.bg, borderColor: display.track }}
     >
       <div className="flex items-center justify-between gap-3 mb-5">
@@ -606,7 +608,7 @@ function RecentMoodCard({
 
       <div className="flex items-center gap-5">
         <div
-          className="w-20 h-20 rounded-3xl bg-white flex items-center justify-center text-4xl shrink-0 shadow-sm"
+          className="w-20 h-20 rounded-3xl bg-white flex items-center justify-center text-2xl md:text-4xl break-words shrink-0 shadow-sm"
           aria-hidden
         >
           {display.emoji}
@@ -615,7 +617,7 @@ function RecentMoodCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2">
             <span
-              className="text-3xl font-extrabold"
+              className="text-2xl md:text-3xl font-extrabold"
               style={{ color: display.accent }}
             >
               {mood.mood}

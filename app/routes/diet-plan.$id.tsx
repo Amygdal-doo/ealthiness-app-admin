@@ -281,10 +281,10 @@ export default function DietPlanDetailPage() {
 
   return (
     <RoleGuard allowedRoles={["SUPER_ADMIN"]}>
-      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={user} />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <Navbar
             user={user}
             onLogout={() => navigate("/")}
@@ -292,7 +292,7 @@ export default function DietPlanDetailPage() {
             refreshing={isFetching}
           />
 
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 md:p-6 min-w-0">
             <button
               onClick={() => navigate("/diet-plans")}
               className="flex items-center gap-2 text-sm font-semibold text-[#60646C] hover:text-[#5850DE] transition-colors mb-5"
@@ -309,7 +309,7 @@ export default function DietPlanDetailPage() {
                 </div>
               </div>
             ) : isError || !plan ? (
-              <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-8 text-center">
+              <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-5 md:p-8 text-center">
                 <p className="text-[#60646C] text-sm mb-4">
                   Something went wrong while fetching this diet plan.
                 </p>
@@ -320,14 +320,14 @@ export default function DietPlanDetailPage() {
             ) : (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
                 {/* Overview card */}
-                <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
-                  <div className="flex items-start justify-between gap-4">
+                <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="flex items-start gap-4 min-w-0">
                       <div className="w-12 h-12 rounded-xl bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center shrink-0">
                         <UtensilsCrossed size={22} />
                       </div>
                       <div className="min-w-0">
-                        <h2 className="text-2xl font-extrabold text-[#1B173A] leading-tight">
+                        <h2 className="text-xl md:text-2xl font-extrabold text-[#1B173A] leading-tight break-words">
                           {plan.title}
                         </h2>
                         <p className="text-[#60646C] text-sm font-medium mt-1">
@@ -335,7 +335,7 @@ export default function DietPlanDetailPage() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex flex-wrap items-center gap-3">
                       <span
                         className={`text-[11px] font-bold uppercase px-2.5 py-1 rounded-full ${
                           DIET_PLAN_STATUS_STYLE[plan.status] ??
@@ -436,7 +436,7 @@ export default function DietPlanDetailPage() {
 
                 {/* Meal plan by day */}
                 <div>
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                     <h3 className="text-lg font-bold text-[#1B173A]">
                       Meal Plan
                       <span className="text-sm font-medium text-[#8E8E93] ml-2">
@@ -450,7 +450,7 @@ export default function DietPlanDetailPage() {
                   </div>
 
                   {days.length === 0 ? (
-                    <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-8 text-center">
+                    <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-5 md:p-8 text-center">
                       <p className="text-[#60646C] text-sm">
                         No meals have been added to this plan yet.
                       </p>
@@ -519,8 +519,8 @@ export default function DietPlanDetailPage() {
         typeof document !== "undefined" &&
         createPortal(
           <div className="fixed inset-0 z-[10000] bg-black/50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-              <div className="p-6 border-b border-[#E0E1E6] flex items-center justify-between gap-3">
+            <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+              <div className="p-4 md:p-6 border-b border-[#E0E1E6] flex items-center justify-between gap-3">
                 <h3 className="text-lg font-extrabold text-[#1B173A] flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
                     <AlertTriangle size={20} />
@@ -538,7 +538,7 @@ export default function DietPlanDetailPage() {
                 </button>
               </div>
 
-              <div className="p-6 space-y-4">
+              <div className="p-4 md:p-6 space-y-4">
                 <p className="text-sm text-[#60646C]">
                   Are you sure you want to delete{" "}
                   <strong className="text-[#1B173A]">
@@ -592,8 +592,8 @@ export default function DietPlanDetailPage() {
         typeof document !== "undefined" &&
         createPortal(
           <div className="fixed inset-0 z-[10000] bg-black/50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-              <div className="p-6 border-b border-[#E0E1E6] flex items-center justify-between gap-3">
+            <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+              <div className="p-4 md:p-6 border-b border-[#E0E1E6] flex items-center justify-between gap-3">
                 <h3 className="text-lg font-extrabold text-[#1B173A] flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
                     <AlertTriangle size={20} />
@@ -611,7 +611,7 @@ export default function DietPlanDetailPage() {
                 </button>
               </div>
 
-              <div className="p-6 space-y-4">
+              <div className="p-4 md:p-6 space-y-4">
                 <p className="text-sm text-[#60646C]">
                   Are you sure you want to delete{" "}
                   <strong className="text-[#1B173A]">{plan.title}</strong>? This

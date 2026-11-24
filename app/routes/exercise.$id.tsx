@@ -126,10 +126,10 @@ export default function ExerciseDetailPage({
 
   return (
     <RoleGuard allowedRoles={["SUPER_ADMIN"]}>
-      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={user} />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <Navbar
             user={user}
             onLogout={() => navigate("/")}
@@ -137,7 +137,7 @@ export default function ExerciseDetailPage({
             refreshing={isFetching}
           />
 
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 md:p-6 min-w-0">
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
               <Link
                 to="/exercises"
@@ -155,7 +155,7 @@ export default function ExerciseDetailPage({
                   </div>
                 </div>
               ) : isError || !exercise ? (
-                <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-8 text-center">
+                <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-5 md:p-8 text-center">
                   <div className="w-16 h-16 rounded-full bg-[#F0F0F3] flex items-center justify-center mx-auto mb-4">
                     <Dumbbell size={24} className="text-[#8E8E93]" />
                   </div>
@@ -175,7 +175,7 @@ export default function ExerciseDetailPage({
               ) : (
                 <div className="space-y-6">
                   {/* Header */}
-                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6 flex items-start justify-between gap-4">
+                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6 flex flex-wrap items-start justify-between gap-4">
                     <div className="flex items-center gap-4 min-w-0">
                       <div className="w-14 h-14 rounded-2xl bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center shrink-0">
                         <Dumbbell size={28} />
@@ -194,7 +194,7 @@ export default function ExerciseDetailPage({
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex flex-wrap items-center gap-3">
                       <Button
                         variant="outline"
                         onClick={() => setIsEditOpen(true)}
@@ -223,8 +223,8 @@ export default function ExerciseDetailPage({
                   )}
 
                   {/* Media */}
-                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
-                    <div className="flex items-center justify-between mb-3">
+                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6">
+                    <div className="flex flex-wrap gap-3 items-center justify-between mb-3">
                       <h3 className="text-[11px] font-bold text-[#8E8E93] uppercase">
                         Images
                       </h3>
@@ -256,8 +256,8 @@ export default function ExerciseDetailPage({
                     )}
                   </div>
 
-                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
-                    <div className="flex items-center justify-between mb-3">
+                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6">
+                    <div className="flex flex-wrap gap-3 items-center justify-between mb-3">
                       <h3 className="text-[11px] font-bold text-[#8E8E93] uppercase">
                         Videos
                       </h3>
@@ -288,7 +288,7 @@ export default function ExerciseDetailPage({
                   </div>
 
                   {/* Metadata */}
-                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       {exercise.category && (
                         <DetailRow
@@ -322,7 +322,7 @@ export default function ExerciseDetailPage({
                   </div>
 
                   {/* Muscles */}
-                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6 space-y-4">
+                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6 space-y-4">
                     {exercise.primaryMuscles.length > 0 && (
                       <div className="space-y-1.5">
                         <p className="text-[11px] font-bold text-[#8E8E93] uppercase">
@@ -343,7 +343,7 @@ export default function ExerciseDetailPage({
 
                   {/* Instructions */}
                   {exercise.instructions.length > 0 && (
-                    <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+                    <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6">
                       <p className="text-[11px] font-bold text-[#8E8E93] uppercase mb-3">
                         Instructions
                       </p>
@@ -398,8 +398,8 @@ export default function ExerciseDetailPage({
         typeof document !== "undefined" &&
         createPortal(
           <div className="fixed inset-0 z-[10000] bg-black/50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-              <div className="p-6 border-b border-[#E0E1E6] flex items-center justify-between gap-3">
+            <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+              <div className="p-4 md:p-6 border-b border-[#E0E1E6] flex items-center justify-between gap-3">
                 <h3 className="text-lg font-extrabold text-[#1B173A] flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
                     <AlertTriangle size={20} />
@@ -417,7 +417,7 @@ export default function ExerciseDetailPage({
                 </button>
               </div>
 
-              <div className="p-6 space-y-4">
+              <div className="p-4 md:p-6 space-y-4">
                 <p className="text-sm text-[#60646C]">
                   Are you sure you want to delete{" "}
                   <strong className="text-[#1B173A]">{exercise.name}</strong>?

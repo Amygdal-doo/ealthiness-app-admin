@@ -253,9 +253,9 @@ export default function HospitalDetailPage({
   if (isError || !hospital) {
     return (
       <RoleGuard allowedRoles={["SUPER_ADMIN"]}>
-        <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+        <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
           <AppSidebar user={user} />
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center p-4">
             <div className="text-center">
               <h2 className="text-2xl font-bold text-red-600 mb-2">
                 Hospital Not Found
@@ -275,10 +275,10 @@ export default function HospitalDetailPage({
 
   return (
     <RoleGuard allowedRoles={["SUPER_ADMIN"]}>
-      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={user} />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <Navbar
             user={user}
             onLogout={() => navigate("/")}
@@ -286,7 +286,7 @@ export default function HospitalDetailPage({
             refreshing={isFetching}
           />
 
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 md:p-6 min-w-0">
             <div className="animate-in fade-in slide-in-from-right-8 duration-500 pb-12">
               <Link
                 to="/hospitals"
@@ -297,7 +297,7 @@ export default function HospitalDetailPage({
               </Link>
 
               {/* Hero banner */}
-              <div className="bg-[#1B173A] rounded-[32px] p-8 text-white shadow-2xl mb-8 relative overflow-hidden flex flex-col md:flex-row items-center md:items-start gap-8 border border-[#38383A]">
+              <div className="bg-[#1B173A] rounded-[32px] p-5 md:p-8 text-white shadow-2xl mb-8 relative overflow-hidden flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 border border-[#38383A]">
                 <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-[#5850DE]/40 to-transparent"></div>
 
                 <div className="relative z-10 w-28 h-28 rounded-3xl bg-gradient-to-br from-[#5850DE] to-[#248FEC] flex items-center justify-center shadow-[0_0_40px_rgba(88,80,222,0.5)] border-4 border-[#1B173A]">
@@ -306,7 +306,7 @@ export default function HospitalDetailPage({
 
                 <div className="relative z-10 text-center md:text-left flex-1">
                   <div className="flex items-center gap-3 justify-center md:justify-start mb-2">
-                    <h2 className="text-4xl font-extrabold">{hospital.name}</h2>
+                    <h2 className="text-2xl md:text-4xl break-words font-extrabold">{hospital.name}</h2>
                     {!isEditing && (
                       <>
                         <button
@@ -352,9 +352,9 @@ export default function HospitalDetailPage({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                 {/* Contact information / Edit form */}
-                <Card className="p-8">
+                <Card className="p-5 md:p-8">
                   <h3 className="text-xl font-extrabold text-[#1B173A] mb-6 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center">
                       {isEditing ? <Edit size={20} /> : <Mail size={20} />}
@@ -472,7 +472,7 @@ export default function HospitalDetailPage({
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between p-3 bg-[#F8F9FB] rounded-xl border border-[#E0E1E6]">
+                      <div className="flex items-center justify-between gap-3 p-3 bg-[#F8F9FB] rounded-xl border border-[#E0E1E6] [&>*:first-child]:shrink-0 [&>*:last-child]:min-w-0 [&>*:last-child]:text-right [&>*:last-child]:[overflow-wrap:anywhere]">
                         <div className="flex items-center gap-3">
                           <Mail className="text-[#5850DE]" size={20} />
                           <span className="font-medium text-[#1B173A]">
@@ -484,7 +484,7 @@ export default function HospitalDetailPage({
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between p-3 bg-[#F8F9FB] rounded-xl border border-[#E0E1E6]">
+                      <div className="flex items-center justify-between gap-3 p-3 bg-[#F8F9FB] rounded-xl border border-[#E0E1E6] [&>*:first-child]:shrink-0 [&>*:last-child]:min-w-0 [&>*:last-child]:text-right [&>*:last-child]:[overflow-wrap:anywhere]">
                         <div className="flex items-center gap-3">
                           <MapPin className="text-[#248FEC]" size={20} />
                           <span className="font-medium text-[#1B173A]">
@@ -496,7 +496,7 @@ export default function HospitalDetailPage({
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between p-3 bg-[#F8F9FB] rounded-xl border border-[#E0E1E6]">
+                      <div className="flex items-center justify-between gap-3 p-3 bg-[#F8F9FB] rounded-xl border border-[#E0E1E6] [&>*:first-child]:shrink-0 [&>*:last-child]:min-w-0 [&>*:last-child]:text-right [&>*:last-child]:[overflow-wrap:anywhere]">
                         <div className="flex items-center gap-3">
                           <Globe className="text-[#4DAB46]" size={20} />
                           <span className="font-medium text-[#1B173A]">
@@ -508,7 +508,7 @@ export default function HospitalDetailPage({
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between p-3 bg-[#F8F9FB] rounded-xl border border-[#E0E1E6]">
+                      <div className="flex items-center justify-between gap-3 p-3 bg-[#F8F9FB] rounded-xl border border-[#E0E1E6] [&>*:first-child]:shrink-0 [&>*:last-child]:min-w-0 [&>*:last-child]:text-right [&>*:last-child]:[overflow-wrap:anywhere]">
                         <div className="flex items-center gap-3">
                           <CalendarDays className="text-[#FFB900]" size={20} />
                           <span className="font-medium text-[#1B173A]">
@@ -524,8 +524,8 @@ export default function HospitalDetailPage({
                 </Card>
 
                 {/* Staff */}
-                <Card className="p-8">
-                  <div className="flex items-center justify-between mb-6">
+                <Card className="p-5 md:p-8">
+                  <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                     <h3 className="text-xl font-extrabold text-[#1B173A] flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-[#E5F6E4] text-[#4DAB46] flex items-center justify-center">
                         <Stethoscope size={20} />
@@ -573,7 +573,7 @@ export default function HospitalDetailPage({
                           {hospitalDoctors.map((doctor) => (
                             <div
                               key={doctor._id}
-                              className="flex items-center justify-between p-3 bg-[#F8F9FB] rounded-xl border border-[#E0E1E6]"
+                              className="flex items-center justify-between gap-3 p-3 bg-[#F8F9FB] rounded-xl border border-[#E0E1E6]"
                             >
                               <div className="flex items-center gap-3 min-w-0">
                                 <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold shrink-0">
@@ -629,7 +629,7 @@ export default function HospitalDetailPage({
                           {hospitalPsychologists.map((psychologist) => (
                             <div
                               key={psychologist._id}
-                              className="flex items-center justify-between p-3 bg-[#F8F9FB] rounded-xl border border-[#E0E1E6]"
+                              className="flex items-center justify-between gap-3 p-3 bg-[#F8F9FB] rounded-xl border border-[#E0E1E6]"
                             >
                               <div className="flex items-center gap-3 min-w-0">
                                 <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#248FEC] flex items-center justify-center font-bold shrink-0">

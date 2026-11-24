@@ -125,10 +125,10 @@ export default function CoachesPage() {
 
   return (
     <RoleGuard allowedRoles={["SUPER_ADMIN"]}>
-      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={user} />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <Navbar
             user={user}
             onLogout={handleLogout}
@@ -136,9 +136,9 @@ export default function CoachesPage() {
             refreshing={refreshing || isFetching}
           />
 
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 md:p-6 min-w-0">
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div>
                   <h2 className="text-2xl font-extrabold text-[#1B173A] flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center">
@@ -153,7 +153,7 @@ export default function CoachesPage() {
                 </div>
                 <Button
                   onClick={() => setIsInviteModalOpen(true)}
-                  className="bg-[#5850DE] hover:bg-[#4A42C7] text-white font-bold rounded-xl px-4 py-2.5 flex items-center gap-2"
+                  className="w-full sm:w-auto justify-center bg-[#5850DE] hover:bg-[#4A42C7] text-white font-bold rounded-xl px-4 py-2.5 flex items-center gap-2"
                 >
                   <UserPlus size={16} />
                   Invite Coach
@@ -162,7 +162,7 @@ export default function CoachesPage() {
 
               {/* Search and Filters */}
               <div className="bg-white rounded-xl border border-[#E0E1E6] p-4 mb-6 shadow-sm">
-                <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
                   {/* Search Input */}
                   <div className="relative flex-1">
                     <Search
@@ -179,7 +179,7 @@ export default function CoachesPage() {
                   </div>
 
                   {/* Order By Filter */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-medium text-[#60646C] whitespace-nowrap">
                       Sort by:
                     </span>
@@ -256,85 +256,87 @@ export default function CoachesPage() {
                   </div>
                 )}
 
-                <table className="w-full text-left">
-                  <thead className="bg-[#F8F9FB] border-b border-[#E0E1E6]">
-                    <tr>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
-                        Coach
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
-                        Username
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Rating
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Reviews
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Price
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest text-right">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#E0E1E6]">
-                    {visibleCoaches.map((coach) => (
-                      <tr
-                        key={coach.id}
-                        onClick={() => navigate(`/coaches/${coach.id}`)}
-                        className="hover:bg-gray-50 transition cursor-pointer"
-                      >
-                        <td className="p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold shrink-0">
-                              {coach.firstName.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <span className="font-bold text-[#1B173A] leading-tight block">
-                                {coach.firstName} {coach.lastName}
-                              </span>
-                              <span className="text-xs text-[#8E8E93] font-medium">
-                                {coach.email[0] ?? "—"}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-4 font-medium text-[#60646C] hidden lg:table-cell">
-                          {coach.username}
-                        </td>
-                        <td className="p-4 hidden md:table-cell">
-                          <div className="flex items-center gap-2 font-medium text-[#60646C]">
-                            <Star size={14} className="text-[#FFB900]" />
-                            {coach.rating}
-                          </div>
-                        </td>
-                        <td className="p-4 hidden md:table-cell">
-                          <div className="flex items-center gap-2 font-medium text-[#60646C]">
-                            <MessageSquare size={14} className="text-[#248FEC]" />
-                            {coach.reviews}
-                          </div>
-                        </td>
-                        <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
-                          {formatPrice(coach)}
-                        </td>
-                        <td className="p-4 text-right">
-                          <Link
-                            to={`/coaches/${coach.id}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="bg-white border border-[#E0E1E6] text-[#1B173A] text-xs font-bold px-4 py-2 rounded-lg hover:border-[#5850DE] hover:text-[#5850DE] transition inline-block"
-                          >
-                            View Profile
-                          </Link>
-                        </td>
+                <div className="relative overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-[#F8F9FB] border-b border-[#E0E1E6]">
+                      <tr>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
+                          Coach
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
+                          Username
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                          Rating
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                          Reviews
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                          Price
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest text-right">
+                          Action
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-[#E0E1E6]">
+                      {visibleCoaches.map((coach) => (
+                        <tr
+                          key={coach.id}
+                          onClick={() => navigate(`/coaches/${coach.id}`)}
+                          className="hover:bg-gray-50 transition cursor-pointer"
+                        >
+                          <td className="p-3 md:p-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold shrink-0">
+                                {coach.firstName.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <span className="font-bold text-[#1B173A] leading-tight block">
+                                  {coach.firstName} {coach.lastName}
+                                </span>
+                                <span className="text-xs text-[#8E8E93] font-medium">
+                                  {coach.email[0] ?? "—"}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3 md:p-4 font-medium text-[#60646C] hidden lg:table-cell">
+                            {coach.username}
+                          </td>
+                          <td className="p-3 md:p-4 hidden md:table-cell">
+                            <div className="flex items-center gap-2 font-medium text-[#60646C]">
+                              <Star size={14} className="text-[#FFB900]" />
+                              {coach.rating}
+                            </div>
+                          </td>
+                          <td className="p-3 md:p-4 hidden md:table-cell">
+                            <div className="flex items-center gap-2 font-medium text-[#60646C]">
+                              <MessageSquare size={14} className="text-[#248FEC]" />
+                              {coach.reviews}
+                            </div>
+                          </td>
+                          <td className="p-3 md:p-4 font-medium text-[#60646C] hidden md:table-cell">
+                            {formatPrice(coach)}
+                          </td>
+                          <td className="p-3 md:p-4 text-right">
+                            <Link
+                              to={`/coaches/${coach.id}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="bg-white border border-[#E0E1E6] text-[#1B173A] text-xs font-bold px-4 py-2 rounded-lg hover:border-[#5850DE] hover:text-[#5850DE] transition inline-block"
+                            >
+                              View Profile
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
                 {visibleCoaches.length === 0 && !isLoading && (
-                  <div className="p-8 text-center">
+                  <div className="p-5 md:p-8 text-center">
                     <div className="w-16 h-16 rounded-full bg-[#F0F0F3] flex items-center justify-center mx-auto mb-4">
                       <Dumbbell size={24} className="text-[#8E8E93]" />
                     </div>
@@ -353,7 +355,7 @@ export default function CoachesPage() {
               {/* Pagination */}
               {coachesResponse && coachesResponse.pages > 1 && (
                 <div className="bg-white rounded-xl border border-[#E0E1E6] mt-6 p-4 shadow-sm">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-[#60646C]">
                         Showing {(currentPage - 1) * PAGE_SIZE + 1} to{" "}
@@ -362,7 +364,7 @@ export default function CoachesPage() {
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {/* Previous Button */}
                       <Button
                         variant="outline"
@@ -374,11 +376,11 @@ export default function CoachesPage() {
                         className="flex items-center gap-1"
                       >
                         <ChevronLeft size={16} />
-                        Previous
+                        <span className="hidden sm:inline">Previous</span>
                       </Button>
 
                       {/* Page Numbers */}
-                      <div className="flex items-center gap-1">
+                      <div className="flex flex-wrap items-center gap-1">
                         {(() => {
                           const totalPages = coachesResponse.pages;
                           const current = currentPage;
@@ -461,7 +463,7 @@ export default function CoachesPage() {
                         }
                         className="flex items-center gap-1"
                       >
-                        Next
+                        <span className="hidden sm:inline">Next</span>
                         <ChevronRight size={16} />
                       </Button>
                     </div>

@@ -66,7 +66,7 @@ export default function AcceptInvitationPage() {
   if (!token || !type) {
     return (
       <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center p-4">
-        <Card className="w-full max-w-md p-8 text-center">
+        <Card className="w-full max-w-md p-5 md:p-8 text-center">
           <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
             <AlertCircle size={32} className="text-red-600" />
           </div>
@@ -85,7 +85,7 @@ export default function AcceptInvitationPage() {
   if (invitationType !== "patient" && invitationType !== "psychologist_company") {
     return (
       <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center p-4">
-        <Card className="w-full max-w-md p-8 text-center">
+        <Card className="w-full max-w-md p-5 md:p-8 text-center">
           <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-4">
             <AlertCircle size={32} className="text-orange-600" />
           </div>
@@ -104,7 +104,7 @@ export default function AcceptInvitationPage() {
   if (acceptInvitationMutation.isSuccess) {
     return (
       <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center p-4">
-        <Card className="w-full max-w-lg p-8">
+        <Card className="w-full max-w-lg p-5 md:p-8">
           <div className="text-center mb-6">
             <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
               <CheckCircle size={40} className="text-green-600" />
@@ -177,7 +177,7 @@ export default function AcceptInvitationPage() {
   return (
     <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
-        <Card className="p-8">
+        <Card className="p-5 md:p-8">
           <div className="text-center mb-6">
             <div className="w-20 h-20 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-4 text-white">
               <Smartphone size={32} />

@@ -31,6 +31,7 @@ export default [
   route("/psychologist/patients/:id", "routes/psychologist.patient.$id.tsx"),
   route("/coaches", "routes/coaches.tsx"),
   route("/coaches/:id", "routes/coach.$id.tsx"),
+  route("/coach-applications", "routes/coach-applications.tsx"),
   route("/exercises", "routes/exercises.tsx"),
   route("/exercises/:id", "routes/exercise.$id.tsx"),
   route("/diet-plans", "routes/diet-plans.tsx"),

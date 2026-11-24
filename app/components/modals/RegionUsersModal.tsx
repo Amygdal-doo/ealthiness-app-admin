@@ -124,7 +124,7 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000] p-4">
       <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[#E0E1E6]">
+        <div className="flex items-center justify-between p-4 md:p-6 border-b border-[#E0E1E6]">
           <h3 className="text-xl font-extrabold text-[#1B173A] flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5850DE] to-[#248FEC] text-white flex items-center justify-center">
               <Users size={20} />
@@ -143,8 +143,8 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
         </div>
 
         {/* Search and Filters */}
-        <div className="p-6 border-b border-[#E0E1E6]">
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+        <div className="p-4 md:p-6 border-b border-[#E0E1E6]">
+          <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
             {/* Search Input */}
             <div className="relative flex-1">
               <Search
@@ -161,7 +161,7 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
             </div>
 
             {/* Order By Filter */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-medium text-[#60646C] whitespace-nowrap">
                 Sort by:
               </span>
@@ -243,22 +243,22 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
             <table className="w-full text-left">
               <thead className="bg-[#F8F9FB] border-b border-[#E0E1E6] sticky top-0">
                 <tr>
-                  <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
+                  <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
                     User
                   </th>
-                  <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
+                  <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
                     Roles
                   </th>
-                  <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                  <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
                     Height
                   </th>
-                  <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                  <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
                     Weight
                   </th>
-                  <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                  <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
                     Joined
                   </th>
-                  <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest text-right">
+                  <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest text-right">
                     Action
                   </th>
                 </tr>
@@ -266,7 +266,7 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
               <tbody className="divide-y divide-[#E0E1E6]">
                 {visibleUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50 transition">
-                    <td className="p-4">
+                    <td className="p-3 md:p-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold">
                           {user.name.charAt(0)}
@@ -289,7 +289,7 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
                         </div>
                       </div>
                     </td>
-                    <td className="p-4 hidden lg:table-cell">
+                    <td className="p-3 md:p-4 hidden lg:table-cell">
                       <div className="space-y-1">
                         {user.roles.map((role, index) => (
                           <div key={index}>
@@ -309,16 +309,16 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
                         ))}
                       </div>
                     </td>
-                    <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
+                    <td className="p-3 md:p-4 font-medium text-[#60646C] hidden md:table-cell">
                       {user.height}
                     </td>
-                    <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
+                    <td className="p-3 md:p-4 font-medium text-[#60646C] hidden md:table-cell">
                       {user.weight}
                     </td>
-                    <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
+                    <td className="p-3 md:p-4 font-medium text-[#60646C] hidden md:table-cell">
                       {user.joined}
                     </td>
-                    <td className="p-4 text-right">
+                    <td className="p-3 md:p-4 text-right">
                       <Link
                         to={`/customers/${user.id}`}
                         onClick={handleClose}
@@ -333,7 +333,7 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
             </table>
 
             {visibleUsers.length === 0 && !isLoading && (
-              <div className="p-8 text-center">
+              <div className="p-5 md:p-8 text-center">
                 <div className="w-16 h-16 rounded-full bg-[#F0F0F3] flex items-center justify-center mx-auto mb-4">
                   <Users size={24} className="text-[#8E8E93]" />
                 </div>
@@ -349,7 +349,7 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
             )}
 
             {error && (
-              <div className="p-8 text-center">
+              <div className="p-5 md:p-8 text-center">
                 <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                   <X size={24} className="text-red-500" />
                 </div>
@@ -373,7 +373,7 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
 
         {/* Pagination */}
         {usersResponse && usersResponse.pages > 1 && (
-          <div className="p-6 border-t border-[#E0E1E6]">
+          <div className="p-4 md:p-6 border-t border-[#E0E1E6]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-[#60646C]">
@@ -383,7 +383,7 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {/* Previous Button */}
                 <Button
                   variant="outline"
@@ -393,11 +393,11 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
                   className="flex items-center gap-1"
                 >
                   <ChevronLeft size={16} />
-                  Previous
+                  <span className="hidden sm:inline">Previous</span>
                 </Button>
 
                 {/* Page Numbers */}
-                <div className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center gap-1">
                   {(() => {
                     const totalPages = usersResponse.pages;
                     const current = currentPage;
@@ -478,7 +478,7 @@ export const RegionUsersModal: React.FC<RegionUsersModalProps> = ({
                   disabled={currentPage === usersResponse.pages || isLoading}
                   className="flex items-center gap-1"
                 >
-                  Next
+                  <span className="hidden sm:inline">Next</span>
                   <ChevronRight size={16} />
                 </Button>
               </div>

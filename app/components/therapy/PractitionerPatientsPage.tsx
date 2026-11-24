@@ -69,10 +69,10 @@ export default function PractitionerPatientsPage({
 
   return (
     <RoleGuard allowedRoles={portal.allowedRoles}>
-      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={user} />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <Navbar
             user={user}
             onLogout={() => navigate("/")}
@@ -80,7 +80,7 @@ export default function PractitionerPatientsPage({
             refreshing={isFetching}
           />
 
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 md:p-6 min-w-0">
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="mb-6">
                 <h2 className="text-2xl font-extrabold text-[#1B173A] flex items-center gap-3">
@@ -96,7 +96,7 @@ export default function PractitionerPatientsPage({
 
               {/* Search and scope filters */}
               <div className="bg-white rounded-xl border border-[#E0E1E6] p-4 mb-6 shadow-sm">
-                <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
                   <div className="relative flex-1 w-full">
                     <Search
                       size={18}
@@ -142,83 +142,85 @@ export default function PractitionerPatientsPage({
                   </div>
                 )}
 
-                <table className="w-full text-left">
-                  <thead className="bg-[#F8F9FB] border-b border-[#E0E1E6]">
-                    <tr>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
-                        Patient
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Username
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
-                        Email
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest text-right">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#E0E1E6]">
-                    {visiblePatients.map((patient: ApiPatient) => {
-                      const fullName =
-                        `${patient.firstName} ${patient.lastName}`.trim();
-                      const primaryEmail = patient.email[0] ?? "—";
-                      return (
-                        <tr
-                          key={patient.id}
-                          onClick={() =>
-                            navigate(`${portal.basePath}/patients/${patient.id}`)
-                          }
-                          className="hover:bg-gray-50 transition cursor-pointer"
-                        >
-                          <td className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold shrink-0">
-                                {fullName.charAt(0).toUpperCase()}
+                <div className="relative overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-[#F8F9FB] border-b border-[#E0E1E6]">
+                      <tr>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
+                          Patient
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                          Username
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
+                          Email
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest text-right">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E0E1E6]">
+                      {visiblePatients.map((patient: ApiPatient) => {
+                        const fullName =
+                          `${patient.firstName} ${patient.lastName}`.trim();
+                        const primaryEmail = patient.email[0] ?? "—";
+                        return (
+                          <tr
+                            key={patient.id}
+                            onClick={() =>
+                              navigate(`${portal.basePath}/patients/${patient.id}`)
+                            }
+                            className="hover:bg-gray-50 transition cursor-pointer"
+                          >
+                            <td className="p-3 md:p-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold shrink-0">
+                                  {fullName.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                  <span className="font-bold text-[#1B173A] leading-tight block">
+                                    {fullName}
+                                  </span>
+                                  <span className="text-xs text-[#8E8E93] font-medium md:hidden">
+                                    {primaryEmail}
+                                  </span>
+                                </div>
                               </div>
-                              <div>
-                                <span className="font-bold text-[#1B173A] leading-tight block">
-                                  {fullName}
-                                </span>
-                                <span className="text-xs text-[#8E8E93] font-medium md:hidden">
-                                  {primaryEmail}
-                                </span>
+                            </td>
+                            <td className="p-3 md:p-4 hidden md:table-cell">
+                              <div className="flex items-center gap-1.5 font-medium text-[#60646C]">
+                                <AtSign size={14} className="text-[#8E8E93]" />
+                                {patient.username}
                               </div>
-                            </div>
-                          </td>
-                          <td className="p-4 hidden md:table-cell">
-                            <div className="flex items-center gap-1.5 font-medium text-[#60646C]">
-                              <AtSign size={14} className="text-[#8E8E93]" />
-                              {patient.username}
-                            </div>
-                          </td>
-                          <td className="p-4 font-medium text-[#60646C] hidden lg:table-cell">
-                            {primaryEmail}
-                          </td>
-                          <td className="p-4 text-right">
-                            <Button
-                              variant="ghost"
-                              className="px-2"
-                              title="View Patient"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(
-                                  `${portal.basePath}/patients/${patient.id}`,
-                                );
-                              }}
-                            >
-                              <Eye size={18} />
-                            </Button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                            </td>
+                            <td className="p-3 md:p-4 font-medium text-[#60646C] hidden lg:table-cell">
+                              {primaryEmail}
+                            </td>
+                            <td className="p-3 md:p-4 text-right">
+                              <Button
+                                variant="ghost"
+                                className="px-2"
+                                title="View Patient"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(
+                                    `${portal.basePath}/patients/${patient.id}`,
+                                  );
+                                }}
+                              >
+                                <Eye size={18} />
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
 
                 {!isLoading && isError && (
-                  <div className="p-8 text-center">
+                  <div className="p-5 md:p-8 text-center">
                     <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
                       <Users size={24} className="text-red-400" />
                     </div>
@@ -235,7 +237,7 @@ export default function PractitionerPatientsPage({
                 )}
 
                 {!isLoading && !isError && visiblePatients.length === 0 && (
-                  <div className="p-8 text-center">
+                  <div className="p-5 md:p-8 text-center">
                     <div className="w-16 h-16 rounded-full bg-[#F0F0F3] flex items-center justify-center mx-auto mb-4">
                       <Users size={24} className="text-[#8E8E93]" />
                     </div>

@@ -156,10 +156,10 @@ export default function RegionsPage() {
     <RoleGuard
       allowedRoles={["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN"]}
     >
-      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={user} />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <Navbar
             user={user}
             onLogout={handleLogout}
@@ -167,9 +167,9 @@ export default function RegionsPage() {
             refreshing={refreshing}
           />
 
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 md:p-6 min-w-0">
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <h2 className="text-2xl font-extrabold text-[#1B173A] flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center">
@@ -186,7 +186,7 @@ export default function RegionsPage() {
 
               {/* Search and Filters */}
               <div className="bg-white rounded-xl border border-[#E0E1E6] p-4 mb-6 shadow-sm">
-                <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
                   {/* Search Input */}
                   <div className="relative flex-1">
                     <Search
@@ -203,7 +203,7 @@ export default function RegionsPage() {
                   </div>
 
                   {/* Order By Filter */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-medium text-[#60646C] whitespace-nowrap">
                       Sort by:
                     </span>
@@ -280,23 +280,23 @@ export default function RegionsPage() {
                   </div>
                 )}
 
-                <div className="overflow-x-auto">
+                <div className="relative overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead className="bg-[#F8F9FB] border-b border-[#E0E1E6]">
                       <tr>
-                        <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
                           Region
                         </th>
-                        <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
                           Code
                         </th>
-                        <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden sm:table-cell">
                           Admins
                         </th>
-                        <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
                           Created
                         </th>
-                        <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest text-right">
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest text-right">
                           Actions
                         </th>
                       </tr>
@@ -307,7 +307,7 @@ export default function RegionsPage() {
                           key={region.id}
                           className="hover:bg-gray-50 transition"
                         >
-                          <td className="p-4 font-bold text-[#1B173A] flex items-center gap-3">
+                          <td className="p-3 md:p-4 font-bold text-[#1B173A] flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center overflow-hidden">
                               {region.image ? (
                                 <img
@@ -326,10 +326,10 @@ export default function RegionsPage() {
                               {region.name}
                             </Link>
                           </td>
-                          <td className="p-4 font-mono text-[#60646C] text-sm">
+                          <td className="p-3 md:p-4 font-mono text-[#60646C] text-sm">
                             {region.code}
                           </td>
-                          <td className="p-4">
+                          <td className="p-3 md:p-4 hidden sm:table-cell">
                             <Badge
                               variant={
                                 region.adminCount > 0 ? "default" : "secondary"
@@ -339,11 +339,11 @@ export default function RegionsPage() {
                               {region.adminCount === 1 ? "Admin" : "Admins"}
                             </Badge>
                           </td>
-                          <td className="p-4 font-medium text-[#60646C] text-sm">
+                          <td className="p-3 md:p-4 font-medium text-[#60646C] text-sm hidden md:table-cell">
                             {region.createdAt}
                           </td>
-                          <td className="p-4 text-right">
-                            <div className="flex justify-end gap-2">
+                          <td className="p-3 md:p-4 text-right">
+                            <div className="flex flex-wrap lg:flex-nowrap justify-end gap-2">
                               {user?.role === "SUPER_ADMIN" ? (
                                 <Link to={`/regions/${region.id}`}>
                                   <Button variant="outline" size="sm">
@@ -363,7 +363,8 @@ export default function RegionsPage() {
                                   onClick={() => handleInviteAdmin(region.id, region.name)}
                                   size="sm"
                                 >
-                                  <Mail size={16} className="mr-2" /> Invite Admin
+                                  <Mail size={16} className="lg:mr-2" />
+                                  <span className="sr-only lg:not-sr-only">Invite Admin</span>
                                 </Button>
                               )}
                             </div>
@@ -375,7 +376,7 @@ export default function RegionsPage() {
                 </div>
 
                 {visibleRegions.length === 0 && !isLoading && (
-                  <div className="p-8 text-center">
+                  <div className="p-5 md:p-8 text-center">
                     <div className="w-16 h-16 rounded-full bg-[#F0F0F3] flex items-center justify-center mx-auto mb-4">
                       <Globe size={24} className="text-[#8E8E93]" />
                     </div>
@@ -392,7 +393,7 @@ export default function RegionsPage() {
               {/* Pagination */}
               {regionsResponse && regionsResponse.pages > 1 && (
                 <div className="bg-white rounded-xl border border-[#E0E1E6] mt-6 p-4 shadow-sm">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-[#60646C]">
                         Showing {(currentPage - 1) * 10 + 1} to{" "}
@@ -401,7 +402,7 @@ export default function RegionsPage() {
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {/* Previous Button */}
                       <Button
                         variant="outline"
@@ -413,11 +414,11 @@ export default function RegionsPage() {
                         className="flex items-center gap-1"
                       >
                         <ChevronLeft size={16} />
-                        Previous
+                        <span className="hidden sm:inline">Previous</span>
                       </Button>
 
                       {/* Page Numbers */}
-                      <div className="flex items-center gap-1">
+                      <div className="flex flex-wrap items-center gap-1">
                         {(() => {
                           const totalPages = regionsResponse.pages;
                           const current = currentPage;
@@ -500,7 +501,7 @@ export default function RegionsPage() {
                         }
                         className="flex items-center gap-1"
                       >
-                        Next
+                        <span className="hidden sm:inline">Next</span>
                         <ChevronRight size={16} />
                       </Button>
                     </div>

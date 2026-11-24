@@ -179,8 +179,8 @@ const NewCompanyForm: React.FC<NewCompanyFormProps> = ({
   };
 
   return (
-    <Card className="w-full max-w-2xl shadow-2xl">
-      <div className="p-6 border-b border-[#E0E1E6] flex items-center justify-between">
+    <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div className="p-4 md:p-6 border-b border-[#E0E1E6] flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-[#F0F0F3] text-[#1B173A] flex items-center justify-center">
             <Building2 size={20} />
@@ -199,7 +199,7 @@ const NewCompanyForm: React.FC<NewCompanyFormProps> = ({
         )}
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="p-4 md:p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Company Name */}
           <div className="space-y-2">
@@ -376,7 +376,7 @@ const NewCompanyForm: React.FC<NewCompanyFormProps> = ({
             <Upload size={14} />
             Company Logo
           </label>
-          <div className="border-2 border-dashed border-[#E0E1E6] rounded-lg p-6 text-center hover:border-[#5850DE] transition">
+          <div className="border-2 border-dashed border-[#E0E1E6] rounded-lg p-4 md:p-6 text-center hover:border-[#5850DE] transition">
             <input
               type="file"
               accept="image/*"

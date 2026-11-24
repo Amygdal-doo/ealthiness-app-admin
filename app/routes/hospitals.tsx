@@ -64,10 +64,10 @@ export default function HospitalsPage() {
 
   return (
     <RoleGuard allowedRoles={["SUPER_ADMIN"]}>
-      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={user} />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <Navbar
             user={user}
             onLogout={() => navigate("/")}
@@ -75,9 +75,9 @@ export default function HospitalsPage() {
             refreshing={isFetching}
           />
 
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 md:p-6 min-w-0">
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div>
                   <h2 className="text-2xl font-extrabold text-[#1B173A] flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center">
@@ -90,7 +90,7 @@ export default function HospitalsPage() {
                     {visibleHospitals.length} on this page)
                   </p>
                 </div>
-                <Button onClick={() => setIsCreateOpen(true)}>
+                <Button onClick={() => setIsCreateOpen(true)} className="w-full sm:w-auto">
                   <Plus size={18} className="mr-2" />
                   Create Hospital
                 </Button>
@@ -109,77 +109,79 @@ export default function HospitalsPage() {
                   </div>
                 )}
 
-                <table className="w-full text-left">
-                  <thead className="bg-[#F8F9FB] border-b border-[#E0E1E6]">
-                    <tr>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
-                        Hospital
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
-                        Address
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Doctors
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Psychologists
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Created
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#E0E1E6]">
-                    {visibleHospitals.map((hospital: ApiHospital) => (
-                      <tr
-                        key={hospital.id}
-                        onClick={() => navigate(`/hospitals/${hospital.id}`)}
-                        className="hover:bg-gray-50 transition cursor-pointer"
-                      >
-                        <td className="p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold shrink-0">
-                              {hospital.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <span className="font-bold text-[#1B173A] leading-tight block">
-                                {hospital.name}
-                              </span>
-                              <span className="text-xs text-[#8E8E93] font-medium flex items-center gap-1">
-                                <Mail size={12} />
-                                {hospital.email}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-4 hidden lg:table-cell">
-                          <div className="flex items-center gap-2 font-medium text-[#60646C]">
-                            <MapPin size={14} className="text-[#248FEC]" />
-                            {hospital.address}
-                          </div>
-                        </td>
-                        <td className="p-4 hidden md:table-cell">
-                          <div className="flex items-center gap-2 font-medium text-[#60646C]">
-                            <Stethoscope size={14} className="text-[#5850DE]" />
-                            {hospital.doctors.length}
-                          </div>
-                        </td>
-                        <td className="p-4 hidden md:table-cell">
-                          <div className="flex items-center gap-2 font-medium text-[#60646C]">
-                            <Brain size={14} className="text-[#5850DE]" />
-                            {hospital.psychologists.length}
-                          </div>
-                        </td>
-                        <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
-                          {new Date(hospital.createdAt).toLocaleDateString()}
-                        </td>
+                <div className="relative overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-[#F8F9FB] border-b border-[#E0E1E6]">
+                      <tr>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
+                          Hospital
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
+                          Address
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                          Doctors
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                          Psychologists
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                          Created
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-[#E0E1E6]">
+                      {visibleHospitals.map((hospital: ApiHospital) => (
+                        <tr
+                          key={hospital.id}
+                          onClick={() => navigate(`/hospitals/${hospital.id}`)}
+                          className="hover:bg-gray-50 transition cursor-pointer"
+                        >
+                          <td className="p-3 md:p-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold shrink-0">
+                                {hospital.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <span className="font-bold text-[#1B173A] leading-tight block">
+                                  {hospital.name}
+                                </span>
+                                <span className="text-xs text-[#8E8E93] font-medium flex items-center gap-1">
+                                  <Mail size={12} />
+                                  {hospital.email}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3 md:p-4 hidden lg:table-cell">
+                            <div className="flex items-center gap-2 font-medium text-[#60646C]">
+                              <MapPin size={14} className="text-[#248FEC]" />
+                              {hospital.address}
+                            </div>
+                          </td>
+                          <td className="p-3 md:p-4 hidden md:table-cell">
+                            <div className="flex items-center gap-2 font-medium text-[#60646C]">
+                              <Stethoscope size={14} className="text-[#5850DE]" />
+                              {hospital.doctors.length}
+                            </div>
+                          </td>
+                          <td className="p-3 md:p-4 hidden md:table-cell">
+                            <div className="flex items-center gap-2 font-medium text-[#60646C]">
+                              <Brain size={14} className="text-[#5850DE]" />
+                              {hospital.psychologists.length}
+                            </div>
+                          </td>
+                          <td className="p-3 md:p-4 font-medium text-[#60646C] hidden md:table-cell">
+                            {new Date(hospital.createdAt).toLocaleDateString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
                 {!isLoading && isError && (
-                  <div className="p-8 text-center">
+                  <div className="p-5 md:p-8 text-center">
                     <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
                       <Hospital size={24} className="text-red-400" />
                     </div>
@@ -196,7 +198,7 @@ export default function HospitalsPage() {
                 )}
 
                 {!isLoading && !isError && visibleHospitals.length === 0 && (
-                  <div className="p-8 text-center">
+                  <div className="p-5 md:p-8 text-center">
                     <div className="w-16 h-16 rounded-full bg-[#F0F0F3] flex items-center justify-center mx-auto mb-4">
                       <Hospital size={24} className="text-[#8E8E93]" />
                     </div>
@@ -213,7 +215,7 @@ export default function HospitalsPage() {
               {/* Pagination */}
               {pages > 1 && (
                 <div className="bg-white rounded-xl border border-[#E0E1E6] mt-6 p-4 shadow-sm">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
                     <span className="text-sm text-[#60646C]">
                       Showing {(currentPage - 1) * PAGE_SIZE + 1} to{" "}
                       {Math.min(currentPage * PAGE_SIZE, total)} of {total}{" "}
@@ -229,7 +231,7 @@ export default function HospitalsPage() {
                         className="flex items-center gap-1"
                       >
                         <ChevronLeft size={16} />
-                        Previous
+                        <span className="hidden sm:inline">Previous</span>
                       </Button>
                       <span className="text-sm font-semibold text-[#1B173A] px-2">
                         Page {currentPage} of {pages}
@@ -243,7 +245,7 @@ export default function HospitalsPage() {
                         disabled={currentPage === pages || isFetching}
                         className="flex items-center gap-1"
                       >
-                        Next
+                        <span className="hidden sm:inline">Next</span>
                         <ChevronRight size={16} />
                       </Button>
                     </div>

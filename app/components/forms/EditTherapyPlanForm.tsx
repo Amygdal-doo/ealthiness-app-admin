@@ -139,7 +139,7 @@ const EditTherapyPlanForm: React.FC<EditTherapyPlanFormProps> = ({
   return (
     <Card className="w-full max-w-2xl shadow-2xl max-h-[90vh] flex flex-col">
       {/* Header */}
-      <div className="p-6 border-b border-[#E0E1E6] flex items-center justify-between shrink-0">
+      <div className="p-4 md:p-6 border-b border-[#E0E1E6] flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center">
             <ClipboardList size={20} />
@@ -166,7 +166,7 @@ const EditTherapyPlanForm: React.FC<EditTherapyPlanFormProps> = ({
       </div>
 
       {/* Body (scrolls) */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
         <FormField
           label="Title *"
           icon={<FileText size={14} />}
@@ -292,7 +292,7 @@ const EditTherapyPlanForm: React.FC<EditTherapyPlanFormProps> = ({
       </div>
 
       {/* Footer actions */}
-      <div className="flex justify-between gap-3 p-6 border-t border-[#E0E1E6] shrink-0">
+      <div className="flex justify-between gap-3 p-4 md:p-6 border-t border-[#E0E1E6] shrink-0">
         {onCancel ? (
           <Button
             type="button"

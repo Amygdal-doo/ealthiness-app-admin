@@ -121,10 +121,10 @@ export default function PractitionerSessionsPage({
 
   return (
     <RoleGuard allowedRoles={portal.allowedRoles}>
-      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={user} />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <Navbar
             user={user}
             onLogout={() => navigate("/")}
@@ -132,7 +132,7 @@ export default function PractitionerSessionsPage({
             refreshing={isFetching}
           />
 
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 md:p-6 min-w-0">
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="mb-6">
                 <h2 className="text-2xl font-extrabold text-[#1B173A] flex items-center gap-3">
@@ -148,7 +148,7 @@ export default function PractitionerSessionsPage({
 
               {/* Filters */}
               <div className="bg-white rounded-xl border border-[#E0E1E6] p-4 mb-6 shadow-sm">
-                <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
                   <div className="relative flex-1 w-full">
                     <Search
                       size={18}
@@ -185,120 +185,122 @@ export default function PractitionerSessionsPage({
                   </div>
                 )}
 
-                <table className="w-full text-left">
-                  <thead className="bg-[#F8F9FB] border-b border-[#E0E1E6]">
-                    <tr>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
-                        Session
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Date &amp; Time
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
-                        Language
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
-                        Transcript
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
-                        Summary
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest text-right">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#E0E1E6]">
-                    {visibleSessions.map((session: TherapySession) => {
-                      const { date, time } = formatDateTime(
-                        session.sessionDate,
-                      );
-                      return (
-                        <tr
-                          key={session.id}
-                          onClick={() =>
-                            navigate(`${portal.basePath}/sessions/${session.id}`)
-                          }
-                          className="hover:bg-gray-50 transition cursor-pointer"
-                        >
-                          <td className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold shrink-0">
-                                {session.title.charAt(0).toUpperCase()}
+                <div className="relative overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-[#F8F9FB] border-b border-[#E0E1E6]">
+                      <tr>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
+                          Session
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                          Date &amp; Time
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
+                          Language
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
+                          Transcript
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
+                          Summary
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest text-right">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E0E1E6]">
+                      {visibleSessions.map((session: TherapySession) => {
+                        const { date, time } = formatDateTime(
+                          session.sessionDate,
+                        );
+                        return (
+                          <tr
+                            key={session.id}
+                            onClick={() =>
+                              navigate(`${portal.basePath}/sessions/${session.id}`)
+                            }
+                            className="hover:bg-gray-50 transition cursor-pointer"
+                          >
+                            <td className="p-3 md:p-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold shrink-0">
+                                  {session.title.charAt(0).toUpperCase()}
+                                </div>
+                                <span className="font-bold text-[#1B173A]">
+                                  {session.title}
+                                </span>
                               </div>
-                              <span className="font-bold text-[#1B173A]">
-                                {session.title}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="p-4 hidden md:table-cell">
-                            <div className="flex items-center gap-2 text-[#60646C] font-medium">
-                              <Clock size={14} className="text-[#8E8E93]" />
-                              {date} · {time}
-                            </div>
-                          </td>
-                          <td className="p-4 hidden lg:table-cell">
-                            <div className="flex items-center gap-2 text-[#60646C] font-medium uppercase">
-                              <Globe size={14} className="text-[#248FEC]" />
-                              {session.language}
-                            </div>
-                          </td>
-                          <td className="p-4 hidden lg:table-cell">
-                            <Badge
-                              variant={statusVariant(
-                                session.transcriptionStatus,
-                              )}
-                              className="text-xs"
-                            >
-                              <FileText size={12} />
-                              {formatStatus(session.transcriptionStatus)}
-                            </Badge>
-                          </td>
-                          <td className="p-4 hidden lg:table-cell">
-                            <Badge
-                              variant={statusVariant(session.summaryStatus)}
-                              className="text-xs"
-                            >
-                              <Sparkles size={12} />
-                              {formatStatus(session.summaryStatus)}
-                            </Badge>
-                          </td>
-                          <td className="p-4 text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <Button
-                                variant="ghost"
-                                className="px-2"
-                                title="View Session"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate(
-                                    `${portal.basePath}/sessions/${session.id}`,
-                                  );
-                                }}
+                            </td>
+                            <td className="p-3 md:p-4 hidden md:table-cell">
+                              <div className="flex items-center gap-2 text-[#60646C] font-medium">
+                                <Clock size={14} className="text-[#8E8E93]" />
+                                {date} · {time}
+                              </div>
+                            </td>
+                            <td className="p-3 md:p-4 hidden lg:table-cell">
+                              <div className="flex items-center gap-2 text-[#60646C] font-medium uppercase">
+                                <Globe size={14} className="text-[#248FEC]" />
+                                {session.language}
+                              </div>
+                            </td>
+                            <td className="p-3 md:p-4 hidden lg:table-cell">
+                              <Badge
+                                variant={statusVariant(
+                                  session.transcriptionStatus,
+                                )}
+                                className="text-xs"
                               >
-                                <Eye size={18} />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                className="px-2 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                title="Delete Session"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSessionToDelete(session);
-                                }}
+                                <FileText size={12} />
+                                {formatStatus(session.transcriptionStatus)}
+                              </Badge>
+                            </td>
+                            <td className="p-3 md:p-4 hidden lg:table-cell">
+                              <Badge
+                                variant={statusVariant(session.summaryStatus)}
+                                className="text-xs"
                               >
-                                <Trash2 size={18} />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                                <Sparkles size={12} />
+                                {formatStatus(session.summaryStatus)}
+                              </Badge>
+                            </td>
+                            <td className="p-3 md:p-4 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                <Button
+                                  variant="ghost"
+                                  className="px-2"
+                                  title="View Session"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(
+                                      `${portal.basePath}/sessions/${session.id}`,
+                                    );
+                                  }}
+                                >
+                                  <Eye size={18} />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  className="px-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                  title="Delete Session"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSessionToDelete(session);
+                                  }}
+                                >
+                                  <Trash2 size={18} />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
 
                 {!isLoading && isError && (
-                  <div className="p-8 text-center">
+                  <div className="p-5 md:p-8 text-center">
                     <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
                       <CalendarClock size={24} className="text-red-400" />
                     </div>
@@ -315,7 +317,7 @@ export default function PractitionerSessionsPage({
                 )}
 
                 {!isLoading && !isError && visibleSessions.length === 0 && (
-                  <div className="p-8 text-center">
+                  <div className="p-5 md:p-8 text-center">
                     <div className="w-16 h-16 rounded-full bg-[#F0F0F3] flex items-center justify-center mx-auto mb-4">
                       <CalendarClock size={24} className="text-[#8E8E93]" />
                     </div>
@@ -334,7 +336,7 @@ export default function PractitionerSessionsPage({
               {/* Pagination */}
               {pages > 1 && (
                 <div className="bg-white rounded-xl border border-[#E0E1E6] mt-6 p-4 shadow-sm">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
                     <span className="text-sm text-[#60646C]">
                       Showing {(page - 1) * PAGE_SIZE + 1} to{" "}
                       {Math.min(page * PAGE_SIZE, total)} of {total} results
@@ -349,7 +351,7 @@ export default function PractitionerSessionsPage({
                         className="flex items-center gap-1"
                       >
                         <ChevronLeft size={16} />
-                        Previous
+                        <span className="hidden sm:inline">Previous</span>
                       </Button>
                       <span className="text-sm font-semibold text-[#1B173A] px-2">
                         Page {page} of {pages}
@@ -361,7 +363,7 @@ export default function PractitionerSessionsPage({
                         disabled={page === pages || isFetching}
                         className="flex items-center gap-1"
                       >
-                        Next
+                        <span className="hidden sm:inline">Next</span>
                         <ChevronRight size={16} />
                       </Button>
                     </div>

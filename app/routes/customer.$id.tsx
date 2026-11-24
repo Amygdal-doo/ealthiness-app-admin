@@ -151,9 +151,9 @@ export default function CustomerDetailPage({ loaderData }: Route.ComponentProps)
   if (userError) {
     return (
       <RoleGuard allowedRoles={["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN", "COMPANY_ADMIN"]}>
-        <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+        <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
           <AppSidebar user={user} />
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center p-4">
             <div className="text-center">
               <h2 className="text-2xl font-bold text-red-600 mb-2">User Not Found</h2>
               <p className="text-gray-600 mb-4">The user you're looking for could not be found.</p>
@@ -200,10 +200,10 @@ Based on their current activity levels and the administrative context provided, 
 
   return (
     <RoleGuard allowedRoles={["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN", "COMPANY_ADMIN"]}>
-      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={user} />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         <Navbar
           user={user}
           onLogout={handleLogout}
@@ -211,7 +211,7 @@ Based on their current activity levels and the administrative context provided, 
           refreshing={refreshing}
         />
 
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-4 md:p-6 min-w-0">
           <div className="animate-in fade-in slide-in-from-right-8 duration-500 pb-12">
         <Link 
           to="/customers"
@@ -222,17 +222,17 @@ Based on their current activity levels and the administrative context provided, 
         </Link>
 
         {/* Hero Profile Banner */}
-        <div className="bg-[#1B173A] rounded-[32px] p-8 text-white shadow-2xl mb-8 relative overflow-hidden flex flex-col md:flex-row items-center md:items-start gap-8 border border-[#38383A]">
+        <div className="bg-[#1B173A] rounded-[32px] p-5 md:p-8 text-white shadow-2xl mb-8 relative overflow-hidden flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 border border-[#38383A]">
           <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-[#5850DE]/40 to-transparent"></div>
           
-          <div className="relative z-10 w-28 h-28 rounded-3xl bg-gradient-to-br from-[#5850DE] to-[#248FEC] flex items-center justify-center text-4xl font-extrabold shadow-[0_0_40px_rgba(88,80,222,0.5)] border-4 border-[#1B173A]">
+          <div className="relative z-10 w-28 h-28 rounded-3xl bg-gradient-to-br from-[#5850DE] to-[#248FEC] flex items-center justify-center text-2xl md:text-4xl break-words font-extrabold shadow-[0_0_40px_rgba(88,80,222,0.5)] border-4 border-[#1B173A]">
             {u.name.charAt(0)}
           </div>
           
           <div className="relative z-10 text-center md:text-left flex-1">
             <div className="flex flex-col md:flex-row md:items-center gap-4 mb-2">
               <div className="flex items-center gap-3 justify-center md:justify-start">
-                <h2 className="text-4xl font-extrabold">{u.name}</h2>
+                <h2 className="text-2xl md:text-4xl break-words font-extrabold">{u.name}</h2>
                 {u.gender === 'male' ? (
                   <User size={24} className="text-blue-400" />
                 ) : u.gender === 'female' ? (
@@ -252,14 +252,14 @@ Based on their current activity levels and the administrative context provided, 
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
           
           {/* LEFT COLUMN */}
-          <div className="lg:col-span-8 space-y-8">
+          <div className="lg:col-span-8 space-y-8 min-w-0">
             
             {/* AI Insights Card */}
-            <Card className="p-8 bg-gradient-to-br from-[#F8F9FB] to-white border-[#E8E6FC]">
-              <div className="flex justify-between items-start mb-4">
+            <Card className="p-5 md:p-8 bg-gradient-to-br from-[#F8F9FB] to-white border-[#E8E6FC]">
+              <div className="flex flex-wrap gap-3 justify-between items-start mb-4">
                 <h3 className="text-xl font-extrabold text-[#1B173A] flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5850DE] to-[#248FEC] text-white flex items-center justify-center">
                     <Sparkles size={20} />
@@ -292,7 +292,7 @@ Based on their current activity levels and the administrative context provided, 
                   <p className="text-sm font-bold text-[#8E8E93] animate-pulse">Analyzing health metrics...</p>
                 </div>
               ) : aiInsights ? (
-                <div className="bg-white p-6 rounded-2xl border border-[#E0E1E6] shadow-sm mt-4">
+                <div className="bg-white p-4 md:p-6 rounded-2xl border border-[#E0E1E6] shadow-sm mt-4">
                   <p className="text-[#1B173A] leading-relaxed whitespace-pre-wrap">{aiInsights}</p>
                   <Button variant="outline" className="mt-4 w-full" onClick={() => setAiInsights('')}>
                     Reset Analysis
@@ -302,7 +302,7 @@ Based on their current activity levels and the administrative context provided, 
             </Card>
 
             {/* Smart Check-in Message */}
-            <Card className="p-8">
+            <Card className="p-5 md:p-8">
               <h3 className="text-xl font-extrabold text-[#1B173A] flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-xl bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center">
                   <Mail size={20} />
@@ -338,8 +338,8 @@ Based on their current activity levels and the administrative context provided, 
             </Card>
 
             {/* Running & Calories Chart */}
-            <Card className="p-8">
-              <div className="flex justify-between items-center mb-8">
+            <Card className="p-5 md:p-8">
+              <div className="flex flex-wrap gap-3 justify-between items-center mb-8">
                 <h3 className="text-xl font-extrabold text-[#1B173A] flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-[#FFF4E5] text-[#FFB900] flex items-center justify-center">
                     <Flame size={20} />
@@ -371,7 +371,7 @@ Based on their current activity levels and the administrative context provided, 
             </Card>
 
             {/* Exercise Logs */}
-            <Card className="p-8">
+            <Card className="p-5 md:p-8">
               <h3 className="text-xl font-extrabold text-[#1B173A] mb-6 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center">
                   <Dumbbell size={20} />
@@ -400,10 +400,10 @@ Based on their current activity levels and the administrative context provided, 
           </div>
 
           {/* RIGHT COLUMN */}
-          <div className="lg:col-span-4 space-y-8">
+          <div className="lg:col-span-4 space-y-8 min-w-0">
             
             {/* Mood Tracker */}
-            <Card className="p-6">
+            <Card className="p-4 md:p-6">
               <h3 className="text-lg font-extrabold text-[#1B173A] mb-6 flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-[#E5F6E4] text-[#4DAB46] flex items-center justify-center">
                   <Smile size={16} />
@@ -467,7 +467,7 @@ Based on their current activity levels and the administrative context provided, 
             </Card>
 
             {/* Diet Plan */}
-            <Card className="p-6 border-t-4 border-t-[#4DAB46]">
+            <Card className="p-4 md:p-6 border-t-4 border-t-[#4DAB46]">
               <h3 className="text-lg font-extrabold text-[#1B173A] mb-2 flex items-center gap-2">
                 <Utensils className="text-[#4DAB46]" size={18} />
                 Diet Plan
@@ -516,14 +516,14 @@ Based on their current activity levels and the administrative context provided, 
             </Card>
 
             {/* Monthly Bonus System */}
-            <Card className="p-6 border-t-4 border-t-[#FFB900]">
+            <Card className="p-4 md:p-6 border-t-4 border-t-[#FFB900]">
               <h3 className="text-lg font-extrabold text-[#1B173A] mb-2 flex items-center gap-2">
                 <Award className="text-[#FFB900]" size={18} />
                 Monthly Bonus Rewards
               </h3>
               <p className="text-xs text-[#60646C] mb-4 font-medium">Reward this user with wellness points for their consistency this month.</p>
               
-              <div className="bg-[#FFF4E5] p-4 rounded-2xl border border-[#FFE4B5] flex justify-between items-center mb-4">
+              <div className="bg-[#FFF4E5] p-4 rounded-2xl border border-[#FFE4B5] flex justify-between items-center mb-4 flex-wrap gap-3">
                 <span className="font-bold text-[#1B173A] text-sm">Current Points:</span>
                 <span className="text-2xl font-extrabold text-[#FFB900]">{bonusPoints}</span>
               </div>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import {
   LayoutGrid,
@@ -15,6 +15,9 @@ import {
   Activity,
   UtensilsCrossed,
   Hospital,
+  ClipboardCheck,
+  Menu,
+  X,
 } from "lucide-react";
 
 import type { User } from "~/lib/auth/types";
@@ -36,6 +39,27 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const logoutMutation = useLogout();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Close the mobile drawer whenever the route changes.
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  // Lock body scroll and support Escape while the mobile drawer is open.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [mobileOpen]);
 
   // Use user.role from the authenticated user
   const effectiveRole = user.role;
@@ -188,6 +212,13 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
       path: "/coaches",
     },
     {
+      id: "coach-applications",
+      label: "Coach Applications",
+      icon: ClipboardCheck,
+      roles: ["SUPER_ADMIN"],
+      path: "/coach-applications",
+    },
+    {
       id: "exercises",
       label: "Exercises",
       icon: Activity,
@@ -245,8 +276,13 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
     return location.pathname.startsWith(itemPath);
   };
 
-  return (
-    <aside className="w-64 bg-white border-r border-[#E0E1E6] flex flex-col h-screen sticky top-0 shrink-0 z-20">
+  const goTo = (path: string) => {
+    setMobileOpen(false);
+    navigate(path);
+  };
+
+  const sidebarContent = (
+    <>
       {/* Header */}
       <div className="p-6 flex items-center gap-3 border-b border-[#E0E1E6]">
         <div className="w-10 h-10 bg-gradient-to-br from-[#5850DE] to-[#248FEC] rounded-xl flex items-center justify-center text-white shadow-md">
@@ -274,7 +310,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
 
           const handleNavigation = (e: React.MouseEvent) => {
             e.preventDefault();
-            navigate(item.path);
+            goTo(item.path);
           };
 
           return (
@@ -306,7 +342,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
 
               const handleBrandNavigation = (e: React.MouseEvent) => {
                 e.preventDefault();
-                navigate(item.path);
+                goTo(item.path);
               };
 
               return (
@@ -331,13 +367,78 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
       {/* Footer - Logout Button */}
       <div className="p-4 border-t border-[#E0E1E6] mt-auto">
         <button
-          onClick={handleLogout}
+          onClick={() => {
+            setMobileOpen(false);
+            handleLogout();
+          }}
           className="w-full flex items-center justify-center gap-2 p-3 text-[#EF4444] font-bold hover:bg-red-50 rounded-xl transition-colors"
         >
           Logout Securely
         </button>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile top bar (< md) */}
+      <div className="md:hidden sticky top-0 z-40 flex h-14 shrink-0 items-center gap-3 border-b border-[#E0E1E6] bg-white px-4">
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          aria-label="Open navigation menu"
+          aria-expanded={mobileOpen}
+          aria-controls="app-sidebar-drawer"
+          className="-ml-2 p-2 rounded-xl text-[#1B173A] hover:bg-[#F0F0F3] transition-colors"
+        >
+          <Menu size={22} />
+        </button>
+        <div className="w-8 h-8 bg-gradient-to-br from-[#5850DE] to-[#248FEC] rounded-lg flex items-center justify-center text-white shadow-md">
+          <HeartPulse size={16} />
+        </div>
+        <div className="min-w-0">
+          <span className="font-extrabold text-base text-[#1B173A] leading-tight block">
+            Ealthiness
+          </span>
+          <span className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-wider block truncate">
+            {getRoleDisplayName(normalizedRole)}
+          </span>
+        </div>
+      </div>
+
+      {/* Mobile off-canvas drawer */}
+      <div
+        className={`md:hidden fixed inset-0 z-[60] ${mobileOpen ? "" : "pointer-events-none"}`}
+        inert={!mobileOpen}
+      >
+        <div
+          className={`absolute inset-0 bg-black/50 transition-opacity duration-200 ${mobileOpen ? "opacity-100" : "opacity-0"}`}
+          onClick={() => setMobileOpen(false)}
+        />
+        <aside
+          id="app-sidebar-drawer"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation"
+          className={`absolute inset-y-0 left-0 w-72 max-w-[85vw] bg-white shadow-2xl flex flex-col transition-transform duration-200 ease-out ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
+        >
+          <button
+            type="button"
+            onClick={() => setMobileOpen(false)}
+            aria-label="Close navigation menu"
+            className="absolute top-4 right-3 p-2 rounded-xl text-[#60646C] hover:bg-[#F0F0F3] transition-colors"
+          >
+            <X size={20} />
+          </button>
+          {sidebarContent}
+        </aside>
+      </div>
+
+      {/* Desktop sidebar (>= md) */}
+      <aside className="hidden md:flex w-64 bg-white border-r border-[#E0E1E6] flex-col h-screen sticky top-0 shrink-0 z-20">
+        {sidebarContent}
+      </aside>
+    </>
   );
 };
 

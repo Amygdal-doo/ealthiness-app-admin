@@ -17,7 +17,7 @@ export default function Unauthorized() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F8F9FB] via-white to-[#F0F4FF] flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 border border-gray-200">
+        <div className="bg-white rounded-3xl shadow-2xl p-5 md:p-8 border border-gray-200">
           <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <AlertTriangle className="w-10 h-10 text-red-500" />
           </div>

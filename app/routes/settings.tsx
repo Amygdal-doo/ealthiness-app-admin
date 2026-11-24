@@ -43,10 +43,10 @@ export default function Settings() {
 
   return (
     <RoleGuard allowedRoles={["SUPER_ADMIN", "COUNTRY_ADMIN", "REGIONAL_ADMIN", "COMPANY_ADMIN"]}>
-      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={user} />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <Navbar
             user={user}
             onLogout={handleLogout}
@@ -54,19 +54,19 @@ export default function Settings() {
             refreshing={refreshing}
           />
 
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 md:p-6 min-w-0">
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto">
-              <h1 className="text-3xl font-extrabold text-[#1B173A] mb-8">
+              <h1 className="text-2xl md:text-3xl font-extrabold text-[#1B173A] mb-8">
                 Settings
               </h1>
-              <div className="bg-white rounded-xl p-8 shadow-sm border border-[#E0E1E6]">
+              <div className="bg-white rounded-xl p-5 md:p-8 shadow-sm border border-[#E0E1E6]">
                 <p className="text-[#60646C] mb-4">
                   Manage system settings and configuration.
                 </p>
                 <p className="text-sm text-[#8E8E93]">
                   Current role: {user.role}
                 </p>
-                <div className="mt-8 p-6 bg-[#F8F9FB] rounded-lg border-2 border-dashed border-[#E0E1E6]">
+                <div className="mt-8 p-4 md:p-6 bg-[#F8F9FB] rounded-lg border-2 border-dashed border-[#E0E1E6]">
                   <p className="text-center text-[#8E8E93]">
                     Settings interface coming soon...
                   </p>

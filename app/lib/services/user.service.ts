@@ -14,6 +14,7 @@ import type {
   DoctorsQueryParams,
   CompanyDoctorsQueryParams,
   CoachesQueryParams,
+  CoachApplicationsQueryParams,
   HospitalsQueryParams,
   PatientsQueryParams,
   SessionTherapyPlansQueryParams,
@@ -470,6 +471,33 @@ export function buildCoachesQueryString(
  */
 export function buildCoachDetailsEndpoint(coachId: string): string {
   return `/v1/admin/coach/${coachId}`;
+}
+
+/**
+ * Builds the query string for the pending coach applications endpoint
+ */
+export function buildCoachApplicationsQueryString(
+  params: CoachApplicationsQueryParams = {},
+): string {
+  const searchParams = new URLSearchParams();
+
+  if (params.page !== undefined) {
+    searchParams.append("page", params.page.toString());
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.append("limit", params.limit.toString());
+  }
+
+  const queryString = searchParams.toString();
+  return `/v1/admin/coach/applications${queryString ? `?${queryString}` : ""}`;
+}
+
+/**
+ * Builds the endpoint for rejecting a pending coach application
+ */
+export function buildRejectCoachApplicationEndpoint(userId: string): string {
+  return `/v1/admin/coach/applications/${userId}/reject`;
 }
 
 /**

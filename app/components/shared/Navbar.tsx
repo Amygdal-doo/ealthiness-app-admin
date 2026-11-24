@@ -63,10 +63,10 @@ const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <nav className="bg-white border-b border-[#E0E1E6] p-6 sticky top-0 z-50">
+    <nav className="bg-white border-b border-[#E0E1E6] px-4 py-2 md:p-6 relative md:sticky md:top-0 z-30 md:z-50">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        {/* Logo */}
-        <div className="flex items-center gap-3">
+        {/* Logo (shown in the mobile top bar instead on small screens) */}
+        <div className="hidden md:flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-[#5850DE] to-[#248FEC] rounded-xl flex items-center justify-center text-white shadow-md">
             <HeartPulse size={20} />
           </div>
@@ -84,12 +84,12 @@ const Navbar: React.FC<NavbarProps> = ({
         <div className="flex-1"></div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
           {onRefresh && (
             <button
               onClick={onRefresh}
               disabled={refreshing}
-              className="p-3 bg-[#F8F9FB] hover:bg-[#E0E1E6] rounded-xl transition-colors"
+              className="p-2.5 md:p-3 bg-[#F8F9FB] hover:bg-[#E0E1E6] rounded-xl transition-colors"
             >
               <RefreshCw
                 size={18}
@@ -99,7 +99,7 @@ const Navbar: React.FC<NavbarProps> = ({
           )}
 
           <div className="relative">
-            <button className="p-3 bg-[#F8F9FB] hover:bg-[#E0E1E6] rounded-xl transition-colors">
+            <button className="p-2.5 md:p-3 bg-[#F8F9FB] hover:bg-[#E0E1E6] rounded-xl transition-colors">
               <Bell size={18} className="text-[#1B173A]" />
             </button>
             <span className="absolute top-2 right-2 w-2 h-2 bg-[#EF4444] rounded-full border border-white"></span>

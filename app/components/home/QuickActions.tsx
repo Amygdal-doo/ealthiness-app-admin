@@ -23,7 +23,7 @@ const QuickActionButton: React.FC<QuickAction> = ({
 }) => (
   <button 
     onClick={onClick}
-    className="flex flex-col items-center gap-3 p-6 bg-white rounded-2xl border border-[#E0E1E6] hover:border-[#5850DE] hover:shadow-md transition-all duration-200 hover:-translate-y-1 group"
+    className="flex flex-col items-center gap-3 p-4 md:p-6 bg-white rounded-2xl border border-[#E0E1E6] hover:border-[#5850DE] hover:shadow-md transition-all duration-200 hover:-translate-y-1 group"
   >
     <div className={`w-12 h-12 rounded-xl ${bgColor} flex items-center justify-center group-hover:scale-110 transition-transform`}>
       <Icon size={24} />

@@ -132,9 +132,9 @@ function TherapyPlanCard({
   };
 
   return (
-    <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
-      <div className="flex items-start justify-between gap-3 mb-5">
-        <h4 className="text-xl font-extrabold text-[#1B173A] break-words">
+    <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+        <h4 className="text-xl font-extrabold text-[#1B173A] break-words min-w-0">
           {plan.title}
         </h4>
         <div className="flex items-center gap-2 shrink-0">
@@ -396,10 +396,10 @@ export default function PractitionerSessionDetailPage({
 
   return (
     <RoleGuard allowedRoles={portal.allowedRoles}>
-      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={user} />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <Navbar
             user={user}
             onLogout={() => navigate("/")}
@@ -407,7 +407,7 @@ export default function PractitionerSessionDetailPage({
             refreshing={isFetching}
           />
 
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 md:p-6 min-w-0">
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
               {/* Back button */}
               <button
@@ -432,7 +432,7 @@ export default function PractitionerSessionDetailPage({
 
               {/* Error */}
               {!isLoading && isError && (
-                <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-8 text-center">
+                <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-5 md:p-8 text-center">
                   <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
                     <CalendarClock size={24} className="text-red-400" />
                   </div>
@@ -452,14 +452,14 @@ export default function PractitionerSessionDetailPage({
               {!isLoading && !isError && session && (
                 <div className="space-y-6">
                   {/* Header card */}
-                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6">
                     <div className="flex items-start gap-4">
                       <div className="w-14 h-14 rounded-2xl bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center shrink-0">
                         <CalendarClock size={26} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-3">
-                          <h2 className="text-2xl font-extrabold text-[#1B173A] break-words">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <h2 className="text-xl md:text-2xl font-extrabold text-[#1B173A] break-words min-w-0">
                             {session.title}
                           </h2>
                           <div className="flex items-center gap-2 shrink-0">
@@ -534,7 +534,7 @@ export default function PractitionerSessionDetailPage({
                               <a
                                 key={email}
                                 href={`mailto:${email}`}
-                                className="flex items-center gap-1.5 hover:text-[#5850DE] transition-colors"
+                                className="flex items-center gap-1.5 min-w-0 [overflow-wrap:anywhere] hover:text-[#5850DE] transition-colors"
                               >
                                 <Mail size={14} className="text-[#8E8E93]" />
                                 {email}
@@ -558,7 +558,7 @@ export default function PractitionerSessionDetailPage({
                           </span>
                         )}
                       </h3>
-                      <div className="w-44">
+                      <div className="w-full sm:w-44">
                         <Select
                           value={planStatus}
                           onChange={handlePlanStatusChange}
@@ -568,7 +568,7 @@ export default function PractitionerSessionDetailPage({
                     </div>
 
                     {isPlansLoading ? (
-                      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+                      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6">
                         <div className="flex items-center gap-2 text-gray-600">
                           <Loader2
                             size={18}
@@ -580,7 +580,7 @@ export default function PractitionerSessionDetailPage({
                         </div>
                       </div>
                     ) : isPlansError ? (
-                      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+                      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6">
                         <div className="flex items-center justify-between gap-3">
                           <p className="text-sm text-[#8E8E93] italic">
                             Couldn't load therapy plans.
@@ -595,7 +595,7 @@ export default function PractitionerSessionDetailPage({
                         </div>
                       </div>
                     ) : plans.length === 0 ? (
-                      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
+                      <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6">
                         <p className="text-sm text-[#8E8E93] italic">
                           No {PLAN_STATUS_STYLE[planStatus].label.toLowerCase()}{" "}
                           therapy plans for this patient.
@@ -663,8 +663,8 @@ export default function PractitionerSessionDetailPage({
 
                   {/* Audio */}
                   {session.audio && (
-                    <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
-                      <div className="flex items-center justify-between mb-4">
+                    <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6">
+                      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                         <h3 className="text-lg font-bold text-[#1B173A] flex items-center gap-2">
                           <Headphones size={18} className="text-[#5850DE]" />
                           Audio Recording
@@ -693,8 +693,8 @@ export default function PractitionerSessionDetailPage({
                   )}
 
                   {/* Doctor Notes */}
-                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6">
-                    <div className="flex items-center justify-between mb-4">
+                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6">
+                    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                       <h3 className="text-lg font-bold text-[#1B173A] flex items-center gap-2">
                         <NotebookPen size={18} className="text-[#5850DE]" />
                         Doctor Notes
@@ -837,7 +837,7 @@ export default function PractitionerSessionDetailPage({
 
                   {/* Transcript panel */}
                   {openTranscript && (
-                    <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6 animate-in fade-in slide-in-from-top-2 duration-200">
                       <h3 className="text-lg font-bold text-[#1B173A] flex items-center gap-2 mb-4">
                         <FileText size={18} className="text-[#5850DE]" />
                         Transcript
@@ -856,7 +856,7 @@ export default function PractitionerSessionDetailPage({
 
                   {/* Summary panel */}
                   {openSummary && (
-                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="bg-white rounded-[24px] border border-[#E0E1E6] shadow-sm p-4 md:p-6 animate-in fade-in slide-in-from-top-2 duration-200">
                     <h3 className="text-lg font-bold text-[#1B173A] flex items-center gap-2 mb-4">
                       <Sparkles size={18} className="text-[#5850DE]" />
                       Summary
@@ -880,7 +880,7 @@ export default function PractitionerSessionDetailPage({
                     {/* Summary Audio */}
                     {session.summaryStatus === "completed" && (
                       <div className="mt-6 pt-6 border-t border-[#E0E1E6]">
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                           <h4 className="text-base font-bold text-[#1B173A] flex items-center gap-2">
                             <Volume2 size={16} className="text-[#5850DE]" />
                             Summary Audio

@@ -127,7 +127,7 @@ export default function AdminRegistrationPage() {
   if (!token) {
     return (
       <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center p-4">
-        <Card className="w-full max-w-md p-8 text-center">
+        <Card className="w-full max-w-md p-5 md:p-8 text-center">
           <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
             <AlertCircle size={32} className="text-red-600" />
           </div>
@@ -156,7 +156,7 @@ export default function AdminRegistrationPage() {
     <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center p-4">
       <div className="w-full max-w-4xl">
         {/* Header Card */}
-        <Card className="p-8 mb-6">
+        <Card className="p-5 md:p-8 mb-6">
           <div className="text-center">
             <div
               className={`w-20 h-20 rounded-full bg-gradient-to-br ${colors.gradient} flex items-center justify-center mx-auto mb-4 text-white`}
@@ -192,7 +192,7 @@ export default function AdminRegistrationPage() {
         </Card>
 
         {/* Registration Form or Invitation Acceptance */}
-        <Card className="p-8 overflow-visible">
+        <Card className="p-5 md:p-8 overflow-visible">
           {existingUser ? (
             <AdminInvitationAcceptance
               adminType={adminType || ""}

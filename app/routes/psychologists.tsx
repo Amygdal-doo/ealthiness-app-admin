@@ -145,10 +145,10 @@ export default function PsychologistsPage() {
 
   return (
     <RoleGuard allowedRoles={["SUPER_ADMIN"]}>
-      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={user} />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <Navbar
             user={user}
             onLogout={handleLogout}
@@ -156,9 +156,9 @@ export default function PsychologistsPage() {
             refreshing={refreshing || isFetching}
           />
 
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 md:p-6 min-w-0">
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div>
                   <h2 className="text-2xl font-extrabold text-[#1B173A] flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center">
@@ -171,14 +171,14 @@ export default function PsychologistsPage() {
                     found ({visiblePsychologists.length} on this page)
                   </p>
                 </div>
-                <Button onClick={handleInvitePsychologist}>
+                <Button onClick={handleInvitePsychologist} className="w-full sm:w-auto">
                   <UserPlus size={18} className="mr-2" /> Invite Psychologist
                 </Button>
               </div>
 
               {/* Search and Filters */}
               <div className="bg-white rounded-xl border border-[#E0E1E6] p-4 mb-6 shadow-sm">
-                <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
                   {/* Search Input */}
                   <div className="relative flex-1">
                     <Search
@@ -195,7 +195,7 @@ export default function PsychologistsPage() {
                   </div>
 
                   {/* Order By Filter */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-medium text-[#60646C] whitespace-nowrap">
                       Sort by:
                     </span>
@@ -272,114 +272,116 @@ export default function PsychologistsPage() {
                   </div>
                 )}
 
-                <table className="w-full text-left">
-                  <thead className="bg-[#F8F9FB] border-b border-[#E0E1E6]">
-                    <tr>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
-                        Psychologist
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
-                        Roles
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Country
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Patients
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Companies
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
-                        Joined
-                      </th>
-                      <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest text-right">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#E0E1E6]">
-                    {visiblePsychologists.map((psychologist) => (
-                      <tr
-                        key={psychologist.id}
-                        className="hover:bg-gray-50 transition"
-                      >
-                        <td className="p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold overflow-hidden shrink-0">
-                              {psychologist.profileImage ? (
-                                <img
-                                  src={psychologist.profileImage}
-                                  alt={psychologist.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                psychologist.name.charAt(0)
-                              )}
-                            </div>
-                            <div>
-                              <span className="font-bold text-[#1B173A] leading-tight block">
-                                {psychologist.name}
-                              </span>
-                              <span className="text-xs text-[#8E8E93] font-medium">
-                                {psychologist.email}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-4 hidden lg:table-cell">
-                          <div className="space-y-1">
-                            {psychologist.roles.map((role, index) => (
-                              <div key={index}>
-                                <Badge
-                                  variant={
-                                    role === "SUPER_ADMIN"
-                                      ? "destructive"
-                                      : role.includes("ADMIN")
-                                        ? "secondary"
-                                        : "default"
-                                  }
-                                  className="text-xs"
-                                >
-                                  {role.replace("_", " ")}
-                                </Badge>
-                              </div>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
-                          {psychologist.country}
-                        </td>
-                        <td className="p-4 hidden md:table-cell">
-                          <div className="flex items-center gap-2 font-medium text-[#60646C]">
-                            <Users size={14} className="text-[#5850DE]" />
-                            {psychologist.patientsCount}
-                          </div>
-                        </td>
-                        <td className="p-4 hidden md:table-cell">
-                          <div className="flex items-center gap-2 font-medium text-[#60646C]">
-                            <Building2 size={14} className="text-[#248FEC]" />
-                            {psychologist.companiesCount}
-                          </div>
-                        </td>
-                        <td className="p-4 font-medium text-[#60646C] hidden md:table-cell">
-                          {psychologist.joined}
-                        </td>
-                        <td className="p-4 text-right">
-                          <Link
-                            to={`/customers/${psychologist.id}`}
-                            className="bg-white border border-[#E0E1E6] text-[#1B173A] text-xs font-bold px-4 py-2 rounded-lg hover:border-[#5850DE] hover:text-[#5850DE] transition inline-block"
-                          >
-                            View Profile
-                          </Link>
-                        </td>
+                <div className="relative overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-[#F8F9FB] border-b border-[#E0E1E6]">
+                      <tr>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
+                          Psychologist
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
+                          Roles
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                          Country
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                          Patients
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                          Companies
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
+                          Joined
+                        </th>
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest text-right">
+                          Action
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-[#E0E1E6]">
+                      {visiblePsychologists.map((psychologist) => (
+                        <tr
+                          key={psychologist.id}
+                          className="hover:bg-gray-50 transition"
+                        >
+                          <td className="p-3 md:p-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-[#F0F0F3] text-[#5850DE] flex items-center justify-center font-bold overflow-hidden shrink-0">
+                                {psychologist.profileImage ? (
+                                  <img
+                                    src={psychologist.profileImage}
+                                    alt={psychologist.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  psychologist.name.charAt(0)
+                                )}
+                              </div>
+                              <div>
+                                <span className="font-bold text-[#1B173A] leading-tight block">
+                                  {psychologist.name}
+                                </span>
+                                <span className="text-xs text-[#8E8E93] font-medium">
+                                  {psychologist.email}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3 md:p-4 hidden lg:table-cell">
+                            <div className="space-y-1">
+                              {psychologist.roles.map((role, index) => (
+                                <div key={index}>
+                                  <Badge
+                                    variant={
+                                      role === "SUPER_ADMIN"
+                                        ? "destructive"
+                                        : role.includes("ADMIN")
+                                          ? "secondary"
+                                          : "default"
+                                    }
+                                    className="text-xs"
+                                  >
+                                    {role.replace("_", " ")}
+                                  </Badge>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="p-3 md:p-4 font-medium text-[#60646C] hidden md:table-cell">
+                            {psychologist.country}
+                          </td>
+                          <td className="p-3 md:p-4 hidden md:table-cell">
+                            <div className="flex items-center gap-2 font-medium text-[#60646C]">
+                              <Users size={14} className="text-[#5850DE]" />
+                              {psychologist.patientsCount}
+                            </div>
+                          </td>
+                          <td className="p-3 md:p-4 hidden md:table-cell">
+                            <div className="flex items-center gap-2 font-medium text-[#60646C]">
+                              <Building2 size={14} className="text-[#248FEC]" />
+                              {psychologist.companiesCount}
+                            </div>
+                          </td>
+                          <td className="p-3 md:p-4 font-medium text-[#60646C] hidden md:table-cell">
+                            {psychologist.joined}
+                          </td>
+                          <td className="p-3 md:p-4 text-right">
+                            <Link
+                              to={`/customers/${psychologist.id}`}
+                              className="bg-white border border-[#E0E1E6] text-[#1B173A] text-xs font-bold px-4 py-2 rounded-lg hover:border-[#5850DE] hover:text-[#5850DE] transition inline-block"
+                            >
+                              View Profile
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
                 {visiblePsychologists.length === 0 && (
-                  <div className="p-8 text-center">
+                  <div className="p-5 md:p-8 text-center">
                     <div className="w-16 h-16 rounded-full bg-[#F0F0F3] flex items-center justify-center mx-auto mb-4">
                       <Brain size={24} className="text-[#8E8E93]" />
                     </div>
@@ -396,7 +398,7 @@ export default function PsychologistsPage() {
               {/* Pagination */}
               {psychologistsResponse && psychologistsResponse.pages > 1 && (
                 <div className="bg-white rounded-xl border border-[#E0E1E6] mt-6 p-4 shadow-sm">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-[#60646C]">
                         Showing {(currentPage - 1) * 10 + 1} to{" "}
@@ -405,7 +407,7 @@ export default function PsychologistsPage() {
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {/* Previous Button */}
                       <Button
                         variant="outline"
@@ -417,11 +419,11 @@ export default function PsychologistsPage() {
                         className="flex items-center gap-1"
                       >
                         <ChevronLeft size={16} />
-                        Previous
+                        <span className="hidden sm:inline">Previous</span>
                       </Button>
 
                       {/* Page Numbers */}
-                      <div className="flex items-center gap-1">
+                      <div className="flex flex-wrap items-center gap-1">
                         {(() => {
                           const totalPages = psychologistsResponse.pages;
                           const current = currentPage;
@@ -504,7 +506,7 @@ export default function PsychologistsPage() {
                         }
                         className="flex items-center gap-1"
                       >
-                        Next
+                        <span className="hidden sm:inline">Next</span>
                         <ChevronRight size={16} />
                       </Button>
                     </div>

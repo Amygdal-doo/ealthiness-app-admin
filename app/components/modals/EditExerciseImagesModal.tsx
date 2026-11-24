@@ -87,7 +87,7 @@ export const EditExerciseImagesModal: React.FC<
     <div className="fixed inset-0 z-[10000] bg-black/50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="p-6 border-b border-[#E0E1E6] flex items-center justify-between gap-3 shrink-0">
+        <div className="p-4 md:p-6 border-b border-[#E0E1E6] flex items-center justify-between gap-3 shrink-0">
           <h3 className="text-lg font-extrabold text-[#1B173A] flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5850DE] to-[#248FEC] text-white flex items-center justify-center">
               <ImageIcon size={18} />
@@ -105,7 +105,7 @@ export const EditExerciseImagesModal: React.FC<
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-5">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5">
           {/* Current images */}
           {exercise.images.length > 0 && (
             <div>
@@ -179,7 +179,7 @@ export const EditExerciseImagesModal: React.FC<
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-[#E0E1E6] flex gap-3 shrink-0">
+        <div className="p-4 md:p-6 border-t border-[#E0E1E6] flex gap-3 shrink-0">
           <Button
             onClick={handleSubmit}
             disabled={updateImages.isPending || images.length < 1}

@@ -406,6 +406,33 @@ export interface ApiCoachDetail extends Omit<ApiCoach, "country"> {
   groupsCount: number;
 }
 
+// Coach applications API types (pending "become a coach" requests)
+export interface ApiCoachApplication {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string[];
+  profileImage?: unknown;
+  country?: unknown;
+  coachInfo?: Partial<ApiCoachInfo> | null;
+  coachStatus: "pending";
+  updatedAt: string;
+}
+
+export interface CoachApplicationsResponse {
+  limit: number;
+  page: number;
+  pages: number;
+  total: number;
+  results: ApiCoachApplication[];
+}
+
+export interface CoachApplicationsQueryParams {
+  page?: number;
+  limit?: number;
+}
+
 // Company doctors API types (company-scoped endpoint returns _id)
 export interface ApiCompanyDoctor {
   _id: string;

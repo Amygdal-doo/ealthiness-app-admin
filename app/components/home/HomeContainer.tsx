@@ -291,9 +291,9 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={userData.user} />
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center">
             <div className="w-8 h-8 border-2 border-[#5850DE] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-[#60646C] font-medium">Loading dashboard...</p>
@@ -306,9 +306,9 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
   // Show error state
   if (error) {
     return (
-      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={userData.user} />
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center">
             <AlertCircle size={48} className="text-[#EF4444] mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-[#1B173A] mb-2">Error Loading Dashboard</h2>
@@ -333,10 +333,10 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+    <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
       <AppSidebar user={userData.user} />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         <Navbar
           user={userData.user}
           onLogout={handleLogout}
@@ -344,12 +344,12 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
           refreshing={refreshing}
         />
 
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-4 md:p-6 min-w-0">
           {/* Welcome Header */}
           <div className="mb-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-extrabold text-[#1B173A] mb-2">
+                <h1 className="text-2xl md:text-3xl font-extrabold text-[#1B173A] mb-2">
                   Global Dashboard
                 </h1>
                 <p className="text-[#60646C] font-medium">
@@ -442,12 +442,12 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mb-8">
             {/* Main Chart Area */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 min-w-0">
               <Card className="h-full">
                 <CardHeader>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
                     <CardTitle className="flex items-center gap-2">
                       <BarChart3 size={20} className="text-[#5850DE]" />
                       Global Platform Growth
@@ -458,7 +458,7 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80 w-full">
+                  <div className="h-64 md:h-80 w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
                         data={GLOBAL_HEALTH_TREND}
@@ -607,7 +607,7 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
                         {stats.activityDistribution.map((item, index) => (
                           <div
                             key={index}
-                            className="flex items-center justify-between"
+                            className="flex flex-wrap items-center justify-between gap-4"
                           >
                             <div className="flex items-center gap-2">
                               <div
@@ -642,7 +642,7 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
           <div className="mb-8">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-4">
                   <CardTitle className="flex items-center gap-2">
                     <Globe size={20} className="text-[#248FEC]" />
                     Regional Performance
@@ -656,7 +656,7 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
                       key={index}
                       className="p-4 bg-[#F8F9FB] rounded-xl border border-[#E0E1E6] hover:border-[#5850DE] transition-colors cursor-pointer group"
                     >
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex flex-wrap gap-3 items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
                           <span className="text-2xl">{region.flag}</span>
                           <div>
@@ -691,11 +691,11 @@ const HomeContainer: React.FC<HomeContainerProps> = ({ userData }) => {
           </div>
 
           {/* Bottom Row: Alerts & Recent Activity */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
             {/* System Alerts */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-4">
                   <CardTitle className="flex items-center gap-2">
                     <Bell size={20} className="text-[#EF4444]" />
                     System Alerts

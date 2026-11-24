@@ -83,13 +83,13 @@ const Layout: React.FC<LayoutProps> = ({ children, role, title }) => {
   };
 
   return (
-    <div className="flex h-screen bg-[#F8F9FB] font-sans selection:bg-[#5850DE] selection:text-white overflow-hidden">
+    <div className="flex flex-col md:flex-row h-screen bg-[#F8F9FB] font-sans selection:bg-[#5850DE] selection:text-white overflow-hidden">
       <AppSidebar user={user} />
-      <main className="flex-1 overflow-y-auto relative">
+      <main className="flex-1 min-w-0 min-h-0 overflow-y-auto relative">
         {/* Top Header */}
         {title && (
-          <header className="flex justify-between items-center p-8 pb-0">
-            <h1 className="text-3xl font-extrabold text-[#1B173A]">{title}</h1>
+          <header className="flex flex-wrap justify-between items-center gap-4 p-4 md:p-8 pb-0 md:pb-0">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-[#1B173A]">{title}</h1>
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 bg-white border border-[#E0E1E6] rounded-xl flex items-center justify-center text-[#1B173A] hover:bg-gray-50 cursor-pointer shadow-sm relative">
                 <Bell size={18} />
@@ -103,7 +103,7 @@ const Layout: React.FC<LayoutProps> = ({ children, role, title }) => {
         )}
 
         {/* Page Content */}
-        <div className="p-8">
+        <div className="p-4 md:p-8">
           <div className="max-w-6xl mx-auto w-full">{children}</div>
         </div>
       </main>

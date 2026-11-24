@@ -34,6 +34,8 @@ import {
   buildCompanyDoctorsQueryString,
   buildCoachesQueryString,
   buildCoachDetailsEndpoint,
+  buildCoachApplicationsQueryString,
+  buildRejectCoachApplicationEndpoint,
   buildHospitalsQueryString,
   buildHospitalDetailsEndpoint,
   buildPatientsQueryString,
@@ -104,6 +106,8 @@ import type {
   CoachesResponse,
   CoachesQueryParams,
   ApiCoachDetail,
+  CoachApplicationsResponse,
+  CoachApplicationsQueryParams,
   ApiHospital,
   ApiHospitalDoctor,
   ApiHospitalPsychologist,
@@ -568,6 +572,97 @@ export function useRemoveCoachRole() {
     onSuccess: (_data, coachId) => {
       queryClient.removeQueries({ queryKey: ["coach", coachId] });
       queryClient.invalidateQueries({ queryKey: ["coaches"] });
+    },
+  });
+}
+
+export function useCoachApplications(
+  params: CoachApplicationsQueryParams = {},
+  options: { enabled?: boolean } = {},
+) {
+  return useQuery({
+    queryKey: ["coach-applications", params],
+    queryFn: async (): Promise<CoachApplicationsResponse> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        const endpoint = buildCoachApplicationsQueryString(params);
+        const response =
+          await apiClient.get<CoachApplicationsResponse>(endpoint);
+        return response;
+      } catch (error) {
+        console.error("Error fetching coach applications:", error);
+        throw error;
+      }
+    },
+    retry: (failureCount) => {
+      // Don't retry if no tokens or auth error
+      return failureCount < 2 && !!clientTokens.get();
+    },
+    // Applications are acted on by other admins too; keep the list fresh.
+    staleTime: 30 * 1000,
+    placeholderData: keepPreviousData,
+    enabled: (options.enabled ?? true) && !!clientTokens.get(), // Only run if we have tokens
+  });
+}
+
+export function useApproveCoachApplication() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    // Approving grants the COACH role and marks the application verified.
+    // No body is sent so the coachInfo submitted with the application is kept.
+    mutationFn: async (userId: string): Promise<void> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        await apiClient.post<void>(`/v1/admin/coach/${userId}/role`);
+      } catch (error) {
+        console.error("Error approving coach application:", error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["coach-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["coaches"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+}
+
+export function useRejectCoachApplication() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      userId,
+      reason,
+    }: {
+      userId: string;
+      reason: string;
+    }): Promise<void> => {
+      const tokens = clientTokens.get();
+      if (!tokens) {
+        throw new Error("No access token available");
+      }
+
+      try {
+        await apiClient.put<void>(buildRejectCoachApplicationEndpoint(userId), {
+          reason,
+        });
+      } catch (error) {
+        console.error("Error rejecting coach application:", error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["coach-applications"] });
     },
   });
 }

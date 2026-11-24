@@ -138,8 +138,8 @@ export const InviteCoachModal: React.FC<InviteCoachModalProps> = ({
   }
 
   return createPortal(
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000]">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-lg mx-4 shadow-2xl">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000] p-4">
+      <div className="bg-white rounded-2xl p-4 sm:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-extrabold text-[#1B173A] flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5850DE] to-[#248FEC] text-white flex items-center justify-center">
@@ -282,7 +282,7 @@ export const InviteCoachModal: React.FC<InviteCoachModalProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Years of Experience

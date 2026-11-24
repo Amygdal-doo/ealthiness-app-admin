@@ -210,10 +210,10 @@ export default function CountryCompaniesPage({
     <RoleGuard
       allowedRoles={["SUPER_ADMIN", "REGIONAL_ADMIN", "COUNTRY_ADMIN"]}
     >
-      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={user} />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <Navbar
             user={user}
             onLogout={handleLogout}
@@ -221,7 +221,7 @@ export default function CountryCompaniesPage({
             refreshing={refreshing}
           />
 
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 md:p-6 min-w-0">
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
               <Link
                 to={`/countries/${actualCountryId}`}
@@ -231,7 +231,7 @@ export default function CountryCompaniesPage({
                 Back to {countryName}
               </Link>
 
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <h2 className="text-2xl font-extrabold text-[#1B173A] flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#E8E6FC] text-[#5850DE] flex items-center justify-center">
@@ -248,7 +248,7 @@ export default function CountryCompaniesPage({
               </div>
 
               <Card>
-                <div className="p-6 space-y-6">
+                <div className="p-4 md:p-6 space-y-6">
                   {/* Search and Filter Section */}
                   <div className="flex flex-col sm:flex-row gap-4">
                     <div className="flex-1 relative">
@@ -331,26 +331,26 @@ export default function CountryCompaniesPage({
                   </div>
                 )}
 
-                <div className="overflow-x-auto">
+                <div className="relative overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead className="bg-[#F8F9FB] border-b border-[#E0E1E6]">
                       <tr>
-                        <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
                           Company Name
                         </th>
-                        <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden sm:table-cell">
                           Status
                         </th>
-                        <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden lg:table-cell">
                           Address
                         </th>
-                        <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
                           Employees
                         </th>
-                        <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest">
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest hidden md:table-cell">
                           Admins
                         </th>
-                        <th className="p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest text-right">
+                        <th className="p-3 md:p-4 text-xs font-bold text-[#8E8E93] uppercase tracking-widest text-right">
                           Actions
                         </th>
                       </tr>
@@ -362,7 +362,7 @@ export default function CountryCompaniesPage({
                             key={company.id}
                             className="hover:bg-gray-50 transition"
                           >
-                            <td className="p-4 font-bold text-[#1B173A] flex items-center gap-3">
+                            <td className="p-3 md:p-4 font-bold text-[#1B173A] flex items-center gap-3">
                               {company.logo ? (
                                 <img
                                   src={company.logo.url}
@@ -399,7 +399,7 @@ export default function CountryCompaniesPage({
                                 </div>
                               </div>
                             </td>
-                            <td className="p-4">
+                            <td className="p-3 md:p-4 hidden sm:table-cell">
                               <Badge
                                 variant={
                                   company.status === "active"
@@ -410,17 +410,17 @@ export default function CountryCompaniesPage({
                                 {company.status}
                               </Badge>
                             </td>
-                            <td className="p-4 text-[#60646C]">
+                            <td className="p-3 md:p-4 text-[#60646C] hidden lg:table-cell">
                               {company.address || "No address"}
                             </td>
-                            <td className="p-4 font-bold text-[#1B173A]">
+                            <td className="p-3 md:p-4 font-bold text-[#1B173A] hidden md:table-cell">
                               {company.employees}
                             </td>
-                            <td className="p-4 font-bold text-[#1B173A]">
+                            <td className="p-3 md:p-4 font-bold text-[#1B173A] hidden md:table-cell">
                               {company.admins}
                             </td>
-                            <td className="p-4 text-right">
-                              <div className="flex justify-end gap-2">
+                            <td className="p-3 md:p-4 text-right">
+                              <div className="flex flex-wrap lg:flex-nowrap justify-end gap-2">
                                 {user?.role === "SUPER_ADMIN" ? (
                                   <Button
                                     variant="ghost"
@@ -450,8 +450,8 @@ export default function CountryCompaniesPage({
                                     handleInviteAdmin(company.id, company.name)
                                   }
                                 >
-                                  <Mail size={16} className="mr-2" /> Invite
-                                  Admin
+                                  <Mail size={16} className="lg:mr-2" />
+                                  <span className="sr-only lg:not-sr-only">Invite Admin</span>
                                 </Button>
                                 <Button
                                   variant="outline"
@@ -462,8 +462,8 @@ export default function CountryCompaniesPage({
                                     )
                                   }
                                 >
-                                  <UserPlus size={16} className="mr-2" /> Invite
-                                  Employee
+                                  <UserPlus size={16} className="lg:mr-2" />
+                                  <span className="sr-only lg:not-sr-only">Invite Employee</span>
                                 </Button>
                               </div>
                             </td>
@@ -473,7 +473,7 @@ export default function CountryCompaniesPage({
                         <tr>
                           <td
                             colSpan={6}
-                            className="p-8 text-center text-[#8E8E93]"
+                            className="p-5 md:p-8 text-center text-[#8E8E93]"
                           >
                             {isLoading
                               ? "Loading..."
@@ -491,7 +491,7 @@ export default function CountryCompaniesPage({
 
                 {/* Pagination */}
                 {companiesResponse && companiesResponse.pages > 1 && (
-                  <div className="flex items-center justify-between px-6 py-4 border-t border-[#E0E1E6]">
+                  <div className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-4 border-t border-[#E0E1E6]">
                     <div className="text-sm text-[#8E8E93]">
                       Page {currentPage} of {companiesResponse.pages} (
                       {companiesResponse.total} total)

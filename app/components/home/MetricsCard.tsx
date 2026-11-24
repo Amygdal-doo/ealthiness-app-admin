@@ -25,7 +25,7 @@ const MetricsCard: React.FC<MetricsCardProps> = ({
   accentColor 
 }) => (
   <div className={`${bgColor} rounded-2xl p-6 border border-[#E0E1E6] shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-1 group`}>
-    <div className="flex items-start justify-between mb-4">
+    <div className="flex flex-wrap gap-3 items-start justify-between mb-4">
       <div className={`w-12 h-12 rounded-xl ${accentColor || 'bg-[#F0F0F3]'} flex items-center justify-center group-hover:scale-110 transition-transform`}>
         <Icon size={24} />
       </div>
@@ -39,7 +39,7 @@ const MetricsCard: React.FC<MetricsCardProps> = ({
       )}
     </div>
     <div>
-      <p className={`text-3xl font-extrabold ${color} mb-1`}>
+      <p className={`text-2xl md:text-3xl font-extrabold ${color} mb-1`}>
         {typeof value === 'number' ? value.toLocaleString() : value}
       </p>
       <p className="text-sm font-medium text-[#8E8E93]">{title}</p>

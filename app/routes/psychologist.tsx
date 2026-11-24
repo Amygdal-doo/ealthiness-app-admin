@@ -86,13 +86,13 @@ export default function PsychologistOverviewPage() {
 
   return (
     <RoleGuard allowedRoles={["PSYCHOLOGIST", "SUPER_ADMIN"]}>
-      <div className="min-h-screen bg-[#F8F9FB] font-sans flex">
+      <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={user} />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <Navbar user={user} onLogout={() => navigate("/")} />
 
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 md:p-6 min-w-0">
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl mx-auto">
               <div className="mb-6">
                 <h2 className="text-2xl font-extrabold text-[#1B173A] flex items-center gap-3">
@@ -115,14 +115,14 @@ export default function PsychologistOverviewPage() {
               {/* Featured cards */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
                 {/* Active patients */}
-                <div className="relative overflow-hidden rounded-[24px] p-6 bg-gradient-to-br from-[#5850DE] to-[#8B7CF6] text-white shadow-sm">
+                <div className="relative overflow-hidden rounded-[24px] p-4 md:p-6 bg-gradient-to-br from-[#5850DE] to-[#8B7CF6] text-white shadow-sm">
                   <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10" />
                   <div className="absolute -right-10 top-10 w-24 h-24 rounded-full bg-white/5" />
                   <div className="relative">
                     <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center mb-8">
                       <Users size={24} />
                     </div>
-                    <div className="text-4xl font-extrabold leading-none">
+                    <div className="text-2xl md:text-4xl break-words font-extrabold leading-none">
                       {isOverviewLoading ? (
                         <Skeleton className="h-9 w-16 bg-white/30" />
                       ) : (
@@ -136,8 +136,8 @@ export default function PsychologistOverviewPage() {
                 </div>
 
                 {/* Therapy plan completion */}
-                <div className="lg:col-span-2 rounded-[24px] p-6 bg-white border border-[#E0E1E6] shadow-sm flex flex-col">
-                  <div className="flex items-center justify-between">
+                <div className="lg:col-span-2 rounded-[24px] p-4 md:p-6 bg-white border border-[#E0E1E6] shadow-sm flex flex-col min-w-0">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
                     <h3 className="text-sm font-bold text-[#60646C] uppercase tracking-widest">
                       Therapy Plan Completion
                     </h3>
@@ -147,7 +147,7 @@ export default function PsychologistOverviewPage() {
                   </div>
 
                   <div className="mt-auto pt-8">
-                    <div className="text-4xl font-extrabold text-[#1B173A] leading-none">
+                    <div className="text-2xl md:text-4xl break-words font-extrabold text-[#1B173A] leading-none">
                       {isOverviewLoading ? (
                         <Skeleton className="h-9 w-20" />
                       ) : completionPercent === null ? (
@@ -187,13 +187,13 @@ export default function PsychologistOverviewPage() {
                   {sessionStats.map((stat) => {
                     const Icon = stat.icon;
                     return (
-                      <div key={stat.id} className="p-6">
+                      <div key={stat.id} className="p-4 md:p-6">
                         <div
                           className={`w-10 h-10 rounded-xl ${stat.bg} ${stat.accent} flex items-center justify-center mb-4`}
                         >
                           <Icon size={20} />
                         </div>
-                        <div className="text-3xl font-extrabold text-[#1B173A] leading-none">
+                        <div className="text-2xl md:text-3xl font-extrabold text-[#1B173A] leading-none">
                           {isOverviewLoading ? (
                             <Skeleton className="h-8 w-12" />
                           ) : (
