@@ -62,6 +62,8 @@ export type UserRole =
   | "SUPER_ADMIN"
   | "PSYCHOLOGIST"
   | "DOCTOR"
+  | "COACH"
+  | "GYM_ADMIN"
   | "USER";
 
 export interface Session {
@@ -169,6 +171,22 @@ export const USER_ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
     canManageRegions: false,
     canManageCountries: false,
     canViewAnalytics: false,
+    canManageSystem: false,
+  },
+  COACH: {
+    canManageUsers: false,
+    canManageCompanies: false,
+    canManageRegions: false,
+    canManageCountries: false,
+    canViewAnalytics: false,
+    canManageSystem: false,
+  },
+  GYM_ADMIN: {
+    canManageUsers: false,
+    canManageCompanies: false,
+    canManageRegions: false,
+    canManageCountries: false,
+    canViewAnalytics: true,
     canManageSystem: false,
   },
   USER: {
@@ -575,6 +593,8 @@ export interface ApiCompany {
   employees: string[];
   admins: string[];
   assignmentList: any[];
+  /** Work email domains (company admins); people on them are asked to join. */
+  emailDomains?: string[];
   createdAt: string;
   updatedAt: string;
   __v: number;

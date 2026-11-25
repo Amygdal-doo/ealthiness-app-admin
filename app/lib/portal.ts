@@ -24,3 +24,17 @@ export const DOCTOR_PORTAL: PractitionerPortal = {
   allowedRoles: ["DOCTOR", "SUPER_ADMIN"],
   apiRole: "doctor",
 };
+
+// Where each portal role lands after sign-in (admins go to /home).
+export const ROLE_HOME: Partial<Record<UserRole, string>> = {
+  PSYCHOLOGIST: "/psychologist",
+  DOCTOR: "/doctor",
+  COACH: "/trainer",
+  GYM_ADMIN: "/gym",
+};
+
+export const TRAINER_ROLES: UserRole[] = ["COACH"];
+export const GYM_ADMIN_ROLES: UserRole[] = ["GYM_ADMIN", "SUPER_ADMIN"];
+// Hospital staff are clinicians with a hospital membership (clinician/admin).
+export const HOSPITAL_STAFF_ROLES: UserRole[] = ["DOCTOR", "PSYCHOLOGIST", "SUPER_ADMIN"];
+export const COMPANY_ADMIN_ROLES: UserRole[] = ["COMPANY_ADMIN", "SUPER_ADMIN"];

@@ -39,6 +39,9 @@ export interface DietPlan {
   createdAt: string;
   updatedAt: string;
   creator: string;
+  /** Trainer plans for sale: none/pending/approved/rejected (super admin review). */
+  review?: "none" | "pending" | "approved" | "rejected";
+  reviewNote?: string | null;
 }
 
 /* -------------------------------------------------------------------------- */

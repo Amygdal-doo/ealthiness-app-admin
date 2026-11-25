@@ -241,7 +241,7 @@ export default function DietPlanDetailPage() {
       // now-deleted plan (which would 404).
       setIsDeleted(true);
       setIsDeleteOpen(false);
-      navigate("/diet-plans");
+      navigate(user?.role === "COACH" ? "/trainer/plans" : "/diet-plans");
     } catch (error) {
       console.error("Failed to delete diet plan:", error);
       setDeleteError(
@@ -280,7 +280,7 @@ export default function DietPlanDetailPage() {
   }
 
   return (
-    <RoleGuard allowedRoles={["SUPER_ADMIN"]}>
+    <RoleGuard allowedRoles={["SUPER_ADMIN", "COACH"]}>
       <div className="min-h-screen bg-[#F8F9FB] font-sans flex flex-col md:flex-row">
         <AppSidebar user={user} />
 
@@ -294,7 +294,7 @@ export default function DietPlanDetailPage() {
 
           <div className="flex-1 p-4 md:p-6 min-w-0">
             <button
-              onClick={() => navigate("/diet-plans")}
+              onClick={() => navigate(user?.role === "COACH" ? "/trainer/plans" : "/diet-plans")}
               className="flex items-center gap-2 text-sm font-semibold text-[#60646C] hover:text-[#5850DE] transition-colors mb-5"
             >
               <ArrowLeft size={16} />

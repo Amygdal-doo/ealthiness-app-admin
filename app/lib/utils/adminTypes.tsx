@@ -1,7 +1,7 @@
 import React from "react";
-import { Building2, Globe, MapPin, UserCheck } from "lucide-react";
+import { Building2, Dumbbell, Globe, MapPin, UserCheck } from "lucide-react";
 
-export type AdminType = "country" | "company" | "region";
+export type AdminType = "country" | "company" | "region" | "gym";
 
 export interface AdminTypeColors {
   gradient: string;
@@ -19,6 +19,8 @@ export const getAdminTypeIcon = (adminType: string) => {
       return <Building2 size={32} />;
     case "region":
       return <MapPin size={32} />;
+    case "gym":
+      return <Dumbbell size={32} />;
     default:
       return <UserCheck size={32} />;
   }
@@ -47,6 +49,13 @@ export const getAdminTypeColors = (adminType: string): AdminTypeColors => {
         bg: "bg-blue-50",
         text: "text-blue-700",
         border: "border-blue-200",
+      };
+    case "gym":
+      return {
+        gradient: "from-[#F97316] to-[#EA580C]",
+        bg: "bg-orange-50",
+        text: "text-orange-700",
+        border: "border-orange-200",
       };
     default:
       return {

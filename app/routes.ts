@@ -38,6 +38,18 @@ export default [
   route("/diet-plans/:id", "routes/diet-plan.$id.tsx"),
   route("/hospitals", "routes/hospitals.tsx"),
   route("/hospitals/:id", "routes/hospital.$id.tsx"),
+  // Role portals: trainer (COACH), gym admin, hospital staff, company admin
+  route("/trainer", "routes/trainer.tsx"),
+  route("/trainer/plans", "routes/trainer.plans.tsx"),
+  route("/payouts", "routes/payouts.tsx"),
+  route("/gym", "routes/gym.tsx"),
+  route("/gym/people", "routes/gym.people.tsx"),
+  route("/hospital-staff", "routes/hospital-staff.tsx"),
+  route("/organisation", "routes/organisation.tsx"),
+  route("/organisation/access", "routes/organisation.access.tsx"),
+  // Super admin
+  route("/plan-reviews", "routes/plan-reviews.tsx"),
+  route("/gyms", "routes/gyms.tsx"),
   route("/settings", "routes/settings.tsx"),
   route("/unauthorized", "routes/unauthorized.tsx"),
   route("/admin-registration", "routes/admin-registration.tsx"),

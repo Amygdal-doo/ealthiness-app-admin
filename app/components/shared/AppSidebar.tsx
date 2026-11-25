@@ -16,6 +16,11 @@ import {
   UtensilsCrossed,
   Hospital,
   ClipboardCheck,
+  ClipboardList,
+  Wallet,
+  Building,
+  KeyRound,
+  Inbox,
   Menu,
   X,
 } from "lucide-react";
@@ -92,6 +97,10 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
         return "Psychologist";
       case "DOCTOR":
         return "Doctor";
+      case "COACH":
+        return "Trainer";
+      case "GYM_ADMIN":
+        return "Gym Admin";
       default:
         return "Admin";
     }
@@ -151,6 +160,65 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
       icon: Users,
       roles: ["DOCTOR"],
       path: "/doctor/patients",
+    },
+    {
+      id: "hospital-staff",
+      label: "Hospital",
+      icon: Hospital,
+      roles: ["PSYCHOLOGIST", "DOCTOR"],
+      path: "/hospital-staff",
+    },
+    // Trainer (COACH) portal
+    {
+      id: "trainer-overview",
+      label: "Overview",
+      icon: LayoutGrid,
+      roles: ["COACH"],
+      path: "/trainer",
+    },
+    {
+      id: "trainer-plans",
+      label: "Diet Plans",
+      icon: UtensilsCrossed,
+      roles: ["COACH"],
+      path: "/trainer/plans",
+    },
+    {
+      id: "trainer-payouts",
+      label: "Payouts",
+      icon: Wallet,
+      roles: ["COACH"],
+      path: "/payouts",
+    },
+    // Gym admin portal
+    {
+      id: "gym-overview",
+      label: "My Gym",
+      icon: Dumbbell,
+      roles: ["GYM_ADMIN"],
+      path: "/gym",
+    },
+    {
+      id: "gym-people",
+      label: "Invites & Requests",
+      icon: Inbox,
+      roles: ["GYM_ADMIN"],
+      path: "/gym/people",
+    },
+    // Company admin portal
+    {
+      id: "organisation",
+      label: "My Organisation",
+      icon: Building2,
+      roles: ["COMPANY_ADMIN"],
+      path: "/organisation",
+    },
+    {
+      id: "organisation-access",
+      label: "Invites & Requests",
+      icon: KeyRound,
+      roles: ["COMPANY_ADMIN"],
+      path: "/organisation/access",
     },
     {
       id: "regions",
@@ -233,6 +301,20 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
       path: "/diet-plans",
     },
     {
+      id: "plan-reviews",
+      label: "Plan Reviews",
+      icon: ClipboardList,
+      roles: ["SUPER_ADMIN"],
+      path: "/plan-reviews",
+    },
+    {
+      id: "gyms",
+      label: "Gyms",
+      icon: Building,
+      roles: ["SUPER_ADMIN"],
+      path: "/gyms",
+    },
+    {
       id: "hospitals",
       label: "Hospitals",
       icon: Hospital,
@@ -272,6 +354,10 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user }) => {
     }
     if (itemId === "doctor-overview") {
       return location.pathname === "/doctor";
+    }
+    // Overview items whose path prefixes a sibling item.
+    if (itemId === "trainer-overview" || itemId === "gym-overview" || itemId === "organisation") {
+      return location.pathname === itemPath;
     }
     return location.pathname.startsWith(itemPath);
   };

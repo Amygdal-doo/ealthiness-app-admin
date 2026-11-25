@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "~/hooks/useAuth";
 import LoginContainer from "~/components/login/LoginContainer";
+import { ROLE_HOME } from "~/lib/portal";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -27,10 +28,9 @@ export default function Index() {
         "REGIONAL_ADMIN",
         "COMPANY_ADMIN",
       ];
-      if (user.role === "PSYCHOLOGIST") {
-        navigate("/psychologist", { replace: true });
-      } else if (user.role === "DOCTOR") {
-        navigate("/doctor", { replace: true });
+      const roleHome = ROLE_HOME[user.role];
+      if (roleHome) {
+        navigate(roleHome, { replace: true });
       } else if (adminRoles.includes(user.role)) {
         navigate("/home", { replace: true });
       } else {
